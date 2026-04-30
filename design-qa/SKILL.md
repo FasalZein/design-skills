@@ -115,7 +115,7 @@ Scan for AI-generated aesthetic fingerprints. ANY of these = immediate flag.
 
 | Check | How to Verify |
 |-------|--------------|
-| All buttons have hover state | Every `<Button>` or `<button>` has hover styles (via variant or explicit). |
+| All interactive elements have hover state | Every `<Button>`, `<button>`, clickable card, table row action, and custom interactive element has hover styles. Not just buttons — any element that responds to clicks needs hover/focus/active/disabled. |
 | Focus visible on all interactive elements | `:focus-visible` ring on buttons, inputs, links, checkboxes, selects. NEVER `outline: none` without replacement. |
 | Disabled state implemented | Conditional disable uses `disabled:opacity-*` + `disabled:pointer-events-none`. Not just visual. |
 | Loading states exist | Async actions (form submit, data fetch) show loading indicator. Buttons disable during submission. |
