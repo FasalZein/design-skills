@@ -72,11 +72,21 @@ Before building any hero or landing section, pick ONE architecture:
 - One CTA per hero. Secondary action as text link, not a second button.
 - Background depth: use surface variation (tinted sections, subtle gradients, noise textures) instead of flat solid colors. Match to aesthetic direction.
 
+**Background treatments by aesthetic direction:**
+
+| Aesthetic | Background options |
+|-----------|-------------------|
+| **Editorial / warm** | Warm off-white base (`oklch(0.97 0.01 80)`), subtle paper grain via CSS noise, tinted section bands |
+| **Technical / stark** | Pure neutral base, faint dot grid (`radial-gradient` repeating pattern), thin rule lines between sections |
+| **Friendly / soft** | Soft radial gradient behind hero, pastel-tinted card surfaces, gentle shadow layering |
+| **Bold / expressive** | Mesh gradient accent panels, aurora wash on header areas, high-contrast dark sections |
+| **Neutral / professional** | Alternating gray-50/white sections, minimal — rely on borders and spacing over color |
+
 ---
 
 ## Typography
 
-Pick a font based on the product's aesthetic direction:
+Pick a font based on the product's aesthetic direction. The font must match the product — a fintech dashboard gets Technical/stark, a children's app gets Friendly/soft.
 
 | Aesthetic | Fonts | Character |
 |-----------|-------|-----------|
@@ -85,8 +95,6 @@ Pick a font based on the product's aesthetic direction:
 | **Friendly / soft** | Plus Jakarta Sans, Nunito Sans, Outfit | Approachable, rounded |
 | **Bold / expressive** | Sora, Space Grotesk, Clash Display (display only) | Strong personality |
 | **Neutral / professional** | DM Sans, General Sans, Satoshi | Clean, versatile |
-
-The font must match the product — a fintech dashboard gets Technical/stark, a children's app gets Friendly/soft. DM Sans is fine for neutral contexts but wrong for editorial or expressive ones.
 
 | Rule | Implementation |
 |------|---------------|
@@ -97,8 +105,14 @@ The font must match the product — a fintech dashboard gets Technical/stark, a 
 | Large display text | `tracking-tight` or `tracking-tighter` on text-3xl+. NEVER add positive tracking. |
 | Case | Sentence case for headings, labels, tabs, buttons. ALL CAPS only for micro-meta (timestamps, badges ≤3 words). |
 | Font loading | `font-display: swap`. Sizes in `rem`/`em`, not `px`. `-webkit-font-smoothing: antialiased` on root. |
+| Fluid type | Use `clamp()` for marketing/content pages. Fixed sizes for app UI. |
 | Limits | Max 3 font weights per view. One family unless genuine display/body contrast needed. |
 | NEVER | Monospace for display headings. `tracking-wide`. `user-scalable=no`. Arbitrary sizes (`text-[13px]`). |
+
+```
+BAD:  text-[13px], text-[15px], text-[17px]  → too many sizes, too close together
+GOOD: text-xs (12), text-sm (14), text-base (16), text-xl (20)  → clear jumps
+```
 
 ---
 
@@ -116,10 +130,11 @@ Status: bg-primary/10 text-primary (success), bg-destructive/10 text-destructive
 
 | Rule | Detail |
 |------|--------|
+| Three layers | Primitives (oklch palette) → Semantic tokens (purpose) → Component tokens. Components reference ONLY semantic. |
 | Contrast | ≥ 4.5:1 (WCAG AA). No exceptions. |
 | Neutrals | Tint toward brand hue: `oklch(95% 0.01 60)` not `#f5f5f5`. Dead grays have no personality. |
 | 60-30-10 | 60% neutrals, 30% secondary, 10% accent. Max 1 primary + 1 secondary accent. |
-| OKLCH | Define in CSS tokens only. NEVER inline `bg-[oklch(...)]` in Tailwind classes. |
+| OKLCH | Define in CSS tokens only. NEVER inline `bg-[oklch(...)]` in Tailwind classes. Reduce chroma at extreme lightness. |
 | Dark mode | Not inverted light mode. No shadows for depth (use lighter surfaces). Desaturate accents slightly. Reduce font weight (350 instead of 400). Never pure black bg. Swap semantic token layer, not component layer. |
 | NEVER | Pure black/white for large areas. Gray text on colored backgrounds. Purple-to-blue gradients. |
 
@@ -141,9 +156,16 @@ page: 2-4rem (32-64px) — page-level margins
 |------|--------|
 | Spacing tokens | Use framework scale only. NEVER `p-[13px]`, `gap-[7px]`. |
 | Visual rhythm | Tight within groups, generous between sections. Not the same padding everywhere. |
-| Border radius | ONE base radius, derive all others. Outer = inner + padding (concentric). NEVER mix arbitrary values. |
+| Border radius | ONE base radius, derive all others. Buttons/inputs: 4-6px. Cards/dialogs: 8px. Badges: 4px or `rounded-full`. Outer = inner + padding (concentric). NEVER mix arbitrary values. |
 | Shadows | Barely perceptible, multi-layer. `shadow-sm` for elevation, `shadow-md` for popovers. NEVER `shadow-lg/xl` on small components. |
 | Grouping | Pick ONE method per section: borders OR shadows OR spacing. Never all three. |
+
+```css
+/* Good: subtle, multi-layer (Stripe-style) */
+box-shadow: 0 1px 1px rgba(0,0,0,0.03), 0 3px 6px rgba(0,0,0,0.02);
+/* Bad: heavy, single-layer */
+box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+```
 
 **Acceptable arbitrary values:** `max-w-[65ch]`, `max-w-[45ch]`, `min-h-[*rem]`, grid-template values.
 **Still banned:** `p-[17px]`, `w-[423px]`, `text-[13px]`.
@@ -163,6 +185,8 @@ page: 2-4rem (32-64px) — page-level margins
 | Cards | Containers, not decoration. NEVER wrap everything in cards. NEVER nest cards inside cards. |
 | Touch targets | 44x44px minimum on mobile. |
 | Responsive | Prefer 2-tier (mobile + desktop). NEVER hide core functionality on mobile. |
+| Square elements | Use `size-*` instead of `w-* h-*` (e.g., `size-10` not `w-10 h-10`). |
+| Input method | Detect with `@media (pointer: coarse)` for touch, `@media (hover: none)` for no-hover devices. |
 
 **Structural completeness** — a viewport should feel composed, not assembled with gaps:
 - **App shells:** Navigation context (sidebar, top bar, or both) + full-height content area. A form in a void = missing structure.
@@ -175,12 +199,26 @@ page: 2-4rem (32-64px) — page-level margins
 - Background zones: alternate surface treatments (tinted sections, subtle texture, full-bleed accent bands) to break visual monotony.
 - Whitespace is composition, not emptiness. Intentional whitespace is *consistent and framed*; accidental emptiness is *asymmetric and unfinished*.
 
+**Sidebar visual hierarchy** — sidebars must recede, not compete:
+- Text/icons: 40-50% opacity when inactive, full opacity when active/hovered
+- Background: 1-2 steps dimmer than content area
+- Width: fixed (200-280px), collapsible to icon-only
+- Content area ALWAYS wins the visual hierarchy contest
+
 **Key CSS patterns:**
 ```css
 .app-shell { display: grid; grid-template-rows: auto 1fr; height: 100dvh; }
 .with-sidebar { display: grid; grid-template-columns: 260px 1fr; height: 100dvh; }
 .auto-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.sticky-aside { position: sticky; top: 1rem; align-self: start; }
+.content-aside { display: grid; grid-template-columns: 1fr minmax(240px, 320px); }
 ```
+
+**Progressive disclosure:**
+- Step-by-step flows > 12-field forms shown at once
+- Sheets/drawers for contextual detail (preserve parent context)
+- Dialogs only for blocking decisions that require confirmation
+- ONE primary action per view. Two equal CTAs = hierarchy failure.
 
 ---
 
@@ -193,9 +231,10 @@ page: 2-4rem (32-64px) — page-level margins
 | Variants | CVA or equivalent. Never inline ternary chains. `cn()` for class composition. |
 | Semantic HTML | `<button>` for actions, `<a>` for navigation. NEVER `<div onClick>`. |
 | Icon-only buttons | MUST have `aria-label`. |
-| Destructive actions | MUST use `AlertDialog`. |
+| Destructive actions | MUST use `AlertDialog`. Prefer undo over confirmation dialogs — users click through confirmations mindlessly. |
 | Errors | Inline, next to where the action happened. Not in a toast. |
 | Empty states | Clear message + CTA + optional illustration. NEVER just "No items." |
+| Loading | Use structural skeletons that preview content shape, not generic spinners. |
 | Paste | NEVER block paste in inputs/textareas. |
 
 **Interaction states** — EVERY interactive element MUST have ALL of these:
@@ -208,7 +247,60 @@ page: 2-4rem (32-64px) — page-level margins
 | Disabled | `opacity-50 pointer-events-none cursor-not-allowed` |
 | Loading | Disable + "Saving..." text + `aria-busy={isLoading}` |
 
+**Button className template** — every button MUST include:
+```tsx
+className="hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors transition-transform duration-150"
+```
+
+**Async action template:**
+```tsx
+<button disabled={isSaving} aria-busy={isSaving}>
+  {isSaving ? "Saving..." : "Save changes"}
+</button>
+```
+
+**Empty states:**
+```
+BAD:  "No results"
+GOOD: "No documents yet. Upload your first document to get started." [Upload Document]
+```
+
 **Error messages** answer 3 questions: What happened? Why? How to fix it?
+```
+BAD:  "Error occurred"
+GOOD: "Couldn't save your changes. Check your internet connection and try again." [Retry]
+```
+
+---
+
+## UX Writing
+
+| Rule | Detail |
+|------|--------|
+| Button labels | Specific verb + object: "Save changes" not "OK". "Delete 5 items" not "Yes". |
+| Terminology | Pick one term, use everywhere: Delete/Remove/Trash → pick one. Settings/Preferences → pick one. |
+| Voice | Active: "Save changes" not "Changes will be saved". |
+| Brevity | Cut every sentence in half, then do it again. |
+| i18n | Add 30-40% space budget — German text is 30% longer than English. |
+| Errors | Never use humor. Never use technical jargon (500, ECONNREFUSED, undefined). |
+| NEVER | Repeat information. Redundant headers. Intros that restate the heading. |
+
+---
+
+## Symptom-to-Correction Table
+
+When output looks "almost good but not quite," use this diagnostic:
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| Looks decent but generic | Equal-weight cards, uniform padding/radius | Remove a widget, merge a region, flatten one surface layer |
+| Everything competes for attention | Multiple primary buttons, similar visual weight | Pick ONE dominant element, mute everything else |
+| Feels cramped | Uniform tight spacing, no breathing room | Increase gap between sections (keep tight within groups) |
+| Feels empty despite content | Too much whitespace between items, thin typography | Tighten item spacing, increase font weight on key elements |
+| Layout clips on real content | Fixed heights without overflow | Use min-h instead of h, add overflow-y-auto on scrollable regions |
+| Dark mode looks washed out | Same chroma/weight as light mode | Desaturate accents slightly, reduce font weight (350 → 400) |
+| Numbers feel jumpy on update | Missing tabular-nums | Add `font-variant-numeric: tabular-nums` to all numeric displays |
+| Sidebar fights content area | Sidebar too bright, same visual weight | Dim sidebar bg 1-2 steps, reduce inactive icon/text to 40-50% opacity |
 
 ---
 
@@ -238,6 +330,7 @@ Re-read every line you wrote. Verify:
 8. **No `transition-all`** — Specify exact properties
 9. **Labels on all inputs** — Visible `<label>`, not just placeholder
 10. **Destructive actions use AlertDialog**
+11. **UX writing** — Verb+object button labels, sentence case, no jargon
 
 If ANY fail, fix before responding.
 
