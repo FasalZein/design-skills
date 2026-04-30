@@ -48,7 +48,9 @@ These are the fingerprints of AI-generated UI. Violating even one makes the outp
 
 ## Reference Files
 
-Load the relevant reference when working in a specific area:
+**For full pages, sites, or multi-component builds:** Load ALL reference files before writing any code. Every page involves typography, color, spacing, layout, and components — skipping references means skipping rules.
+
+**For single-component work:** Load the relevant reference(s) for that area:
 
 | Area | File | When to load |
 |------|------|-------------|
