@@ -2,7 +2,13 @@
 
 ## Rules
 
-- MUST choose a font with intention. For creative/brand work, NEVER default to Inter, Roboto, Arial, Open Sans, or Montserrat. Good alternatives: DM Sans, Instrument Sans, Plus Jakarta Sans, Geist, Outfit, Sora.
+- MUST choose a font with intention. NEVER default to Inter, Roboto, Arial, Open Sans, or Montserrat. Pick based on aesthetic direction:
+  - **Editorial / warm:** Instrument Sans, Source Sans 3, Libre Franklin
+  - **Technical / stark:** Geist, JetBrains Sans (not Mono), IBM Plex Sans
+  - **Friendly / soft:** Plus Jakarta Sans, Nunito Sans, Outfit
+  - **Bold / expressive:** Sora, Space Grotesk, Clash Display (display only)
+  - **Neutral / professional:** DM Sans, General Sans, Satoshi
+  - NEVER pick the first font on a list — read the project's aesthetic direction and match.
 - MUST define a type scale with clear hierarchy. 5 levels cover most needs: Display, Heading, Body, Caption, Micro. Fewer sizes with more contrast > many sizes close together.
 - MUST use `tabular-nums` (`font-variant-numeric: tabular-nums`) on all numeric data — prices, counts, dates, IDs, table columns.
 - MUST use `text-balance` on headings. SHOULD use `text-pretty` on body paragraphs.

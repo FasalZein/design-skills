@@ -14,6 +14,57 @@
 - NEVER wrap everything in cards. Use spacing and alignment for grouping. Cards are containers, not decoration.
 - NEVER nest cards inside cards. Flatten hierarchy with borders, spacing, and typography.
 
+## Structural Completeness
+
+A viewport should feel *composed*, not assembled from parts with gaps between them.
+
+- **App shells:** Every app view needs navigation context (sidebar, top bar, or both) and a content area that accounts for the full viewport height. A form floating in a void = missing structure.
+- **Dashboards:** Fill the grid. If a 2x3 grid has only 4 cards, either reduce to 2x2 or add meaningful content. Empty grid cells = layout hole.
+- **Detail pages:** Pair the primary content with supporting context (metadata sidebar, related items, activity feed). A single centered element on a wide screen wastes the viewport.
+- **Whitespace is composition, not emptiness.** Large margins around a focal element are intentional. A gap where content should be is not. The difference: intentional whitespace is *consistent* and *framed*; accidental emptiness is *asymmetric* and *unfinished*.
+
+## Spatial Composition
+
+Layouts should have visual energy, not just be stacked boxes.
+
+- **Asymmetry over centering.** A 7/5 or 8/4 split is more dynamic than 6/6. Use `grid-cols-[2fr_1fr]` or `grid-cols-[1fr_2fr]` instead of equal columns.
+- **Vary section density.** Alternate between spacious sections and tighter clusters. A hero with generous whitespace followed by a dense feature grid creates rhythm.
+- **Overlap and layering.** Use negative margins (`-mt-8`, `-ml-4`) or `translate` to overlap elements intentionally. A card breaking out of its section creates depth.
+- **Background zones.** Break visual monotony with alternating background treatments — a tinted section, a full-bleed accent band, a subtle texture. Not every section should live on the same flat surface.
+
+## Grid and Flex Tricks
+
+Practical patterns to eliminate layout holes and create professional structures:
+
+```css
+/* Fill remaining viewport height (no gaps at bottom) */
+.app-shell { display: grid; grid-template-rows: auto 1fr; height: 100dvh; }
+
+/* Sidebar + content that fills the viewport */
+.with-sidebar { display: grid; grid-template-columns: 260px 1fr; height: 100dvh; }
+
+/* Auto-fill grid that adapts without breakpoints */
+.auto-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+
+/* Sticky sidebar that scrolls independently */
+.sticky-aside { position: sticky; top: 1rem; align-self: start; }
+
+/* Content + aside with the aside never shrinking */
+.content-aside { display: grid; grid-template-columns: 1fr minmax(240px, 320px); }
+```
+
+**Flex patterns:**
+- `flex-1 min-w-0` — fill remaining space without overflow. Use on EVERY flex child that contains text.
+- `flex-shrink-0` — prevent icons, avatars, and fixed-width elements from collapsing.
+- `gap-*` over `space-y-*` — gap works on both axes and doesn't break with conditionally rendered children.
+- `flex-wrap` with `min-w-[280px]` children — responsive grid without media queries.
+
+**Preventing common layout holes:**
+- Use `grid-template-rows: auto 1fr auto` for header/content/footer — content stretches to fill.
+- Use `min-h-0` on grid/flex children inside scrollable containers — prevents overflow.
+- Use `place-content-center` on grid for true centering (simpler than flex centering).
+- Use `@container` queries on card components for density that adapts to available space, not viewport width.
+
 ## Sidebar Visual Hierarchy
 
 Sidebars must recede, not compete with content:

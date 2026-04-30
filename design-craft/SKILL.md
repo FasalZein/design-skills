@@ -80,16 +80,20 @@ Never sacrifice layout integrity to preserve decorative ambition.
 
 ## The Design Decision Checklist
 
-Before writing any UI code:
+Before writing any UI code, state these decisions explicitly (not in comments — in your reasoning):
 
-- [ ] Committed to a specific aesthetic direction (not "modern" or "clean")
-- [ ] Defined the typeface (not a default)
-- [ ] Established color system with semantic tokens
-- [ ] Set the spacing scale
-- [ ] Designed light mode first (dark mode = theme swap on semantic tokens)
+- [ ] **Structural archetype:** app shell (sidebar + content), marketing page (sections + CTA), focused tool (centered workspace), dashboard (data-dense grid), or editorial (long-form reading). This determines layout skeleton.
+- [ ] **Visual density:** sparse (breathing room, few elements), balanced (standard app), or dense (power-user, data-heavy). This determines how much content fills each viewport.
+- [ ] **Aesthetic direction** — a specific adjective pair, not "modern" or "clean" (e.g., "warm editorial", "stark technical", "soft organic")
+- [ ] **Typeface** — chosen to match the aesthetic, not defaulted
+- [ ] **Color system** with semantic tokens established
+- [ ] **Spacing scale** set
+- [ ] Light mode first (dark mode = theme swap on semantic tokens)
 - [ ] ONE primary action per view identified
 - [ ] All interactive elements have 8 states planned
 - [ ] Empty states and error states designed (not afterthoughts)
+
+The archetype and density decisions drive everything else. An "app shell / balanced" produces a sidebar, top bar, and filled content area. A "focused tool / sparse" produces a centered workspace with intentional whitespace. Neither is wrong — but the decision must be explicit, not accidental.
 
 ---
 
