@@ -12,7 +12,9 @@
 - SHOULD use fluid typography with `clamp()` for marketing/content pages. Fixed sizes for app UI.
 - MUST use `font-display: swap` on custom fonts. NEVER leave users staring at invisible text (FOIT).
 - MUST use `rem`/`em` for body text, not `px` — respects user browser font size settings.
-- NEVER modify `letter-spacing` unless explicitly requested. LLMs love adding tracking; it almost always makes things worse.
+- MUST use `tracking-tight` or `tracking-tighter` on large display text (text-3xl and above). Large text has visually loose letter-spacing by default — tightening is standard typographic practice, not a modification.
+- NEVER add positive letter-spacing (`tracking-wide`, `tracking-wider`) unless explicitly requested. LLMs love adding tracking; it almost always makes things worse.
+- NEVER use monospace fonts for display/hero headings. Monospace has fixed-width characters that create uneven visual spacing at large sizes. Use monospace only for code, technical labels, and small metadata.
 - MUST default to sentence case for all headings, labels, tabs, and buttons. Reserve ALL CAPS for micro-meta only (timestamps, status badges, overline labels ≤3 words). Title Case is almost never correct — it signals AI-generated copy.
 - NEVER use more than 3 font weights on a single view.
 - NEVER disable zoom (`user-scalable=no`, `maximum-scale=1`) — WCAG violation.
