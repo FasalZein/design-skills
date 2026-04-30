@@ -1,0 +1,14 @@
+node_modules/
+*.log
+.DS_Store
+
+# Autoresearch (internal testing)
+*/autoresearch/
+*/autoresearch-*/
+
+# GEPA/DSPy optimization outputs
+*/gepa-results/
+*/dspy-results/
+
+# Worktrees
+*-worktree/
