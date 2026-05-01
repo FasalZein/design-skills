@@ -50,6 +50,8 @@ State these decisions explicitly in your reasoning:
 5. **Color system** — semantic tokens, 60-30-10 rule, one accent max
 6. **Hero architecture** — chosen from the hero menu below (if the page has a hero)
 
+7. **The unforgettable question:** "If someone saw 10 similar pages today, what would make them remember THIS one?" Name one concrete visual or structural choice that distinguishes this design.
+
 The archetype and density decisions drive everything else. An "app shell / balanced" produces a sidebar, top bar, and filled content area. A "focused tool / sparse" produces a centered workspace with intentional whitespace. A "dashboard / dense" fills the viewport with data.
 
 ---
@@ -71,6 +73,7 @@ Before building any hero or landing section, pick ONE architecture:
 - Use real imagery — `<img>` with descriptive alt text and `object-cover`, not colored boxes or icon grids. If no image is available, use bold typography as the visual element (oversized display text, typographic contrast, negative space).
 - One CTA per hero. Secondary action as text link, not a second button.
 - Background depth: use surface variation (tinted sections, subtle gradients, noise textures) instead of flat solid colors. Match to aesthetic direction.
+- **Visual richness is mandatory.** Flat white sections with no surface treatment = visual poverty. Every section needs at least ONE of: tinted background, subtle gradient, noise/grain texture, dot/line pattern, or border treatment. CSS noise example: `background-image: url("data:image/svg+xml,...")` or repeating-radial-gradient for dot grids.
 
 **Background treatments by aesthetic direction:**
 
@@ -94,7 +97,9 @@ Pick a font based on the product's aesthetic direction. The font must match the 
 | **Technical / stark** | Geist, JetBrains Sans, IBM Plex Sans | Precise, engineering feel |
 | **Friendly / soft** | Plus Jakarta Sans, Nunito Sans, Outfit | Approachable, rounded |
 | **Bold / expressive** | Sora, Space Grotesk, Clash Display (display only) | Strong personality |
-| **Neutral / professional** | DM Sans, General Sans, Satoshi | Clean, versatile |
+| **Neutral / professional** | General Sans, Satoshi, Switzer | Clean, versatile |
+
+**Font forcing:** If you catch yourself reaching for DM Sans, Inter, or Roboto — stop. You are defaulting, not designing. Go back to the aesthetic direction and pick a font that matches the product's personality.
 
 | Rule | Implementation |
 |------|---------------|

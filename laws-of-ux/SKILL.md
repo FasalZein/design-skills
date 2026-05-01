@@ -19,10 +19,10 @@ Apply when: designing navigation, forms, settings, onboarding, any view with opt
 | **Hick's Law** | Decision time grows with choices. Limit primary nav to 5-7 items. Highlight the recommended choice. Progressive disclosure over walls of options. |
 | **Miller's Law** | Working memory holds ~7 (±2) items. Use chunking — group related inputs (address block, payment block) rather than 12 flat fields. |
 | **Working Memory** | Support recognition over recall: mark visited links, show breadcrumbs, carry context across screens. Comparison tables instead of "remember from screen 1." |
-| **Cognitive Load** | Intrinsic + extraneous = total burden. Minimize extraneous: remove decorative elements that don't serve comprehension, pre-fill known values, show only what the current step needs. |
+| **Cognitive Load** | Intrinsic + extraneous = total burden. Minimize extraneous: remove decorative elements that don't serve comprehension, pre-fill known values, show only what the current step needs. DO: for every element on screen, ask "does removing this hurt comprehension?" If no, remove it. |
 | **Choice Overload** | Too many options → paralysis. Limit visible choices, offer smart defaults, use filters/search for large catalogs. "Recommended" badges reduce cognitive cost. |
-| **Tesler's Law** | Every system has irreducible complexity — push it into the system, not onto the user. Auto-detect timezones, infer file types, provide contextual guidance. |
-| **Occam's Razor** | Remove elements until further removal breaks function. Fewer features done well > many half-done. |
+| **Tesler's Law** | Every system has irreducible complexity — push it into the system, not onto the user. DO: auto-detect timezones, infer file types, pre-fill from context, provide smart defaults. If the user has to configure something the system could detect, you failed. |
+| **Occam's Razor** | Remove elements until further removal breaks function. DO: after building, delete one element at a time — if the page still works and communicates clearly, leave it deleted. Fewer features done well > many half-done. |
 
 ## 2. Build on Familiarity
 
@@ -41,9 +41,9 @@ Apply when: designing CTAs, notifications, status indicators, visual hierarchy.
 | Law | Rule |
 |-----|------|
 | **Von Restorff Effect** | The distinct item gets remembered. Make ONE CTA visually different. If everything is emphasized, nothing is. Combine size + weight + position, not color alone. |
-| **Selective Attention** | Users filter out irrelevant info. Guide attention with hierarchy, not more elements. Don't place important content in ad-like positions (banner blindness). |
+| **Selective Attention** | Users filter out irrelevant info. DO: use size contrast (2x+ difference between primary and secondary elements), weight contrast, and position (above the fold, left-aligned) to guide the eye. Don't place important content in ad-like positions (banner blindness). Never add more elements to draw attention — subtract competing ones. |
 | **Serial Position** | First and last items are remembered best. Primary nav items at start and end. Key toolbar actions at edges, not center. |
-| **Aesthetic-Usability** | Beautiful interfaces are perceived as more usable. Visual polish creates a halo effect — but can mask real usability problems. Don't skip testing because it "looks good." |
+| **Aesthetic-Usability** | Beautiful interfaces are perceived as more usable. DO: invest in visual polish (consistent spacing, refined typography, smooth transitions) because it buys forgiveness for minor friction. But never skip usability testing because it "looks good" — the halo effect masks real problems. |
 
 ## 4. Shape Experience & Memory
 
@@ -76,7 +76,7 @@ Apply when: organizing layout, grouping controls, designing visual relationships
 | **Similarity** | Same style = same function. Consistent styling signals shared purpose. Differentiate actions from static content. |
 | **Common Region** | Shared boundary = group. Use backgrounds/borders to create regions. Prefer proximity first — common region is heavy-handed. |
 | **Connectedness** | Visual connections (lines, arrows, step connectors) create relationships. Stronger than proximity or similarity. |
-| **Prägnanz** | People see the simplest form. Reduce to essentials — make sure perceived patterns are intended patterns. |
+| **Prägnanz** | People see the simplest form. DO: align elements to a visible grid, use consistent shapes (all rounded OR all sharp, not mixed), and ensure whitespace creates clean rectangles — not ragged edges. If a layout looks "messy," the shapes aren't resolving to simple forms. |
 
 ## 7. Robustness & Prioritization
 
