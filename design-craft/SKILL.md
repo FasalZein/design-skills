@@ -147,7 +147,13 @@ GOOD: text-xs (12), text-sm (14), text-base (16), text-xl (20)  → clear jumps
 
 Don't default everything to Restrained — "restrained by reflex" is the same failure as "Inter by reflex."
 
-**Product accent color** — derive from the product's domain, not from aesthetic direction. A fitness app might use energetic green or electric orange; a writing tool might use deep amber or teal; a monitoring tool might use signal blue or alert red. The accent must feel inevitable for THIS product — if another product in the same category could use the same accent, you haven't differentiated.
+**Accent color derivation** — NEVER look up colors by category. Derive them through this procedure:
+
+1. **Physical scene:** Write one sentence placing a real person using this product — where, when, under what light, in what mood. "A person checking workout progress after a 6am run, outdoors in cool morning light" — not just "a fitness app user."
+2. **Three material words:** From the scene, name three physical/sensory words (not abstract). "Matte ceramic, cool morning, brushed steel" — not "modern, energetic, clean."
+3. **Hue family:** From the words, name the hue family and write the reasoning chain. "Cool morning + brushed steel → cool-neutral family → hue angle 200-240° OKLCH." Different scenes produce different chains, even for the same product category.
+4. **Slop check:** Is this hue what someone would guess from the domain alone? If yes, the scene wasn't specific enough — go back to step 1. After avoiding the obvious, did you land in a saturated aesthetic lane (AI purple/blue, SaaS cream, editorial amber)? If yes, differentiate further.
+5. **OKLCH seed:** Define ONE seed color: `oklch(L C H)` where H comes from step 3, C from the color strategy axis (Restrained=0.08-0.12, Committed=0.15-0.22), L from theme (light ~0.60-0.70, dark ~0.70-0.80). Generate the full palette by adjusting L while holding C and H constant. Tint neutrals toward the same hue at chroma 0.01-0.02.
 
 Use ONLY semantic color tokens in components. NEVER Tailwind palette with number suffixes (`bg-blue-500`). NEVER hex/rgb/hsl in JSX.
 
@@ -180,7 +186,7 @@ These are conventions users already know. NEVER invert them (red for success, gr
 | Tinted shadows | Replace generic rgba(0,0,0,x) with hue-matched shadows tinted toward the background hue |
 | Consistent light source | All shadows must suggest a single light direction; mismatched angles = unnoticed flaw |
 | Accent saturation | Keep below 80% — slightly desaturated feels premium |
-| Token naming | Variable names should reveal the product. `--ink`/`--parchment` for a writing app, `--pulse`/`--iron` for fitness, `--signal`/`--void` for monitoring. `--gray-700` evokes a template. |
+| Token naming | Variable names should reveal the product's physical world (from the scene in step 1 of accent derivation). Someone reading only the token names should guess the product. `--gray-700` evokes a template; evocative names evoke a world. |
 | NEVER | Pure black/white for large areas. Gray text on colored backgrounds. Purple-to-blue gradients. |
 
 ---
@@ -234,7 +240,8 @@ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 | Overflow ban | `overflow: hidden` is BANNED as layout repair — it hides the problem instead of fixing it. Fix the content or container sizing. |
 | H1 line limit | H1 MUST NOT exceed 3 lines on desktop. If it does, the container is too narrow — widen with `max-w-5xl` or wider, not shrink the font. |
 | Layout budget | For fixed-height regions, calculate `usableHeight = trackHeight - padding - borders - gaps` vs contentHeight. If content > usable, the design is invalid — reduce content, don't hide overflow. |
-| Grid completeness | NEVER leave empty grid cells. 5 items in 3-col: span one item across 2 columns. 4 items in 3-col: make one span full width or use 2+2 layout. Every cell must be filled or the grid resized. |
+| Sizing contract | Before placing any element, declare: **Hug** (size wraps content — buttons, badges), **Fill** (expands to parent — content areas, `flex: 1`), or **Fixed** (explicit dimension — sidebars, avatars). Skipping this produces brittle layouts. |
+| Grid completeness | NEVER leave empty grid cells. If `items % columns ≠ 0`: remainder of 1 → last item spans full row; remainder of 2 → last two items each span half. Use `auto-fill` with `minmax(280px, 1fr)` for truly variable counts. For 3-6 stat metrics, use a KPI strip (single border + hairline dividers) instead of individual cards — it handles any count cleanly. |
 | Touch targets | 44x44px minimum on mobile. |
 | Responsive | Prefer 2-tier (mobile + desktop). NEVER hide core functionality on mobile. |
 | Square elements | Use `size-*` instead of `w-* h-*` (e.g., `size-10` not `w-10 h-10`). |
