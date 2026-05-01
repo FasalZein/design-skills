@@ -51,7 +51,7 @@ State these decisions explicitly in your reasoning:
 
 1. **Structural archetype:** app shell (sidebar + content) · marketing page (sections + CTA) · focused tool (centered workspace) · dashboard (data-dense grid) · editorial (long-form reading)
 2. **Visual density:** sparse · balanced · dense
-3. **Aesthetic direction** — a specific adjective pair matched to the product, not "modern" or "clean" (e.g., "warm editorial", "stark technical", "soft organic", "bold expressive")
+3. **Aesthetic direction** — a specific adjective pair matched to the product, not "modern" or "clean" (e.g., "stark technical", "bold expressive", "soft organic", "warm editorial"). NEVER default to the same direction twice in a row.
 4. **Typeface** — chosen from the font menu below to match the aesthetic
 5. **Color system** — semantic tokens, 60-30-10 rule, one accent max
 6. **Hero architecture** — chosen from the hero menu below (if the page has a hero)
@@ -147,15 +147,26 @@ GOOD: text-xs (12), text-sm (14), text-base (16), text-xl (20)  → clear jumps
 
 Don't default everything to Restrained — "restrained by reflex" is the same failure as "Inter by reflex."
 
+**Product accent color** — derive from the product's domain, not from aesthetic direction. A fitness app might use energetic green or electric orange; a writing tool might use deep amber or teal; a monitoring tool might use signal blue or alert red. The accent must feel inevitable for THIS product — if another product in the same category could use the same accent, you haven't differentiated.
+
 Use ONLY semantic color tokens in components. NEVER Tailwind palette with number suffixes (`bg-blue-500`). NEVER hex/rgb/hsl in JSX.
 
 ```
 REQUIRED tokens: bg-background, text-foreground, bg-card, bg-primary, text-primary,
   bg-secondary, bg-muted, text-muted-foreground, bg-accent, bg-destructive, border-border, ring-ring
 Opacity modifiers on semantic tokens ARE allowed: bg-primary/10, border-destructive/30
-Status: bg-primary/10 text-primary (success), bg-destructive/10 text-destructive (error),
-  bg-accent text-accent-foreground (warning), bg-secondary text-secondary-foreground (info)
 ```
+
+**Universal status colors** (these never change regardless of brand):
+
+| Status | Color | Token | Usage |
+|--------|-------|-------|-------|
+| Success / positive delta | Green | `--success` | Completed, profit, upward trend, active |
+| Error / destructive | Red | `--destructive` | Failed, loss, downward trend, delete |
+| Warning / caution | Amber | `--warning` | Pending, at risk, needs attention |
+| Info / neutral action | Blue | `--info` | Links, informational, selected, in progress |
+
+These are conventions users already know. NEVER invert them (red for success, green for error). NEVER use brand accent for status — status colors are universal, not branded.
 
 | Rule | Detail |
 |------|--------|
@@ -169,7 +180,7 @@ Status: bg-primary/10 text-primary (success), bg-destructive/10 text-destructive
 | Tinted shadows | Replace generic rgba(0,0,0,x) with hue-matched shadows tinted toward the background hue |
 | Consistent light source | All shadows must suggest a single light direction; mismatched angles = unnoticed flaw |
 | Accent saturation | Keep below 80% — slightly desaturated feels premium |
-| Token naming | `--ink` and `--parchment` evoke a world; `--gray-700` evokes a template. Variable names should reveal the product. |
+| Token naming | Variable names should reveal the product. `--ink`/`--parchment` for a writing app, `--pulse`/`--iron` for fitness, `--signal`/`--void` for monitoring. `--gray-700` evokes a template. |
 | NEVER | Pure black/white for large areas. Gray text on colored backgrounds. Purple-to-blue gradients. |
 
 ---
@@ -223,6 +234,7 @@ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 | Overflow ban | `overflow: hidden` is BANNED as layout repair — it hides the problem instead of fixing it. Fix the content or container sizing. |
 | H1 line limit | H1 MUST NOT exceed 3 lines on desktop. If it does, the container is too narrow — widen with `max-w-5xl` or wider, not shrink the font. |
 | Layout budget | For fixed-height regions, calculate `usableHeight = trackHeight - padding - borders - gaps` vs contentHeight. If content > usable, the design is invalid — reduce content, don't hide overflow. |
+| Grid completeness | NEVER leave empty grid cells. 5 items in 3-col: span one item across 2 columns. 4 items in 3-col: make one span full width or use 2+2 layout. Every cell must be filled or the grid resized. |
 | Touch targets | 44x44px minimum on mobile. |
 | Responsive | Prefer 2-tier (mobile + desktop). NEVER hide core functionality on mobile. |
 | Square elements | Use `size-*` instead of `w-* h-*` (e.g., `size-10` not `w-10 h-10`). |
@@ -230,7 +242,7 @@ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 
 **Structural completeness** — a viewport should feel composed, not assembled with gaps:
 - **App shells:** Navigation context (sidebar, top bar, or both) + full-height content area. A form in a void = missing structure.
-- **Dashboards:** Fill the grid. Empty grid cells = layout hole. If 5 items in a 3-column layout, span one item across 2 columns.
+- **Dashboards:** Fill the grid. Empty grid cells = layout hole. If 5 items in a 3-column layout, span one item across 2 columns. Every dashboard needs visual data — not just numbers in cards. Use sparklines in stat cards for trend, progress rings for goal completion, color-coded category indicators, and at least one chart panel with labeled axes. A dashboard of only text and numbers is a spreadsheet, not a dashboard.
 - **Detail pages:** Primary content + supporting context (metadata sidebar, related items, activity feed). A single centered element on a wide screen wastes the viewport.
 
 **Spatial composition:**
