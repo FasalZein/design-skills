@@ -38,7 +38,7 @@ These are the fingerprints of AI-generated UI. Violating even one makes the outp
 | Side-stripe borders (border-left/right >1px as colored accent) | Template shortcut — use full borders, background tints, or icons instead |
 | Meta-labels ("SECTION 01", "QUESTION 05", "FEATURE 03") | Fake hierarchy — real headings and spacing do this job |
 | Filler UI ("Scroll to explore", bouncing chevrons) | Decorative noise with zero utility |
-| Free-floating step connector lines (`<div>` or absolute-positioned spans) | Always misalign. Use `::after` on each `<li>` with `absolute; top: [half circle height]; left: 50%; width: 100%` + `flex-1 relative` on items. Hide on last child. |
+| Free-floating step connector lines (`<div>` or absolute-positioned spans) | Always misalign. Use flexbox with `flex-1` spacer divs between step circles: `<div class="step-circle"/>` `<div class="connector" style="flex:1; height:2px; background:border-color"/>` `<div class="step-circle"/>`. This is simpler and more reliable than `::after` pseudo-elements. The connectors stretch naturally between circles. |
 | Emojis in headings or UI markup | Use an icon library, not emoji |
 | Domain-reflex coloring (healthcare = teal, crypto = neon on black) | Category alone shouldn't predict your palette |
 
@@ -192,13 +192,19 @@ Fixed 12-stop OKLCH ladder. Chroma follows a bell curve — low at the extremes 
 
 Scale chroma by strategy: Restrained ×0.6, Committed ×1.0, Full palette ×1.2, Drenched ×1.4. The shape stays — only amplitude changes.
 
+**Gamut safety:** Max chroma varies by hue. Purple (H~285) can reach C≈0.29 at L=0.5; cyan (H~195) only C≈0.09. If your chosen hue is in the 170-210 range, cap peak chroma at 0.09. For multi-hue palettes (e.g., status colors), use the same *percentage of max chroma* per hue, not the same absolute C — otherwise some hues look more vivid than others. Contrast is controlled by L distance alone — adjusting C has negligible effect on readability.
+
 **Step 3 — Derive companion scales:**
-- **Neutral:** Same H, chroma ≈ 0.015 at all stops. These are your tinted grays.
+- **Neutral:** H + 180° (opposite hue), chroma ≈ 0.01 at all stops. This prevents monochrome mud — neutrals must NOT share the primary hue. A warm primary (H=55) gets cool-tinted grays (H=235); a cool primary (H=220) gets warm-tinted grays (H=40).
 - **Secondary:** Same H, chroma ×0.4. Muted version of primary for large surfaces.
 - **Tertiary (if needed):** H + 60°, chroma ×0.5. Analogous harmony — never complementary for UI.
 
+**Monochrome mud check:** If the background, borders, text, AND accent are all the same hue family, the page looks like a sepia photograph. Primary and neutral scales MUST differ in hue by ≥120°. This creates the contrast between content (colored) and chrome (neutral) that makes UI readable.
+
 **Step 4 — Map semantic tokens from spine stops:**
-`--background: stop-50`, `--card: stop-100`, `--border: stop-300`, `--muted-foreground: stop-500`, `--primary: stop-600`, `--foreground: stop-950`. Dark mode: invert the mapping (stop-950 → background, stop-50 → foreground), reduce chroma by 20%.
+- From **neutral** scale: `--background: neutral-50`, `--card: neutral-100`, `--border: neutral-300`, `--muted-foreground: neutral-500`, `--foreground: neutral-950`
+- From **primary** scale: `--primary: primary-600`, `--primary-hover: primary-700`, `--accent: primary-100`, `--ring: primary-400`
+- Dark mode: invert the mapping (neutral-950 → background, neutral-50 → foreground), reduce chroma by 20%.
 
 Use ONLY semantic color tokens in components. NEVER Tailwind palette with number suffixes (`bg-blue-500`). NEVER hex/rgb/hsl in JSX.
 
@@ -223,16 +229,16 @@ These are conventions users already know. NEVER invert them (red for success, gr
 |------|--------|
 | Three layers | Primitives (oklch palette) → Semantic tokens (purpose) → Component tokens. Components reference ONLY semantic. |
 | Contrast | ≥ 4.5:1 (WCAG AA). No exceptions. |
-| Neutrals | Tint toward brand hue: `oklch(95% 0.01 60)` not `#f5f5f5`. Dead grays have no personality. |
+| Neutrals | Tint toward neutral hue (H+180° from primary, per Step 3). NEVER `oklch(1 0 0)` or `#ffffff` as card/surface backgrounds — always use the tinted stop-50/stop-100 from your neutral scale. Dead white has no personality. |
 | 60-30-10 | 60% neutrals, 30% secondary, 10% accent. Max 1 primary + 1 secondary accent. |
-| OKLCH | Define in CSS tokens only. NEVER inline `bg-[oklch(...)]` in Tailwind classes. Reduce chroma at extreme lightness. |
+| OKLCH | Define ALL oklch values in `:root` as CSS custom properties. NEVER use inline `oklch()` in component rules, box-shadow, outline, or Tailwind classes — always reference a `var(--token)`. |
 | Dark mode | Not inverted light mode. No shadows for depth (use lighter surfaces). Desaturate accents slightly. Reduce font weight (350 instead of 400). Never pure black bg. Swap semantic token layer, not component layer. |
 | One accent, many opacities | Use one accent at 100%, 60%, 20%, 10% before reaching for a second accent color |
 | Tinted shadows | Replace generic rgba(0,0,0,x) with hue-matched shadows tinted toward the background hue |
 | Consistent light source | All shadows must suggest a single light direction; mismatched angles = unnoticed flaw |
 | Accent saturation | Keep below 80% — slightly desaturated feels premium |
 | Token naming | Variable names should reveal the product's physical world (from the scene in Step 1). Someone reading only the token names should guess the product. `--gray-700` evokes a template; evocative names evoke a world. |
-| NEVER | Pure black/white for large areas. Gray text on colored backgrounds. Purple-to-blue gradients. |
+| NEVER | `oklch(1 0 0)`, `#fff`, `#000` as card/surface/background tokens — always tinted. Gray text on colored backgrounds. Purple-to-blue gradients. Inline `oklch()` outside `:root`. |
 
 ---
 
@@ -334,6 +340,7 @@ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 | Primitives | Use accessible primitives (shadcn, Base UI, Radix). NEVER mix systems. NEVER rebuild keyboard/focus behavior. |
 | Variants | CVA or equivalent. Never inline ternary chains. `cn()` for class composition. |
 | Semantic HTML | `<button>` for actions, `<a>` for navigation. NEVER `<div onClick>`. |
+| Button text | MUST use `white-space: nowrap`. Button labels NEVER wrap to two lines — if text doesn't fit, shorten the label or widen the button. |
 | Icon-only buttons | MUST have `aria-label`. |
 | Destructive actions | MUST use `AlertDialog`. Prefer undo over confirmation dialogs — users click through confirmations mindlessly. |
 | Errors | Inline, next to where the action happened. Not in a toast. |
@@ -438,6 +445,9 @@ Re-read every line you wrote. Verify:
 12. **The swap test** — Could you swap the font for Inter and the layout for centered-heading+3-card-grid without anyone noticing? If yes, you defaulted — go back and make real choices.
 13. **No side-stripe borders** — Zero `border-left`/`border-right` >1px used as colored accents
 14. **Three-surface limit** — Count visible surface levels. Max 3.
+15. **Grid completeness** — Zero empty grid cells. Count items vs columns: if remainder exists, last items must span to fill.
+16. **Button text** — Zero buttons with text wrapping to two lines. All buttons must use `white-space: nowrap`.
+17. **Monochrome mud** — Primary scale and neutral scale must differ in hue by ≥120°. If everything is the same hue family, the page looks like a sepia photo.
 
 If ANY fail, fix before responding.
 
