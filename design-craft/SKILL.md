@@ -38,10 +38,26 @@ These are the fingerprints of AI-generated UI. Violating even one makes the outp
 | Side-stripe borders (border-left/right >1px as colored accent) | Template shortcut — use full borders, background tints, or icons instead |
 | Meta-labels ("SECTION 01", "QUESTION 05", "FEATURE 03") | Fake hierarchy — real headings and spacing do this job |
 | Filler UI ("Scroll to explore", bouncing chevrons) | Decorative noise with zero utility |
+| Free-floating step connector lines (`<div>` or absolute-positioned spans) | Always misalign. Use `::after` on each `<li>` with `absolute; top: [half circle height]; left: 50%; width: 100%` + `flex-1 relative` on items. Hide on last child. |
 | Emojis in headings or UI markup | Use an icon library, not emoji |
 | Domain-reflex coloring (healthcare = teal, crypto = neon on black) | Category alone shouldn't predict your palette |
 
 > "If you showed this to someone and said 'AI made this,' would they believe you immediately? If yes, that's the problem."
+
+---
+
+## Project Context Scan (MANDATORY — before Design Decision Gate)
+
+Determine if this is a **brownfield** (existing design system) or **greenfield** (no existing system) project:
+
+1. Check for `components.json` → shadcn project, tokens in `globals.css` under `:root`
+2. Check `tailwind.config` for `theme.extend.colors` custom tokens
+3. Check `globals.css` / `app/globals.css` for CSS custom properties (`--primary`, `--background`, etc.)
+4. Check `package.json` for UI libraries: shadcn, Radix, Panda CSS, vanilla-extract
+
+**If ANY found → BROWNFIELD:** Catalog existing tokens. Use them. Do NOT run the color derivation procedure. Do NOT define new CSS variables for roles already covered. Only derive colors for genuinely missing roles, and harmonize new hues with existing ones.
+
+**If none found → GREENFIELD:** Proceed with full Design Decision Gate including color derivation.
 
 ---
 
@@ -51,9 +67,9 @@ State these decisions explicitly in your reasoning:
 
 1. **Structural archetype:** app shell (sidebar + content) · marketing page (sections + CTA) · focused tool (centered workspace) · dashboard (data-dense grid) · editorial (long-form reading)
 2. **Visual density:** sparse · balanced · dense
-3. **Aesthetic direction** — a specific adjective pair matched to the product, not "modern" or "clean" (e.g., "stark technical", "bold expressive", "soft organic", "warm editorial"). NEVER default to the same direction twice in a row.
+3. **Aesthetic direction** — a specific adjective pair matched to the product, not "modern" or "clean" (e.g., "stark technical", "bold expressive", "soft organic", "restrained editorial"). NEVER default to the same direction twice in a row.
 4. **Typeface** — chosen from the font menu below to match the aesthetic
-5. **Color system** — semantic tokens, 60-30-10 rule, one accent max
+5. **Color system** — BROWNFIELD: list existing tokens and use them. GREENFIELD: run the accent derivation procedure below, semantic tokens, 60-30-10 rule, one accent max
 6. **Hero architecture** — chosen from the hero menu below (if the page has a hero)
 
 7. **The unforgettable question:** "If someone saw 10 similar pages today, what would make them remember THIS one?" Name one concrete visual or structural choice that distinguishes this design.
@@ -84,13 +100,13 @@ Before building any hero or landing section, pick ONE architecture:
 - Use real imagery — `<img>` with descriptive alt text and `object-cover`, not colored boxes or icon grids. If no image is available, use bold typography as the visual element (oversized display text, typographic contrast, negative space).
 - One CTA per hero. Secondary action as text link, not a second button.
 - Background depth: use surface variation (tinted sections, subtle gradients, noise textures) instead of flat solid colors. Match to aesthetic direction.
-- **Visual richness is mandatory.** Flat white sections with no surface treatment = visual poverty. Every section needs at least ONE of: tinted background, subtle gradient, noise/grain texture, dot/line pattern, or border treatment. CSS noise example: `background-image: url("data:image/svg+xml,...")` or repeating-radial-gradient for dot grids.
+- **Visual richness is mandatory.** Flat white sections with no surface treatment = visual poverty. Every section needs at least ONE of: tinted background, subtle gradient, or border treatment. NEVER use dot grids, line grids, or repeating geometric patterns as backgrounds — they are lazy filler that screams "AI."
 
 **Background treatments by aesthetic direction:**
 
 | Aesthetic | Background options |
 |-----------|-------------------|
-| **Editorial / warm** | Warm off-white base (`oklch(0.97 0.01 80)`), subtle paper grain via CSS noise, tinted section bands |
+| **Editorial** | Off-white base tinted toward brand hue, subtle paper grain via CSS noise, tinted section bands |
 | **Technical / stark** | Pure neutral base, faint dot grid (`radial-gradient` repeating pattern), thin rule lines between sections |
 | **Friendly / soft** | Soft radial gradient behind hero, pastel-tinted card surfaces, gentle shadow layering |
 | **Bold / expressive** | Mesh gradient accent panels, aurora wash on header areas, high-contrast dark sections |
@@ -104,7 +120,7 @@ Pick a font based on the product's aesthetic direction. The font must match the 
 
 | Aesthetic | Fonts | Character |
 |-----------|-------|-----------|
-| **Editorial / warm** | Instrument Sans, Source Sans 3, Libre Franklin | Readable, literary feel |
+| **Editorial** | Instrument Sans, Source Sans 3, Libre Franklin | Readable, literary feel |
 | **Technical / stark** | Geist, JetBrains Sans, IBM Plex Sans | Precise, engineering feel |
 | **Friendly / soft** | Plus Jakarta Sans, Nunito Sans, Outfit | Approachable, rounded |
 | **Bold / expressive** | Sora, Space Grotesk, Clash Display (display only) | Strong personality |
@@ -147,13 +163,42 @@ GOOD: text-xs (12), text-sm (14), text-base (16), text-xl (20)  → clear jumps
 
 Don't default everything to Restrained — "restrained by reflex" is the same failure as "Inter by reflex."
 
-**Accent color derivation** — NEVER look up colors by category. Derive them through this procedure:
+**Palette generation — OKLCH lightness spine algorithm:**
 
-1. **Physical scene:** Write one sentence placing a real person using this product — where, when, under what light, in what mood. "A person checking workout progress after a 6am run, outdoors in cool morning light" — not just "a fitness app user."
-2. **Three material words:** From the scene, name three physical/sensory words (not abstract). "Matte ceramic, cool morning, brushed steel" — not "modern, energetic, clean."
-3. **Hue family:** From the words, name the hue family and write the reasoning chain. "Cool morning + brushed steel → cool-neutral family → hue angle 200-240° OKLCH." Different scenes produce different chains, even for the same product category.
-4. **Slop check:** Is this hue what someone would guess from the domain alone? If yes, the scene wasn't specific enough — go back to step 1. After avoiding the obvious, did you land in a saturated aesthetic lane (AI purple/blue, SaaS cream, editorial amber)? If yes, differentiate further.
-5. **OKLCH seed:** Define ONE seed color: `oklch(L C H)` where H comes from step 3, C from the color strategy axis (Restrained=0.08-0.12, Committed=0.15-0.22), L from theme (light ~0.60-0.70, dark ~0.70-0.80). Generate the full palette by adjusting L while holding C and H constant. Tint neutrals toward the same hue at chroma 0.01-0.02.
+Any hue in, correct palette out. No color lookup tables, no domain→color mapping.
+
+**Step 1 — Choose ONE hue angle (0-360°):**
+Write one sentence placing a real person using this product — where, when, under what light. From that scene, name three physical/sensory words and derive a hue family. Slop check: would someone guess this hue from the category alone? If yes, scene wasn't specific enough.
+
+BROWNFIELD: Extract hue from existing `--primary` token → feed same algorithm.
+
+**Step 2 — Walk the lightness spine:**
+Fixed 12-stop OKLCH ladder. Chroma follows a bell curve — low at the extremes (near-white, near-black), peaking at mid-lightness. Hue stays constant.
+
+| Stop | L | C (bell curve) | Role |
+|------|------|------|------|
+| 50 | 0.99 | 0.01 | Tinted background |
+| 100 | 0.96 | 0.02 | Subtle surface |
+| 200 | 0.90 | 0.04 | Hover surface |
+| 300 | 0.82 | 0.07 | UI border light |
+| 400 | 0.71 | 0.10 | UI border strong |
+| 500 | 0.64 | 0.13 | Secondary text |
+| 600 | 0.55 | 0.15 | **Primary fill** (peak chroma) |
+| 700 | 0.49 | 0.14 | Primary fill hover |
+| 800 | 0.40 | 0.11 | Strong accent |
+| 900 | 0.32 | 0.08 | Heading text |
+| 950 | 0.27 | 0.05 | Body text |
+| 1000 | 0.24 | 0.03 | High-contrast text |
+
+Scale chroma by strategy: Restrained ×0.6, Committed ×1.0, Full palette ×1.2, Drenched ×1.4. The shape stays — only amplitude changes.
+
+**Step 3 — Derive companion scales:**
+- **Neutral:** Same H, chroma ≈ 0.015 at all stops. These are your tinted grays.
+- **Secondary:** Same H, chroma ×0.4. Muted version of primary for large surfaces.
+- **Tertiary (if needed):** H + 60°, chroma ×0.5. Analogous harmony — never complementary for UI.
+
+**Step 4 — Map semantic tokens from spine stops:**
+`--background: stop-50`, `--card: stop-100`, `--border: stop-300`, `--muted-foreground: stop-500`, `--primary: stop-600`, `--foreground: stop-950`. Dark mode: invert the mapping (stop-950 → background, stop-50 → foreground), reduce chroma by 20%.
 
 Use ONLY semantic color tokens in components. NEVER Tailwind palette with number suffixes (`bg-blue-500`). NEVER hex/rgb/hsl in JSX.
 
@@ -186,7 +231,7 @@ These are conventions users already know. NEVER invert them (red for success, gr
 | Tinted shadows | Replace generic rgba(0,0,0,x) with hue-matched shadows tinted toward the background hue |
 | Consistent light source | All shadows must suggest a single light direction; mismatched angles = unnoticed flaw |
 | Accent saturation | Keep below 80% — slightly desaturated feels premium |
-| Token naming | Variable names should reveal the product's physical world (from the scene in step 1 of accent derivation). Someone reading only the token names should guess the product. `--gray-700` evokes a template; evocative names evoke a world. |
+| Token naming | Variable names should reveal the product's physical world (from the scene in Step 1). Someone reading only the token names should guess the product. `--gray-700` evokes a template; evocative names evoke a world. |
 | NEVER | Pure black/white for large areas. Gray text on colored backgrounds. Purple-to-blue gradients. |
 
 ---
@@ -260,7 +305,7 @@ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 
 **Sidebar visual hierarchy** — sidebars must recede, not compete:
 - Text/icons: 40-50% opacity when inactive, full opacity when active/hovered
-- Background: 1-2 steps dimmer than content area
+- Background: same hue family as content area, just 1-2 lightness steps dimmer (e.g., content `oklch(0.97...)` → sidebar `oklch(0.94...)`). NEVER dark sidebar + light content — the contrast cliff makes them look like two unrelated apps.
 - Width: fixed (200-280px), collapsible to icon-only
 - Content area ALWAYS wins the visual hierarchy contest
 
