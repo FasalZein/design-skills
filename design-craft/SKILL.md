@@ -40,7 +40,7 @@ These are the fingerprints of AI-generated UI. Violating even one makes the outp
 | Filler UI ("Scroll to explore", bouncing chevrons) | Decorative noise with zero utility |
 | Free-floating step connector lines (`<div>` or absolute-positioned spans) | Always misalign. Use flexbox with `flex-1` spacer divs between step circles: `<div class="step-circle"/>` `<div class="connector" style="flex:1; height:2px; background:border-color"/>` `<div class="step-circle"/>`. This is simpler and more reliable than `::after` pseudo-elements. The connectors stretch naturally between circles. |
 | Emojis in headings or UI markup | Use an icon library, not emoji |
-| Domain-reflex coloring (healthcare = teal, crypto = neon on black) | Category alone shouldn't predict your palette |
+| Domain-reflex coloring (healthcare = teal, crypto = neon on black) | Hue comes from the product name formula, not the category. Never override the formula with a "more appropriate" color |
 
 > "If you showed this to someone and said 'AI made this,' would they believe you immediately? If yes, that's the problem."
 
@@ -167,10 +167,12 @@ Don't default everything to Restrained — "restrained by reflex" is the same fa
 
 Any hue in, correct palette out. No color lookup tables, no domain→color mapping.
 
-**Step 1 — Choose ONE hue angle (0-360°):**
-Write one sentence placing a real person using this product — where, when, under what light. From that scene, name three physical/sensory words and derive a hue family. Slop check: would someone guess this hue from the category alone? If yes, scene wasn't specific enough.
+**Step 1 — Derive hue from product name (deterministic, bias-free):**
+Take the first two letters of the product name (case-insensitive, a=0, b=1, ..., z=25):
+`Hue = (firstLetter × 137 + secondLetter × 47) mod 360`
+This removes model color bias — different names always produce different hues. If no product name exists in the prompt, name the product first, then derive. Never skip the formula and "choose" a hue — that reintroduces the amber/slate bias every model has.
 
-BROWNFIELD: Extract hue from existing `--primary` token → feed same algorithm.
+BROWNFIELD: Extract hue from existing `--primary` token instead of computing from name.
 
 **Step 2 — Walk the lightness spine:**
 Fixed 12-stop OKLCH ladder. Chroma follows a bell curve — low at the extremes (near-white, near-black), peaking at mid-lightness. Hue stays constant.
@@ -237,7 +239,7 @@ These are conventions users already know. NEVER invert them (red for success, gr
 | Tinted shadows | Replace generic rgba(0,0,0,x) with hue-matched shadows tinted toward the background hue |
 | Consistent light source | All shadows must suggest a single light direction; mismatched angles = unnoticed flaw |
 | Accent saturation | Keep below 80% — slightly desaturated feels premium |
-| Token naming | Variable names should reveal the product's physical world (from the scene in Step 1). Someone reading only the token names should guess the product. `--gray-700` evokes a template; evocative names evoke a world. |
+| Token naming | Variable names should reveal the product's identity. Someone reading only the token names should guess the product. `--gray-700` evokes a template; `--meridian-600` or `--savora-primary` evoke a world. |
 | NEVER | `oklch(1 0 0)`, `#fff`, `#000` as card/surface/background tokens — always tinted. Gray text on colored backgrounds. Purple-to-blue gradients. Inline `oklch()` outside `:root`. |
 
 ---
