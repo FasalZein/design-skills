@@ -28,12 +28,18 @@ These are the fingerprints of AI-generated UI. Violating even one makes the outp
 | Same padding everywhere | No visual rhythm |
 | Everything centered | Feels undesigned |
 | Every button is primary | No hierarchy |
+| Dot/line grid as hero background | Lazy technical filler — not a design choice |
 | Glow effects as primary affordances | Decorative noise |
 | "John Doe", "Jane Doe", "Acme Corp" | Training-data leakage |
 | "99.99%", "50%" as metrics | Round/predictable = placeholder |
 | "Seamless", "Unleash", "Next-Gen", "Elevate" | AI copywriting clichés |
 | ALL CAPS labels/tabs/headings | Shouting hierarchy substitute |
 | Title Case everywhere | AI tell — use sentence case |
+| Side-stripe borders (border-left/right >1px as colored accent) | Template shortcut — use full borders, background tints, or icons instead |
+| Meta-labels ("SECTION 01", "QUESTION 05", "FEATURE 03") | Fake hierarchy — real headings and spacing do this job |
+| Filler UI ("Scroll to explore", bouncing chevrons) | Decorative noise with zero utility |
+| Emojis in headings or UI markup | Use an icon library, not emoji |
+| Domain-reflex coloring (healthcare = teal, crypto = neon on black) | Category alone shouldn't predict your palette |
 
 > "If you showed this to someone and said 'AI made this,' would they believe you immediately? If yes, that's the problem."
 
@@ -51,8 +57,13 @@ State these decisions explicitly in your reasoning:
 6. **Hero architecture** — chosen from the hero menu below (if the page has a hero)
 
 7. **The unforgettable question:** "If someone saw 10 similar pages today, what would make them remember THIS one?" Name one concrete visual or structural choice that distinguishes this design.
+8. **The swap test:** "If I swapped this layout for a standard template and the font for Inter, would anyone notice?" The places where swapping wouldn't matter are the places that defaulted.
 
 The archetype and density decisions drive everything else. An "app shell / balanced" produces a sidebar, top bar, and filled content area. A "focused tool / sparse" produces a centered workspace with intentional whitespace. A "dashboard / dense" fills the viewport with data.
+
+**Reference loading triggers (MANDATORY):**
+- If the page has modals, drawers, transitions, or any interactive motion → **READ [reference/motion.md](reference/motion.md)** before writing code
+- If building a dashboard, data table, chart, or financial UI → **READ [reference/data-dense.md](reference/data-dense.md)** before writing code
 
 ---
 
@@ -112,6 +123,8 @@ Pick a font based on the product's aesthetic direction. The font must match the 
 | Font loading | `font-display: swap`. Sizes in `rem`/`em`, not `px`. `-webkit-font-smoothing: antialiased` on root. |
 | Fluid type | Use `clamp()` for marketing/content pages. Fixed sizes for app UI. |
 | Limits | Max 3 font weights per view. One family unless genuine display/body contrast needed. |
+| Font weight diversity | NEVER only 400 and 700 across an interface. Use minimum 400/500/600. Two-weight interfaces lack nuance. |
+| Monospace as accent | Appropriate for reference numbers, timestamps, transaction IDs, overline labels in technical products. Small `font-mono text-xs` label alongside display font creates productive contrast. |
 | NEVER | Monospace for display headings. `tracking-wide`. `user-scalable=no`. Arbitrary sizes (`text-[13px]`). |
 
 ```
@@ -122,6 +135,17 @@ GOOD: text-xs (12), text-sm (14), text-base (16), text-xl (20)  → clear jumps
 ---
 
 ## Color
+
+**Color strategy axis** — state before picking any colors:
+
+| Strategy | Usage | Default for |
+|----------|-------|-------------|
+| **Restrained** | Tinted neutrals + one accent ≤10% of surface | Apps, tools, dashboards |
+| **Committed** | One saturated color carries 30-60% of surface | Marketing, brand pages |
+| **Full palette** | 3-4 named color roles used deliberately | Brand campaigns, data viz |
+| **Drenched** | The surface IS the color | Hero sections, campaign pages |
+
+Don't default everything to Restrained — "restrained by reflex" is the same failure as "Inter by reflex."
 
 Use ONLY semantic color tokens in components. NEVER Tailwind palette with number suffixes (`bg-blue-500`). NEVER hex/rgb/hsl in JSX.
 
@@ -141,6 +165,11 @@ Status: bg-primary/10 text-primary (success), bg-destructive/10 text-destructive
 | 60-30-10 | 60% neutrals, 30% secondary, 10% accent. Max 1 primary + 1 secondary accent. |
 | OKLCH | Define in CSS tokens only. NEVER inline `bg-[oklch(...)]` in Tailwind classes. Reduce chroma at extreme lightness. |
 | Dark mode | Not inverted light mode. No shadows for depth (use lighter surfaces). Desaturate accents slightly. Reduce font weight (350 instead of 400). Never pure black bg. Swap semantic token layer, not component layer. |
+| One accent, many opacities | Use one accent at 100%, 60%, 20%, 10% before reaching for a second accent color |
+| Tinted shadows | Replace generic rgba(0,0,0,x) with hue-matched shadows tinted toward the background hue |
+| Consistent light source | All shadows must suggest a single light direction; mismatched angles = unnoticed flaw |
+| Accent saturation | Keep below 80% — slightly desaturated feels premium |
+| Token naming | `--ink` and `--parchment` evoke a world; `--gray-700` evokes a template. Variable names should reveal the product. |
 | NEVER | Pure black/white for large areas. Gray text on colored backgrounds. Purple-to-blue gradients. |
 
 ---
@@ -164,6 +193,9 @@ page: 2-4rem (32-64px) — page-level margins
 | Border radius | ONE base radius, derive all others. Buttons/inputs: 4-6px. Cards/dialogs: 8px. Badges: 4px or `rounded-full`. Outer = inner + padding (concentric). NEVER mix arbitrary values. |
 | Shadows | Barely perceptible, multi-layer. `shadow-sm` for elevation, `shadow-md` for popovers. NEVER `shadow-lg/xl` on small components. |
 | Grouping | Pick ONE method per section: borders OR shadows OR spacing. Never all three. |
+| Three-surface limit | NEVER let more than 3 surface levels be visible at once (page bg → section bg → card surface). Each additional level adds cognitive overhead. |
+| Image outline | Add 1px outline to all images — `rgba(0,0,0,0.1)` light / `rgba(255,255,255,0.1)` dark. Prevents images from floating. |
+| Inset inputs | Inputs should be slightly darker than their surface, not lighter — they are "inset" and receive content. |
 
 ```css
 /* Good: subtle, multi-layer (Stripe-style) */
@@ -187,7 +219,10 @@ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 | Z-index | Fixed semantic scale — NEVER `z-[999]`. |
 | Safe area | `safe-area-inset` on fixed elements for mobile. |
 | Container queries | `@container` for component-level responsiveness. |
-| Cards | Containers, not decoration. NEVER wrap everything in cards. NEVER nest cards inside cards. |
+| Cards | Containers, not decoration. NEVER wrap everything in cards. NEVER nest cards inside cards. Card appropriateness test: "Is this content independently actionable or navigable?" If no, use borders, spacing, or background color instead. Form field groups → section dividers, settings → section headings + dividers, activity feeds → list rows with border-bottom, stat metrics → KPI strip (single border with grid, not individual cards). |
+| Overflow ban | `overflow: hidden` is BANNED as layout repair — it hides the problem instead of fixing it. Fix the content or container sizing. |
+| H1 line limit | H1 MUST NOT exceed 3 lines on desktop. If it does, the container is too narrow — widen with `max-w-5xl` or wider, not shrink the font. |
+| Layout budget | For fixed-height regions, calculate `usableHeight = trackHeight - padding - borders - gaps` vs contentHeight. If content > usable, the design is invalid — reduce content, don't hide overflow. |
 | Touch targets | 44x44px minimum on mobile. |
 | Responsive | Prefer 2-tier (mobile + desktop). NEVER hide core functionality on mobile. |
 | Square elements | Use `size-*` instead of `w-* h-*` (e.g., `size-10` not `w-10 h-10`). |
@@ -336,16 +371,19 @@ Re-read every line you wrote. Verify:
 9. **Labels on all inputs** — Visible `<label>`, not just placeholder
 10. **Destructive actions use AlertDialog**
 11. **UX writing** — Verb+object button labels, sentence case, no jargon
+12. **The swap test** — Could you swap the font for Inter and the layout for centered-heading+3-card-grid without anyone noticing? If yes, you defaulted — go back and make real choices.
+13. **No side-stripe borders** — Zero `border-left`/`border-right` >1px used as colored accents
+14. **Three-surface limit** — Count visible surface levels. Max 3.
 
 If ANY fail, fix before responding.
 
 ---
 
-## Deep References (load when needed)
+## Deep References
 
-| Area | File | When to load |
-|------|------|-------------|
-| Motion & Animation | [reference/motion.md](reference/motion.md) | Building animation-heavy interactions, transitions, gesture-driven UI |
-| Data-Dense UI | [reference/data-dense.md](reference/data-dense.md) | Building dashboards, tables, charts, financial data |
+See **Design Decision Gate** above for mandatory loading triggers.
 
-For most tasks, the rules above are sufficient. Load references only for specialized depth.
+| Area | File |
+|------|------|
+| Motion & Animation | [reference/motion.md](reference/motion.md) — animation library selection, frequency gate, duration ladder, easing, springs, performance |
+| Data-Dense UI | [reference/data-dense.md](reference/data-dense.md) — dashboard composition, table patterns, chart selection, data visualization |

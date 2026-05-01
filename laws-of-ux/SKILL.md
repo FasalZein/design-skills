@@ -6,119 +6,207 @@ globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.html"]
 
 # Laws of UX
 
-Psychology-driven constraints for interface decisions. Design-craft handles the HOW (tokens, spacing, animation). This skill handles the WHY (how cognition, memory, attention, and motor cost shape what users experience).
+Psychology-driven constraints for interface decisions, organized by **engineering decision**. Rules lead; law names follow in parentheses as justification.
 
 ---
 
-## 1. Reduce Decision & Memory Cost
+## Global Principles
 
-Apply when: designing navigation, forms, settings, onboarding, any view with options.
+These three principles cut across every category below. Apply them everywhere before category-specific rules.
 
-| Law | Rule |
-|-----|------|
-| **Hick's Law** | Decision time grows with choices. Limit primary nav to 5-7 items. Highlight the recommended choice. Progressive disclosure over walls of options. |
-| **Miller's Law** | Working memory holds ~7 (±2) items. Use chunking — group related inputs (address block, payment block) rather than 12 flat fields. |
-| **Working Memory** | Support recognition over recall: mark visited links, show breadcrumbs, carry context across screens. Comparison tables instead of "remember from screen 1." |
-| **Cognitive Load** | Intrinsic + extraneous = total burden. Minimize extraneous: remove decorative elements that don't serve comprehension, pre-fill known values, show only what the current step needs. DO: for every element on screen, ask "does removing this hurt comprehension?" If no, remove it. |
-| **Choice Overload** | Too many options → paralysis. Limit visible choices, offer smart defaults, use filters/search for large catalogs. "Recommended" badges reduce cognitive cost. |
-| **Tesler's Law** | Every system has irreducible complexity — push it into the system, not onto the user. DO: auto-detect timezones, infer file types, pre-fill from context, provide smart defaults. If the user has to configure something the system could detect, you failed. |
-| **Occam's Razor** | Remove elements until further removal breaks function. DO: after building, delete one element at a time — if the page still works and communicates clearly, leave it deleted. Fewer features done well > many half-done. |
+- **Remove every element that doesn't serve comprehension.** After building, delete one element at a time — if the page still works and communicates clearly, leave it deleted. (Cognitive Load / Occam's Razor)
+- **Focus engineering on the 20% of features used by 80% of users.** The primary flow must be flawless; edge cases adequate. (Pareto / 80-20 Rule)
+- **Push complexity into the system, not onto the user.** Auto-detect timezones, infer file types, pre-fill from context. If the user configures something the system could detect, the system failed. (Tesler's Law)
 
-## 2. Build on Familiarity
+---
 
-Apply when: designing navigation, form controls, onboarding, or making major redesigns.
+## 1. Navigation & Information Architecture
 
-| Law | Rule |
-|-----|------|
-| **Jakob's Law** | Users expect yours to work like other sites. Logo top-left → home, search top-right, settings behind gear. Don't innovate on navigation — innovate on content. |
-| **Mental Model** | Match the user's model, not your data model. A "cart" works because people know physical carts. If users' expectations don't match your structure, adapt to theirs. |
-| **Active User Paradox** | Users never read manuals. Make primary actions obvious and discoverable. Inline help (tooltips, empty state CTAs) over instruction walls. Design for the user who skipped every tutorial. |
+Apply when: designing primary nav, menus, sidebars, site structure, breadcrumbs.
 
-## 3. Direct Attention & Create Emphasis
+- **Limit primary nav to 5–7 items.** Highlight the single recommended/current path. Use progressive disclosure for anything beyond 7. (Hick's Law: decision time grows log-linearly with the number of choices)
+- **Put the logo top-left, search top-right, settings behind a gear icon.** Don't innovate on navigation placement — innovate on content. Users expect yours to work like the last 10 sites they used. (Jakob's Law)
+- **Name 3 prior products your users use for this task. Your IA structure should match at least 2 of them.** If it doesn't, adapt to their model, not your data model. (Mental Model)
+- **Show breadcrumbs and persist context across screens.** Use comparison tables instead of asking users to remember screen 1. Never make users carry mental state across views. (Working Memory / Recognition over Recall)
+- **Place the most important nav items at the first and last positions.** Key toolbar actions belong at edges, not center. (Serial Position Effect: first and last positions are remembered best)
 
-Apply when: designing CTAs, notifications, status indicators, visual hierarchy.
+---
 
-| Law | Rule |
-|-----|------|
-| **Von Restorff Effect** | The distinct item gets remembered. Make ONE CTA visually different. If everything is emphasized, nothing is. Combine size + weight + position, not color alone. |
-| **Selective Attention** | Users filter out irrelevant info. DO: use size contrast (2x+ difference between primary and secondary elements), weight contrast, and position (above the fold, left-aligned) to guide the eye. Don't place important content in ad-like positions (banner blindness). Never add more elements to draw attention — subtract competing ones. |
-| **Serial Position** | First and last items are remembered best. Primary nav items at start and end. Key toolbar actions at edges, not center. |
-| **Aesthetic-Usability** | Beautiful interfaces are perceived as more usable. DO: invest in visual polish (consistent spacing, refined typography, smooth transitions) because it buys forgiveness for minor friction. But never skip usability testing because it "looks good" — the halo effect masks real problems. |
+## 2. Forms & Data Input
 
-## 4. Shape Experience & Memory
+Apply when: building input forms, settings pages, data entry flows, search.
 
-Apply when: designing onboarding, checkout, error recovery, long-running tasks, multi-step journeys.
+- **Group related fields into named blocks, not a flat list.** Address, payment, and identity fields should each form a distinct visual unit — never 12 flat fields. Aim for ≤7 items per group. (Miller's Law: working memory holds ~7±2 items)
+- **Accept every reasonable date, phone, and name format.** "Jan 5", "1/5", "2026-01-05" are all valid inputs. Validate on submit, not per-keystroke. Normalize and display consistently. (Postel's Law)
+- **Pre-fill every value the system can infer.** Name from session, country from IP, timezone from browser. Every field the user doesn't have to fill is friction removed. (Tesler's Law — see Global Principles)
+- **Pre-select the best default option.** Users anchor on the first value they see and default to pre-selected choices. Frame options to reduce regret. Never deceive, but never leave defaults unset. (Cognitive Bias: anchoring and status quo bias)
+- **Every text input must have a visible label, not just placeholder text.** Placeholder disappears on focus, leaving no memory aid mid-entry. (Working Memory)
 
-| Law | Rule |
-|-----|------|
-| **Peak-End Rule** | People judge by the peak moment and the ending. Invest disproportionately in the best moment + the final step. Negative peaks are recalled more vividly — prioritize eliminating pain over adding delight. |
-| **Zeigarnik Effect** | Incomplete tasks are remembered. Use progress indicators: "3 of 5 complete." Checklist dashboards exploit this. Don't abuse (fake urgency = dark pattern). |
-| **Goal-Gradient** | Motivation increases near the goal. Show progress visually. Artificial progress ("Already 20% done!") increases completion. |
-| **Flow** | Optimal engagement = challenge matches skill + clear feedback + no interruption. Don't interrupt mid-task with modals. Provide immediate feedback for every action. |
+---
 
-## 5. Motor Cost & Timing
+## 3. Multi-Step Flows & Progress
 
-Apply when: sizing targets, positioning actions, setting response times, time-sensitive interactions.
+Apply when: building onboarding, checkout, wizards, setup flows, long tasks.
 
-| Law | Rule |
-|-----|------|
-| **Fitts's Law** | Time to reach = f(distance, size). Touch targets ≥ 44×44px. Primary actions near resting position (bottom on mobile). Destructive actions small and far from "Save." |
-| **Doherty Threshold** | Response under 400ms keeps flow. Longer → skeleton screens, optimistic UI. Every submit button MUST have loading state: disable + "Processing..." text. |
-| **Parkinson's Law** | Tasks expand to fill time. Set expectations: don't give open-ended input for 2-word answers. Autofill + smart defaults reduce completion time. |
+- **Every multi-step flow must show a step indicator or progress bar.** "Step 3 of 5" or a segmented bar with completed segments filled. Zero progress indicators on multi-step = fail. (Zeigarnik Effect: incomplete tasks stay top-of-mind; Goal-Gradient Effect: motivation increases near the goal)
+- **Show artificial early progress for new users.** "Profile 20% complete — add a photo" increases completion. Use it to accelerate initial engagement, not to deceive. (Goal-Gradient Effect)
+- **Never interrupt a user mid-task with a modal or blocking dialog.** Inline notifications, toasts, and banner alerts only. Modals during data entry kill flow. (Flow: optimal engagement requires no interruption and immediate feedback)
+- **Set time expectations explicitly.** "This takes about 2 minutes." Don't give open-ended inputs where 2-word answers will do. Autofill and smart defaults cut completion time. (Parkinson's Law: tasks expand to fill available time)
+- **Invest disproportionately in the final screen of every flow.** It should include: a summary of what was done, a clear next-action CTA, and a polished visual moment. The peak moment and the ending are what users remember; everything in between fades. (Peak-End Rule)
 
-## 6. Perception & Grouping (Gestalt)
+---
 
-Apply when: organizing layout, grouping controls, designing visual relationships.
+## 4. CTAs & Action Hierarchy
 
-| Law | Rule |
-|-----|------|
-| **Proximity** | Nearby = related. Tight within groups, generous between. Primary tool for visual org — stronger than borders. |
-| **Similarity** | Same style = same function. Consistent styling signals shared purpose. Differentiate actions from static content. |
-| **Common Region** | Shared boundary = group. Use backgrounds/borders to create regions. Prefer proximity first — common region is heavy-handed. |
-| **Connectedness** | Visual connections (lines, arrows, step connectors) create relationships. Stronger than proximity or similarity. |
-| **Prägnanz** | People see the simplest form. DO: align elements to a visible grid, use consistent shapes (all rounded OR all sharp, not mixed), and ensure whitespace creates clean rectangles — not ragged edges. If a layout looks "messy," the shapes aren't resolving to simple forms. |
+Apply when: designing buttons, action bars, toolbars, confirmation dialogs.
 
-## 7. Robustness & Prioritization
+- **Exactly 1 visually distinct primary CTA per view.** Every other action must be visually quieter. If everything is emphasized, nothing is. (Von Restorff Effect: the distinct item gets remembered)
+- **Make touch targets ≥ 44×44px.** Place primary actions near the resting thumb position (bottom of screen on mobile). Place destructive actions — Delete, Remove, Deactivate — small and far from Save. (Fitts's Law: target acquisition time = f(distance, size))
+- **Primary nav items at first and last positions in any list; key actions at edges, not center.** (Serial Position Effect — see Navigation for full context)
+- **Limit visible options in any action menu to ≤7.** For large catalogs, use filters or search. Add "Recommended" badges to the best option. (Hick's Law / Choice Overload)
 
-Apply when: handling user input, planning feature scope, designing error tolerance.
+---
 
-| Law | Rule |
-|-----|------|
-| **Postel's Law** | Accept varied input ("Jan 5", "1/5", "2026-01-05"). Validate on submit, not per-keystroke. Display consistently. |
-| **Pareto (80/20)** | Focus on 20% of features used by 80% of users. Primary flow must be flawless; edge cases adequate. |
-| **Cognitive Bias** | Users satisfice, anchor on first numbers, default to pre-selected. Pre-select the best option, frame to reduce regret — but never deceive. |
+## 5. Feedback & Response Time
+
+Apply when: building async actions, loading states, real-time updates, async submits.
+
+- **Every button that triggers an async action must have 3 states: default, loading (disabled + "Processing..." label), and result.** Zero buttons that go static after click. (Doherty Threshold)
+- **Response under 400ms keeps flow unbroken.** For anything taking 400ms–3s, use a skeleton screen or optimistic UI update. For 3s+, use a progress indicator with percentage or estimated time remaining. (Doherty Threshold: sub-400ms keeps the user engaged; over 400ms breaks concentration)
+- **Provide immediate visual feedback for every user action.** Every button needs hover, `focus-visible`, and active state. No silent-on-click interactions anywhere. (Flow: clear feedback is required for optimal engagement)
+
+---
+
+## 6. Visual Grouping & Layout
+
+Apply when: organizing any layout, grouping controls, building grids, designing cards.
+
+- **Use spacing to signal grouping before using borders or backgrounds.** Tight within a group, generous between groups, largest between sections. Proximity is stronger than common region. (Gestalt Proximity)
+- **Identical visual style signals identical function.** Buttons look like buttons everywhere; static content never looks clickable. Don't make links and headings share the same weight at the same size. (Gestalt Similarity)
+- **Use a background or border region to group related controls only when spacing isn't enough.** Regions are heavier-handed than proximity — use them for genuinely distinct semantic containers (a card, a panel, a modal). (Gestalt Common Region)
+- **Use lines, arrows, or connectors when you need to express a relationship stronger than proximity or similarity can.** Step connectors in wizards, callout lines on diagrams. Connectedness overrides all other grouping cues. (Gestalt Connectedness)
+- **Align all elements to a visible grid. Use consistent shapes — all rounded or all sharp corners, not mixed.** Whitespace should form clean rectangles. If a layout looks messy, the shapes aren't resolving to simple forms. (Gestalt Prägnanz: people perceive the simplest possible form)
+- **Invest in visual polish: consistent spacing rhythm, refined typography, smooth transitions.** Polished interfaces are perceived as more usable and earn forgiveness for minor friction. Threshold check: ≤2 font families, consistent corner radius scale (don't mix 4px and 16px on same-level surfaces), spacing values from a token system. Note: never skip usability testing because it "looks good" — the halo effect masks real problems. (Aesthetic-Usability Effect)
+
+---
+
+## 7. Content & Copy
+
+Apply when: writing labels, empty states, onboarding copy, tooltips, confirmation messages.
+
+- **Make the primary action visible without scrolling and discoverable without a tutorial.** Every primary action needs an inline affordance — tooltip, empty-state CTA, helper text. Design for the user who skipped every tutorial and never reads documentation. (Active User Paradox: users never read manuals)
+- **Never place important content in banner-like positions at top of page.** Users develop banner blindness and filter out anything resembling an advertisement in position and style. Use size contrast (2× difference between primary and secondary elements), weight, and left-alignment to guide the eye instead. (Selective Attention / Banner Blindness)
+- **Avoid placing important content where it will be ignored.** (Selective Attention — use position, weight, and size contrast to direct focus, not color alone)
+
+---
+
+## 8. Error Handling & Recovery
+
+Apply when: designing validation, error states, empty states, destructive action flows.
+
+- **Validate on submit, not per-keystroke.** Show errors inline, adjacent to the field that caused them — not in a toast, not in a banner at the top. (Postel's Law + Working Memory: put the error where the user is looking)
+- **Accept format variation; normalize internally.** If the user types "555-867-5309" and your model wants "5558675309", convert silently. Never reject valid intent due to format. (Postel's Law)
+- **Destructive actions must require a confirmation step and must be visually distinct (smaller, lower contrast, further from the primary CTA).** Never place Delete adjacent to Save. (Fitts's Law: distance creates safety margin)
+- **Every empty state must have a CTA.** "No results" is not a complete state. "No results — try adjusting your filters" or "You haven't added anything yet — add your first item" is. (Active User Paradox: discoverable actions over passive empty states)
 
 ---
 
 ## Decision Matrix
 
-| Decision | Apply |
-|---|---|
-| How many nav items? | Hick + Miller: ≤7, highlight default |
-| Form too long? | Chunking + Tesler: multi-step, push complexity into system |
-| Where to place CTA? | Fitts + Serial Position: big target, edge position |
-| What to emphasize? | Von Restorff: ONE thing different. Everything bold = nothing bold |
-| Multi-step flow stalling? | Goal-Gradient + Zeigarnik: show progress, signal incompleteness |
-| Users confused? | Jakob: match convention. Mental Model: match theirs, not yours |
-| Slow response? | Doherty: feedback <400ms, skeleton/optimistic for longer |
-| Users ignoring key info? | Selective Attention: avoid ad positions. Sequence changes (change blindness) |
-| Low post-flow satisfaction? | Peak-End: invest in best moment + final screen |
-| Too many options? | Choice Overload + Occam: defaults, filter/search, remove until it breaks |
-| Grouping unclear? | Proximity > Similarity > Common Region > Connectedness (subtlety order) |
-| Messy user input? | Postel: accept liberally, normalize, display consistently |
-| Users forgetting prior screen? | Working Memory: breadcrumbs, persistent context, comparison views |
-| Where to invest effort? | Pareto: 20% features serve 80% users — make those flawless |
+| Engineering decision | Rule | Laws |
+|---|---|---|
+| How many nav items? | ≤7, highlight the recommended/current one | Hick + Miller |
+| Form feels too long? | Multi-step; push complexity into system; pre-fill what you can | Tesler + Miller + Chunking |
+| Where to place the CTA? | Big target (≥44px), bottom on mobile, edge in toolbar | Fitts + Serial Position |
+| What to emphasize? | ONE element per view is visually distinct; everything else quieter | Von Restorff |
+| Multi-step flow stalling? | Show step indicator + early artificial progress | Zeigarnik + Goal-Gradient |
+| Users confused by navigation? | Match the convention; match their existing mental model | Jakob + Mental Model |
+| Slow response (>400ms)? | Skeleton or optimistic UI; disable + label submit button | Doherty Threshold |
+| Users ignoring important content? | Avoid ad-like positions; use size contrast 2×+, not color alone | Selective Attention + Banner Blindness |
+| Low satisfaction after a flow? | Redesign the peak moment and the final screen | Peak-End Rule |
+| Too many options in a menu? | ≤7 visible; add filter/search for larger lists; pre-select best | Hick + Choice Overload |
+| Grouping visually unclear? | Spacing first → similarity → common region → connectedness | Gestalt (subtlety order) |
+| Accepting user input? | Accept any reasonable format, normalize on the back end | Postel's Law |
+| Users forgetting prior screen? | Breadcrumbs, persistent context, comparison views | Working Memory |
+| Where to invest engineering time? | Primary flow flawless; edge cases adequate | Pareto 80/20 |
+| Mid-task interruptions? | No modals during data entry; toasts and banners only | Flow |
 
 ---
 
 ## Self-Check
 
-Before finishing any UX-significant work, verify each. If ANY fail, fix before responding.
+Before finishing any UX-significant work, run each check. Fix failures before responding.
 
-1. **No decision overload** — Exactly 1 primary button per view. Nav items ≤7. Long option lists use progressive disclosure.
-2. **Conventions respected** — Logo top-left. Search in header. Settings behind gear. Native form elements.
-3. **Progress visible** — Every multi-step flow has step indicator, progress bar, or breadcrumb.
-4. **Feedback on every action** — Every button has hover, `focus-visible`, and loading/disabled state for async. Zero static-after-click buttons.
-5. **Attention guided** — ONE element per view is visually distinct. If everything is emphasized, nothing is.
-6. **Errors recoverable** — Accept varied formats, normalize internally. Validate on submit. Errors inline next to field.
-7. **Peak + end designed** — Final screen of every flow has: summary, next-action CTA, polished visual moment.
+**1. Decision load**
+- Count primary buttons per route/view component — must be exactly 1
+- Count nav items — must be ≤7
+- Count visible options in any dropdown or menu — must be ≤7 or have a search/filter
+
+**2. Conventions**
+- Logo top-left links to home
+- Search in the header
+- Settings behind a gear icon
+- Native form controls used where available
+
+**3. Progress**
+- `grep -r "step" src/` — every multi-step flow has a step counter or progress bar
+- Every multi-step route component renders a `<ProgressBar>`, `<Steps>`, or equivalent
+
+**4. Feedback on every action**
+- `grep -rn "onClick\|onSubmit" src/` — each handler has a corresponding loading/disabled state
+- Zero submit buttons without a `loading` or `disabled` state in async paths
+- Every interactive element has `:hover`, `focus-visible`, and `:active` states
+
+**5. Attention hierarchy**
+- Scan the view at arm's length — exactly 1 element draws the eye first
+- If 2+ elements compete equally in size, weight, and color, hierarchy has failed
+
+**6. Error recovery**
+- `grep -rn "validate\|onBlur" src/` — no per-keystroke validation, only on submit
+- Error messages are inline, adjacent to the field, not in a top banner
+
+**7. Peak + end**
+- Final screen of every flow has: summary, next-action CTA, polished visual moment
+- Every empty state has a CTA — search for `empty` or `no results` in component files
+
+**8. Touch targets (mobile)**
+- Interactive elements: minimum 44×44px
+- Destructive actions are not adjacent to primary Save/Submit
+
+---
+
+## Coverage Table
+
+Every entry from the original skill mapped to its new home.
+
+| Law / Principle | Primary Category | Cross-reference |
+|---|---|---|
+| Hick's Law | 1. Navigation | 4. CTAs (menus) |
+| Miller's Law | 2. Forms | — |
+| Working Memory / Recognition | 1. Navigation | 2. Forms |
+| Cognitive Load | Global Principles | All |
+| Choice Overload | 4. CTAs | 1. Navigation |
+| Tesler's Law | Global Principles | 2. Forms |
+| Occam's Razor | Global Principles | All |
+| Jakob's Law | 1. Navigation | — |
+| Mental Model | 1. Navigation | — |
+| Active User Paradox | 7. Content & Copy | 8. Error Handling |
+| Von Restorff Effect | 4. CTAs | — |
+| Selective Attention / Banner Blindness | 7. Content & Copy | — |
+| Serial Position Effect | 1. Navigation | 4. CTAs |
+| Aesthetic-Usability Effect | 6. Visual Grouping | — |
+| Peak-End Rule | 3. Multi-step Flows | — |
+| Zeigarnik Effect | 3. Multi-step Flows | — |
+| Goal-Gradient Effect | 3. Multi-step Flows | — |
+| Flow | 3. Multi-step Flows | 5. Feedback |
+| Fitts's Law | 4. CTAs | 8. Error Handling |
+| Doherty Threshold | 5. Feedback | — |
+| Parkinson's Law | 3. Multi-step Flows | — |
+| Gestalt: Proximity | 6. Visual Grouping | — |
+| Gestalt: Similarity | 6. Visual Grouping | — |
+| Gestalt: Common Region | 6. Visual Grouping | — |
+| Gestalt: Connectedness | 6. Visual Grouping | — |
+| Gestalt: Prägnanz | 6. Visual Grouping | — |
+| Postel's Law | 2. Forms | 8. Error Handling |
+| Pareto / 80-20 | Global Principles | — |
+| Cognitive Bias | 2. Forms | — |

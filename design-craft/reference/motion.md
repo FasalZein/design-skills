@@ -11,7 +11,39 @@ Before choosing duration or easing, answer this first:
 | Occasional (modals, drawers, toasts) | Standard animation |
 | Rare / first-time (onboarding, celebrations) | Full delight |
 
-If the action is triggered more than tens of times per day, skip the rest of this file.
+Hard rule: keyboard-initiated actions MUST NEVER animate. If the action is triggered more than tens of times per day, skip the rest of this file.
+
+## Animation Library Selection
+
+Pick the simplest tool that handles the job. Never mix libraries for the same concern.
+
+| Need | Use | Why |
+|------|-----|-----|
+| Hover, focus, toggle, color change | **CSS transitions** | GPU-composited, interruptible, zero JS. Default for all interactive states. |
+| Staged sequences (page load, hero entrance) | **CSS @keyframes** | No JS dependency, runs off main thread under load. |
+| Enter/exit, layout animation, shared element | **motion/react** (formerly framer-motion) | `AnimatePresence` handles exit; `layoutId` handles shared element morphs. |
+| Scroll-driven reveals, parallax | **CSS `animation-timeline: scroll()`** or **IntersectionObserver** | CSS-only where supported; IO as fallback. Never `scrollTop`/`scrollY` listeners. |
+| Complex timeline sequences, pinned scroll sections | **GSAP + ScrollTrigger** | When CSS scroll timelines can't express the choreography. Pin, scrub, and sequence. |
+| Drag, dismiss, gesture with momentum | **motion/react springs** | Springs maintain velocity on interrupt; CSS transitions restart from zero. |
+| Programmatic one-shot (JS-controlled timing) | **Web Animations API (WAAPI)** | JS control + CSS performance. No library needed. |
+
+**Rules:**
+- CSS first. Only reach for JS animation when CSS can't express it (exit animations, gesture physics, complex timelines).
+- Check `package.json` before importing any animation library. If missing, output the install command before the code.
+- NEVER mix motion/react and GSAP in the same component. Pick one per interaction surface.
+- For single-file HTML pages without a build system: CSS transitions + keyframes + WAAPI only. No npm dependencies.
+
+## Duration Ladder
+
+| Element | Duration |
+|---------|----------|
+| Button press feedback | 100–160ms |
+| Tooltips, small popovers | 125–200ms |
+| Dropdowns, selects | 150–250ms |
+| Modals, drawers | 200–500ms |
+| Any user-initiated animation | ≤300ms total |
+
+Similar UI elements must use identical timing values — never mix 200ms and 250ms for two dropdowns.
 
 ## Duration Scale
 
@@ -41,7 +73,15 @@ Open durations MUST be longer than close durations. Asymmetric timing: slow wher
 --ease-drawer:    cubic-bezier(0.32, 0.72, 0, 1);   /* iOS-like drawer feel */
 ```
 
-Decision tree: entering/exiting → ease-out. On-screen movement → ease-in-out. Hover/color → ease. Marquee/progress → linear. NEVER use built-in CSS `ease-in` for entering elements — it makes UI feel sluggish.
+| Context | Easing |
+|---------|--------|
+| Entrances | `ease-out` (arrives fast, settles) |
+| Exits | `ease-in` (builds momentum before departure) |
+| On-screen moves | `ease-in-out` |
+| Hover/color | `ease` |
+| Constant motion (progress bar, marquee) | `linear` |
+
+NEVER use `ease-in` for entering elements — it delays initial movement and feels sluggish. Recommended custom curves: `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`, `--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1)`. NEVER `transition: all` — specify exact properties.
 
 ## Spring Animations
 
@@ -56,6 +96,38 @@ For gesture interactions (drag, dismiss, mouse tracking) where the user may inte
 ```
 
 Bounce range: 0.1–0.3 for gestures/decorative only. bounce: 0 for all standard UI transitions. NEVER bounce on buttons, tabs, menus, or form controls.
+
+Safe default config: stiffness 100, damping 20. Springs maintain velocity when interrupted; CSS transitions restart from zero — this is why springs feel better for gestures and interruptible animations.
+
+## Mechanics
+
+- Never start scale from 0. Use `scale(0.95)` + `opacity: 0` as hidden state.
+- Stagger delays: 30–50ms per item max. Stagger is decorative — never block interaction during it.
+- Popovers scale from trigger: use `transform-origin` from trigger position. Modals are the exception — always `transform-origin: center`.
+- Tooltips: animate first hover normally; subsequent hovers in the same group show instantly (`transition-duration: 0ms`).
+- Context menus: exit animation only, no entrance. Users expect instant response at cursor.
+- Asymmetric press/release: press is slow and deliberate (~2s linear), release is always snappy (~200ms ease-out).
+- `prefers-reduced-motion` means fewer and gentler, NOT zero — keep opacity/color fades, remove positional movement.
+- Gate hover effects: `@media (hover: hover) and (pointer: fine)` to avoid sticky hover on touch devices.
+
+## Performance
+
+- Only animate `transform` and `opacity` — they're GPU-composited. Everything else triggers layout/paint.
+- Framer Motion shorthand (`x`, `y`, `scale`) is NOT hardware-accelerated — use full `transform` string for GPU compositing.
+- Never drive animation from `scrollTop`/`scrollY` — use Scroll Timelines or IntersectionObserver.
+- `backdrop-blur` ONLY on fixed/sticky elements — never on scrolling containers.
+- `will-change: transform` only when first-frame stutter is observed; remove after. Never `will-change: all`.
+- Pause looping animations when off-screen via IntersectionObserver.
+- Never animate inherited CSS custom properties — triggers recalc on all children.
+
+## Scroll Entry Pattern
+
+| Property | Value |
+|----------|-------|
+| Start state | `translateY(12–16px)` + `opacity: 0` (optional `blur(0–4px)`) |
+| End state | `translateY(0)` + `opacity: 1` |
+| Duration | 600–800ms with expo ease |
+| Trigger | IntersectionObserver with `{ once: true, rootMargin: "-100px" }` |
 
 ## Rules
 
