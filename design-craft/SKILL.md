@@ -41,6 +41,7 @@ These are the fingerprints of AI-generated UI. Violating even one makes the outp
 | Free-floating step connector lines (`<div>` or absolute-positioned spans) | Always misalign. Use flexbox with `flex-1` spacer divs between step circles: `<div class="step-circle"/>` `<div class="connector" style="flex:1; height:2px; background:border-color"/>` `<div class="step-circle"/>`. This is simpler and more reliable than `::after` pseudo-elements. The connectors stretch naturally between circles. |
 | Emojis in headings or UI markup | Use an icon library, not emoji |
 | Domain-reflex coloring (healthcare = teal, crypto = neon on black) | Hue comes from the product name formula, not the category. Never override the formula with a "more appropriate" color |
+| Different background color per section | Breaks site continuity. ALL sections use the same neutral scale. Accent colors go on CTAs and interactive elements, never on section backgrounds |
 
 > "If you showed this to someone and said 'AI made this,' would they believe you immediately? If yes, that's the problem."
 
@@ -99,18 +100,19 @@ Before building any hero or landing section, pick ONE architecture:
 - Hero spacing: min `py-24 md:py-32`. Headlines: `text-5xl md:text-7xl tracking-tight`. Subtext: max 2 sentences, `text-xl text-muted-foreground max-w-[50ch]`.
 - Use real imagery — `<img>` with descriptive alt text and `object-cover`, not colored boxes or icon grids. If no image is available, use bold typography as the visual element (oversized display text, typographic contrast, negative space).
 - One CTA per hero. Secondary action as text link, not a second button.
-- Background depth: use surface variation (tinted sections, subtle gradients, noise textures) instead of flat solid colors. Match to aesthetic direction.
-- **Visual richness is mandatory.** Flat white sections with no surface treatment = visual poverty. Every section needs at least ONE of: tinted background, subtle gradient, or border treatment. NEVER use dot grids, line grids, or repeating geometric patterns as backgrounds — they are lazy filler that screams "AI."
+- Background depth: use surface variation within the SAME neutral scale — never introduce new hues per section.
+- **Visual richness is mandatory.** Flat white sections with no surface treatment = visual poverty. Use subtle variation from your neutral scale (stop-50 → stop-100 alternating) or border treatments. NEVER use dot grids, line grids, or repeating geometric patterns as backgrounds.
+- **Section color consistency (CRITICAL):** ALL section backgrounds must come from the SAME neutral scale. NEVER use a different hue per section — that breaks site continuity and looks like different pages stitched together. Accent/primary colors appear in CTAs, links, and interactive elements — NOT as section backgrounds. Visual variety comes from layout density shifts, typography contrast, and whitespace rhythm, not from color changes.
 
 **Background treatments by aesthetic direction:**
 
 | Aesthetic | Background options |
 |-----------|-------------------|
-| **Editorial** | Off-white base tinted toward brand hue, subtle paper grain via CSS noise, tinted section bands |
-| **Technical / stark** | Pure neutral base, faint dot grid (`radial-gradient` repeating pattern), thin rule lines between sections |
-| **Friendly / soft** | Soft radial gradient behind hero, pastel-tinted card surfaces, gentle shadow layering |
-| **Bold / expressive** | Mesh gradient accent panels, aurora wash on header areas, high-contrast dark sections |
-| **Neutral / professional** | Alternating gray-50/white sections, minimal — rely on borders and spacing over color |
+| **Editorial** | Neutral-50 base, subtle paper grain via CSS noise, alternate neutral-50/neutral-100 between sections |
+| **Technical / stark** | Neutral-50 base, thin rule lines between sections, subtle border treatments |
+| **Friendly / soft** | Soft radial gradient from neutral-50 to neutral-100, gentle shadow layering on cards |
+| **Bold / expressive** | One hero section can use a dark (neutral-950) or primary-tinted panel. Rest stays neutral. Max ONE dark section per page. |
+| **Neutral / professional** | Alternate neutral-50/neutral-100 sections, rely on borders and spacing over color |
 
 ---
 
@@ -450,6 +452,7 @@ Re-read every line you wrote. Verify:
 15. **Grid completeness** — Zero empty grid cells. Count items vs columns: if remainder exists, last items must span to fill.
 16. **Button text** — Zero buttons with text wrapping to two lines. All buttons must use `white-space: nowrap`.
 17. **Monochrome mud** — Primary scale and neutral scale must differ in hue by ≥120°. If everything is the same hue family, the page looks like a sepia photo.
+18. **Section color consistency** — All section backgrounds use the same neutral scale. Zero sections with a unique hue not shared by the rest of the page.
 
 If ANY fail, fix before responding.
 
