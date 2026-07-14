@@ -1,14 +1,12 @@
 ---
 name: design-craft
-description: Universal design principles for AI agents to produce world-class UI. Typography, color, spacing, animation, layout, interaction, component patterns. Eliminates AI slop. Use when building any UI — pages, components, dashboards, forms, landing pages.
+description: Opinionated UI craft rules that break out of the AI-slop median. Use when building or restyling any UI — pages, components, dashboards, forms, landing pages — or when existing UI looks generic, templated, or machine-made. Covers typography, color, spacing, layout, motion, interaction states, and UX writing.
 globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css", "**/*.scss"]
 ---
 
 # Design Craft
 
-Constraints + Consistency + Restraint = Quality. This skill makes LLMs produce world-class UI instead of generic slop.
-
-**The core problem:** LLMs converge on the statistical median of every Tailwind tutorial and Bootstrap template. The result is generic, safe, forgettable. This skill enforces specific, opinionated rules that break out of that median.
+Constraints + Consistency + Restraint = Quality. LLMs converge on the statistical median of every Tailwind tutorial and Bootstrap template — generic, safe, forgettable. This skill enforces specific, opinionated rules that break out of that median.
 
 ---
 
@@ -16,34 +14,44 @@ Constraints + Consistency + Restraint = Quality. This skill makes LLMs produce w
 
 These are the fingerprints of AI-generated UI. Violating even one makes the output look machine-made.
 
+> "If you showed this to someone and said 'AI made this,' would they believe you immediately? If yes, that's the problem."
+
 | AI Slop Pattern | Why It Screams "AI" |
 |---|---|
 | Purple-to-blue gradient hero | Single most common AI training pattern |
-| Gradient text on metrics/headings | Decorative without purpose |
+| Gradient text on metrics/headings (`bg-clip-text`) | Decorative without purpose — solid color, emphasis via weight/size |
 | Dark mode + glowing accents as default | Avoids actual design decisions |
 | Glassmorphism everywhere | Overrepresented in 2021-2023 training data |
 | Centered heading + subtitle + button + 3-card grid | The #1 AI layout — appears in 90%+ of template sites |
+| Hero metrics: 3-4 identical big-number cards | Generic SaaS template. Instead: inline key-value bar, or ONE prominent metric with context |
+| Large rounded icons above headings | Templated, adds no value |
 | Inter/Roboto/Arial as default font | No brand consideration |
-| Cards inside cards | Visual redundancy |
+| Cards inside cards | Visual redundancy — flatten with borders/spacing |
+| Sparklines as decoration | Tiny charts conveying nothing |
+| Monospace as "technical" aesthetic | Not a design decision (as a small accent it can be — see Typography) |
 | Same padding everywhere | No visual rhythm |
 | Everything centered | Feels undesigned |
 | Every button is primary | No hierarchy |
-| Dot/line grid as hero background | Lazy technical filler — not a design choice |
+| Dot/line grid as hero or section background | Lazy technical filler — not a design choice |
 | Glow effects as primary affordances | Decorative noise |
 | "John Doe", "Jane Doe", "Acme Corp" | Training-data leakage |
 | "99.99%", "50%" as metrics | Round/predictable = placeholder |
 | "Seamless", "Unleash", "Next-Gen", "Elevate" | AI copywriting clichés |
 | ALL CAPS labels/tabs/headings | Shouting hierarchy substitute |
 | Title Case everywhere | AI tell — use sentence case |
+| Tiny uppercase tracked eyebrow above every section ("ABOUT", "PROCESS") | The saturated 2023 kicker scaffold. One named kicker as a deliberate brand system is voice; an eyebrow on every section is AI grammar |
+| Numbered section markers as scaffolding ("01 · About", "SECTION 02") | Fake hierarchy — numbers earn their place only when the section IS a real sequence |
 | Side-stripe borders (border-left/right >1px as colored accent) | Template shortcut — use full borders, background tints, or icons instead |
-| Meta-labels ("SECTION 01", "QUESTION 05", "FEATURE 03") | Fake hierarchy — real headings and spacing do this job |
+| Ghost-card: `border: 1px solid` + soft wide `box-shadow` (blur ≥16px) on the same element | Pick one: a solid border OR a defined shadow ≤8px blur, never both as decoration |
+| Over-rounded surfaces: `border-radius` ≥24px on cards/sections/inputs | Cards top out at 12-16px; full-pill is for tags/buttons only |
+| Cream/sand/beige body background by reflex (`--paper`, `--linen`, warm near-white) | The saturated warm-neutral default. "Warmth" is carried by accent + typography + imagery, not body bg |
+| Hand-drawn/sketchy SVG illustrations, `feTurbulence` paper grain | Reads amateurish, not whimsical. No real assets → ship no illustration |
+| `repeating-linear-gradient` stripe backgrounds | Pure decoration reflex |
 | Filler UI ("Scroll to explore", bouncing chevrons) | Decorative noise with zero utility |
-| Free-floating step connector lines (`<div>` or absolute-positioned spans) | Always misalign. Use flexbox with `flex-1` spacer divs between step circles: `<div class="step-circle"/>` `<div class="connector" style="flex:1; height:2px; background:border-color"/>` `<div class="step-circle"/>`. This is simpler and more reliable than `::after` pseudo-elements. The connectors stretch naturally between circles. |
+| Free-floating step connector lines (`<div>` or absolute-positioned spans) | Always misalign. Use flexbox with `flex-1` spacer divs between step circles: `<div class="step-circle"/>` `<div class="connector" style="flex:1; height:2px; background:border-color"/>` `<div class="step-circle"/>` |
 | Emojis in headings or UI markup | Use an icon library, not emoji |
-| Domain-reflex coloring (healthcare = teal, crypto = neon on black) | Hue comes from the product name formula, not the category. Never override the formula with a "more appropriate" color |
+| Domain-reflex coloring (healthcare = teal, crypto = neon on black) | Hue comes from the product-name formula ([reference/color.md](reference/color.md)), never from the category |
 | Different background color per section | Breaks site continuity. ALL sections use the same neutral scale. Accent colors go on CTAs and interactive elements, never on section backgrounds |
-
-> "If you showed this to someone and said 'AI made this,' would they believe you immediately? If yes, that's the problem."
 
 ---
 
@@ -68,19 +76,23 @@ State these decisions explicitly in your reasoning:
 
 1. **Structural archetype:** app shell (sidebar + content) · marketing page (sections + CTA) · focused tool (centered workspace) · dashboard (data-dense grid) · editorial (long-form reading)
 2. **Visual density:** sparse · balanced · dense
-3. **Aesthetic direction** — a specific adjective pair matched to the product, not "modern" or "clean" (e.g., "stark technical", "bold expressive", "soft organic", "restrained editorial"). NEVER default to the same direction twice in a row.
+3. **Aesthetic direction** — a specific adjective pair matched to the product, not "modern" or "clean": stark technical, bold expressive, soft organic, restrained editorial, luxury refined, playful toy-like, retro-futuristic, industrial utilitarian. NEVER default to the same direction twice in a row. Design light mode first — dark mode is a semantic token swap, not a separate design. Dark vs. light is never a default: write one sentence of physical scene (who uses this, where, under what light, in what mood) and let it force the answer.
 4. **Typeface** — chosen from the font menu below to match the aesthetic
-5. **Color system** — BROWNFIELD: list existing tokens and use them. GREENFIELD: run the accent derivation procedure below, semantic tokens, 60-30-10 rule, one accent max
+5. **Color system** — BROWNFIELD: list existing tokens and use them. GREENFIELD: run the derivation in [reference/color.md](reference/color.md) — semantic tokens, 60-30-10 rule, one accent max
 6. **Hero architecture** — chosen from the hero menu below (if the page has a hero)
-
 7. **The unforgettable question:** "If someone saw 10 similar pages today, what would make them remember THIS one?" Name one concrete visual or structural choice that distinguishes this design.
 8. **The swap test:** "If I swapped this layout for a standard template and the font for Inter, would anyone notice?" The places where swapping wouldn't matter are the places that defaulted.
+9. **The category-reflex check, at two altitudes:** First-order — if someone could guess the theme + palette from the product category alone, it's the first training-data reflex; rework. Second-order — if they could guess the aesthetic family from category-plus-anti-reference ("fintech that's not navy-and-gold → terminal dark mode"), that's the trap one tier deeper; rework until neither answer is obvious.
 
 The archetype and density decisions drive everything else. An "app shell / balanced" produces a sidebar, top bar, and filled content area. A "focused tool / sparse" produces a centered workspace with intentional whitespace. A "dashboard / dense" fills the viewport with data.
 
+**The delight-impact curve:** less-frequent moments deserve MORE delight. Daily actions get subtle micro-interactions; rare milestones (onboarding complete, first transaction) can be theatrical. And polish is uniform — settings pages, empty states, and error screens get the same care as the hero.
+
 **Reference loading triggers (MANDATORY):**
-- If the page has modals, drawers, transitions, or any interactive motion → **READ [reference/motion.md](reference/motion.md)** before writing code
-- If building a dashboard, data table, chart, or financial UI → **READ [reference/data-dense.md](reference/data-dense.md)** before writing code
+- GREENFIELD color work, or any palette/contrast/dark-mode task → **READ [reference/color.md](reference/color.md)**
+- Choosing/loading fonts, long-form text, truncation, or any typography beyond the core table below → **READ [reference/typography.md](reference/typography.md)**
+- Modals, drawers, transitions, gestures, or any interactive motion → **READ [reference/motion.md](reference/motion.md)**
+- Dashboard, data table, chart, or financial UI → **READ [reference/data-dense.md](reference/data-dense.md)**
 
 ---
 
@@ -97,12 +109,12 @@ Before building any hero or landing section, pick ONE architecture:
 | **Anchored metric** | Single hero stat/number with context paragraph below | SaaS, data products |
 
 **Hero rules:**
-- Hero spacing: min `py-24 md:py-32`. Headlines: `text-5xl md:text-7xl tracking-tight`. Subtext: max 2 sentences, `text-xl text-muted-foreground max-w-[50ch]`.
+- Hero spacing: min `py-24 md:py-32`. Headlines: `text-5xl md:text-7xl tracking-tight`, clamp() max ≤ 6rem. Subtext: max 2 sentences, `text-xl text-muted-foreground max-w-[50ch]`.
 - Use real imagery — `<img>` with descriptive alt text and `object-cover`, not colored boxes or icon grids. If no image is available, use bold typography as the visual element (oversized display text, typographic contrast, negative space).
 - One CTA per hero. Secondary action as text link, not a second button.
-- Background depth: use surface variation within the SAME neutral scale — never introduce new hues per section.
-- **Visual richness is mandatory.** Flat white sections with no surface treatment = visual poverty. Use subtle variation from your neutral scale (stop-50 → stop-100 alternating) or border treatments. NEVER use dot grids, line grids, or repeating geometric patterns as backgrounds.
-- **Section color consistency (CRITICAL):** ALL section backgrounds must come from the SAME neutral scale. NEVER use a different hue per section — that breaks site continuity and looks like different pages stitched together. Accent/primary colors appear in CTAs, links, and interactive elements — NOT as section backgrounds. Visual variety comes from layout density shifts, typography contrast, and whitespace rhythm, not from color changes.
+- Heading copy must survive every breakpoint — if it overflows on tablet/mobile, reduce the clamp max or rewrite the copy. The viewport is part of the design.
+- **Visual richness is mandatory.** Flat white sections with no surface treatment = visual poverty. Use subtle variation from your neutral scale (stop-50 → stop-100 alternating) or border treatments. NEVER dot grids, line grids, or repeating geometric patterns as backgrounds.
+- **Section color consistency (CRITICAL):** ALL section backgrounds come from the SAME neutral scale. Visual variety comes from layout density shifts, typography contrast, and whitespace rhythm — not color changes per section.
 
 **Background treatments by aesthetic direction:**
 
@@ -133,22 +145,26 @@ Pick a font based on the product's aesthetic direction. The font must match the 
 | Rule | Implementation |
 |------|---------------|
 | Type scale | 5 levels: Display, Heading, Body, Caption, Micro. Fewer sizes with more contrast > many close sizes. |
+| Heading levels | From the document outline, sizes descend with level, one `h1` per page — never skip levels |
 | Numeric data | `tabular-nums` on all numbers — prices, counts, dates, IDs, table columns |
 | Headings | `text-balance`. Body: `text-pretty`. Max line length: `max-w-[65ch]` |
-| Line height | Body: 1.5. Headings: 1.2–1.3. Large display: 1.0–1.1 |
-| Large display text | `tracking-tight` or `tracking-tighter` on text-3xl+. NEVER add positive tracking. |
-| Case | Sentence case for headings, labels, tabs, buttons. ALL CAPS only for micro-meta (timestamps, badges ≤3 words). |
-| Font loading | `font-display: swap`. Sizes in `rem`/`em`, not `px`. `-webkit-font-smoothing: antialiased` on root. |
+| Line height | Unitless. Body: 1.5. Headings: 1.2–1.3. Large display: 1.0–1.1 |
+| Large display text | `tracking-tight` on text-3xl+, floor -0.04em. NEVER add positive tracking except small uppercase labels. |
+| Case | Sentence case for headings, labels, tabs, buttons — stored in natural case, styled with `text-transform`. ALL CAPS only for micro-meta (timestamps, badges ≤3 words). |
+| Font loading | `.woff2` only. `font-display: swap`. `font-synthesis: none`. Sizes in `rem`/`em`. `antialiased` once on root. |
 | Fluid type | Use `clamp()` for marketing/content pages. Fixed sizes for app UI. |
-| Limits | Max 3 font weights per view. One family unless genuine display/body contrast needed. |
+| Limits | Max 3 font weights per view. One family unless genuine display/body contrast (contrast axis: serif+sans, geometric+humanist). |
 | Font weight diversity | NEVER only 400 and 700 across an interface. Use minimum 400/500/600. Two-weight interfaces lack nuance. |
 | Monospace as accent | Appropriate for reference numbers, timestamps, transaction IDs, overline labels in technical products. Small `font-mono text-xs` label alongside display font creates productive contrast. |
-| NEVER | Monospace for display headings. `tracking-wide`. `user-scalable=no`. Arbitrary sizes (`text-[13px]`). |
+| Mobile inputs | ≥16px (`text-base sm:text-sm`) or iOS zooms. NEVER `user-scalable=no` / `maximum-scale=1`. |
+| NEVER | Monospace for display headings. `tracking-wide` on body. Arbitrary sizes (`text-[13px]`). Raw axis tags when a CSS property exists (`font-weight`, `font-variant-numeric`). |
 
 ```
 BAD:  text-[13px], text-[15px], text-[17px]  → too many sizes, too close together
 GOOD: text-xs (12), text-sm (14), text-base (16), text-xl (20)  → clear jumps
 ```
+
+Depth (font files, variable fonts, wrapping, punctuation, underlines, RTL): [reference/typography.md](reference/typography.md).
 
 ---
 
@@ -165,52 +181,9 @@ GOOD: text-xs (12), text-sm (14), text-base (16), text-xl (20)  → clear jumps
 
 Don't default everything to Restrained — "restrained by reflex" is the same failure as "Inter by reflex."
 
-**Palette generation — OKLCH lightness spine algorithm:**
+**Palette derivation:** GREENFIELD palettes come from the OKLCH lightness spine in [reference/color.md](reference/color.md) — deterministic hue from the product name, 12-stop ladder, companion neutral at H+180°, semantic token mapping, gamut safety, APCA contrast. Read it before creating or modifying any palette. BROWNFIELD: use existing tokens.
 
-Any hue in, correct palette out. No color lookup tables, no domain→color mapping.
-
-**Step 1 — Derive hue from product name (deterministic, bias-free):**
-Take the first two letters of the product name (case-insensitive, a=0, b=1, ..., z=25):
-`Hue = (firstLetter × 137 + secondLetter × 47) mod 360`
-This removes model color bias — different names always produce different hues. If no product name exists in the prompt, name the product first, then derive. Never skip the formula and "choose" a hue — that reintroduces the amber/slate bias every model has.
-
-BROWNFIELD: Extract hue from existing `--primary` token instead of computing from name.
-
-**Step 2 — Walk the lightness spine:**
-Fixed 12-stop OKLCH ladder. Chroma follows a bell curve — low at the extremes (near-white, near-black), peaking at mid-lightness. Hue stays constant.
-
-| Stop | L | C (bell curve) | Role |
-|------|------|------|------|
-| 50 | 0.99 | 0.01 | Tinted background |
-| 100 | 0.96 | 0.02 | Subtle surface |
-| 200 | 0.90 | 0.04 | Hover surface |
-| 300 | 0.82 | 0.07 | UI border light |
-| 400 | 0.71 | 0.10 | UI border strong |
-| 500 | 0.64 | 0.13 | Secondary text |
-| 600 | 0.55 | 0.15 | **Primary fill** (peak chroma) |
-| 700 | 0.49 | 0.14 | Primary fill hover |
-| 800 | 0.40 | 0.11 | Strong accent |
-| 900 | 0.32 | 0.08 | Heading text |
-| 950 | 0.27 | 0.05 | Body text |
-| 1000 | 0.24 | 0.03 | High-contrast text |
-
-Scale chroma by strategy: Restrained ×0.6, Committed ×1.0, Full palette ×1.2, Drenched ×1.4. The shape stays — only amplitude changes.
-
-**Gamut safety:** Max chroma varies by hue. Purple (H~285) can reach C≈0.29 at L=0.5; cyan (H~195) only C≈0.09. If your chosen hue is in the 170-210 range, cap peak chroma at 0.09. For multi-hue palettes (e.g., status colors), use the same *percentage of max chroma* per hue, not the same absolute C — otherwise some hues look more vivid than others. Contrast is controlled by L distance alone — adjusting C has negligible effect on readability.
-
-**Step 3 — Derive companion scales:**
-- **Neutral:** H + 180° (opposite hue), chroma ≈ 0.01 at all stops. This prevents monochrome mud — neutrals must NOT share the primary hue. A warm primary (H=55) gets cool-tinted grays (H=235); a cool primary (H=220) gets warm-tinted grays (H=40).
-- **Secondary:** Same H, chroma ×0.4. Muted version of primary for large surfaces.
-- **Tertiary (if needed):** H + 60°, chroma ×0.5. Analogous harmony — never complementary for UI.
-
-**Monochrome mud check:** If the background, borders, text, AND accent are all the same hue family, the page looks like a sepia photograph. Primary and neutral scales MUST differ in hue by ≥120°. This creates the contrast between content (colored) and chrome (neutral) that makes UI readable.
-
-**Step 4 — Map semantic tokens from spine stops:**
-- From **neutral** scale: `--background: neutral-50`, `--card: neutral-100`, `--border: neutral-300`, `--muted-foreground: neutral-500`, `--foreground: neutral-950`
-- From **primary** scale: `--primary: primary-600`, `--primary-hover: primary-700`, `--accent: primary-100`, `--ring: primary-400`
-- Dark mode: invert the mapping (neutral-950 → background, neutral-50 → foreground), reduce chroma by 20%.
-
-Use ONLY semantic color tokens in components. NEVER Tailwind palette with number suffixes (`bg-blue-500`). NEVER hex/rgb/hsl in JSX.
+Use ONLY semantic color tokens in components. NEVER Tailwind palette with number suffixes (`bg-blue-500`). NEVER hex/rgb/hsl/oklch inline in JSX.
 
 ```
 REQUIRED tokens: bg-background, text-foreground, bg-card, bg-primary, text-primary,
@@ -227,22 +200,22 @@ Opacity modifiers on semantic tokens ARE allowed: bg-primary/10, border-destruct
 | Warning / caution | Amber | `--warning` | Pending, at risk, needs attention |
 | Info / neutral action | Blue | `--info` | Links, informational, selected, in progress |
 
-These are conventions users already know. NEVER invert them (red for success, green for error). NEVER use brand accent for status — status colors are universal, not branded.
+These are conventions users already know. NEVER invert them. NEVER use brand accent for status — status colors are universal, not branded.
 
 | Rule | Detail |
 |------|--------|
 | Three layers | Primitives (oklch palette) → Semantic tokens (purpose) → Component tokens. Components reference ONLY semantic. |
-| Contrast | ≥ 4.5:1 (WCAG AA). No exceptions. |
-| Neutrals | Tint toward neutral hue (H+180° from primary, per Step 3). NEVER `oklch(1 0 0)` or `#ffffff` as card/surface backgrounds — always use the tinted stop-50/stop-100 from your neutral scale. Dead white has no personality. |
+| Contrast | ≥ 4.5:1 (WCAG AA) against the element's actual rendered background. No exceptions — including placeholders. Fix by moving L, not C ([reference/color.md](reference/color.md)). |
+| Neutrals | Tinted toward the companion hue (H+180° from primary). NEVER `oklch(1 0 0)` or `#ffffff` as card/surface backgrounds — always the tinted stop-50/stop-100. Dead white has no personality. |
 | 60-30-10 | 60% neutrals, 30% secondary, 10% accent. Max 1 primary + 1 secondary accent. |
-| OKLCH | Define ALL oklch values in `:root` as CSS custom properties. NEVER use inline `oklch()` in component rules, box-shadow, outline, or Tailwind classes — always reference a `var(--token)`. |
-| Dark mode | Not inverted light mode. No shadows for depth (use lighter surfaces). Desaturate accents slightly. Reduce font weight (350 instead of 400). Never pure black bg. Swap semantic token layer, not component layer. |
+| OKLCH | Define ALL oklch values in `:root` as CSS custom properties. NEVER inline `oklch()` in component rules, box-shadow, outline, or Tailwind classes — always `var(--token)`. |
+| Dark mode | Derived, not hand-picked: invert the semantic lightness mapping, desaturate ~20%, lighter surfaces instead of shadows, font weight 350, never pure black. Swap the semantic layer, not components. |
 | One accent, many opacities | Use one accent at 100%, 60%, 20%, 10% before reaching for a second accent color |
 | Tinted shadows | Replace generic rgba(0,0,0,x) with hue-matched shadows tinted toward the background hue |
-| Consistent light source | All shadows must suggest a single light direction; mismatched angles = unnoticed flaw |
+| Consistent light source | All shadows suggest a single light direction; mismatched angles = unnoticed flaw |
 | Accent saturation | Keep below 80% — slightly desaturated feels premium |
-| Token naming | Variable names should reveal the product's identity. Someone reading only the token names should guess the product. `--gray-700` evokes a template; `--meridian-600` or `--savora-primary` evoke a world. |
-| NEVER | `oklch(1 0 0)`, `#fff`, `#000` as card/surface/background tokens — always tinted. Gray text on colored backgrounds. Purple-to-blue gradients. Inline `oklch()` outside `:root`. |
+| Token naming | Names should reveal the product's identity. `--gray-700` evokes a template; `--meridian-600` evokes a world. |
+| NEVER | `#fff`, `#000` as surface tokens. Gray text on colored backgrounds — use a darker shade of the bg's own hue. Purple-to-blue gradients. |
 
 ---
 
@@ -252,7 +225,7 @@ These are conventions users already know. NEVER invert them (red for success, gr
 
 ```
 tight: 0.25rem (4px) — within atomic elements
-item:  0.5rem (8px)  — between items in a group  
+item:  0.5rem (8px)  — between items in a group
 group: 1rem (16px)   — between related groups
 section: 1.5rem (24px) — between major sections
 page: 2-4rem (32-64px) — page-level margins
@@ -262,12 +235,12 @@ page: 2-4rem (32-64px) — page-level margins
 |------|--------|
 | Spacing tokens | Use framework scale only. NEVER `p-[13px]`, `gap-[7px]`. |
 | Visual rhythm | Tight within groups, generous between sections. Not the same padding everywhere. |
-| Border radius | ONE base radius, derive all others. Buttons/inputs: 4-6px. Cards/dialogs: 8px. Badges: 4px or `rounded-full`. Outer = inner + padding (concentric). NEVER mix arbitrary values. |
-| Shadows | Barely perceptible, multi-layer. `shadow-sm` for elevation, `shadow-md` for popovers. NEVER `shadow-lg/xl` on small components. |
+| Border radius | ONE base radius, derive all others. Buttons/inputs: 4-6px. Cards/dialogs: 8-16px max. Badges: 4px or `rounded-full`. Concentric nesting: outer = inner + padding. NEVER ≥24px on cards/sections/inputs. NEVER mix arbitrary values. |
+| Shadows | Barely perceptible, multi-layer. `shadow-sm` for elevation, `shadow-md` for popovers. NEVER `shadow-lg/xl` on small components. NEVER 1px border + wide soft shadow on the same element (ghost-card). |
 | Grouping | Pick ONE method per section: borders OR shadows OR spacing. Never all three. |
-| Three-surface limit | NEVER let more than 3 surface levels be visible at once (page bg → section bg → card surface). Each additional level adds cognitive overhead. |
-| Image outline | Add 1px outline to all images — `rgba(0,0,0,0.1)` light / `rgba(255,255,255,0.1)` dark. Prevents images from floating. |
-| Inset inputs | Inputs should be slightly darker than their surface, not lighter — they are "inset" and receive content. |
+| Three-surface limit | NEVER more than 3 surface levels visible at once (page bg → section bg → card surface). |
+| Image outline | 1px outline on all images — pure `rgba(0,0,0,0.1)` light / `rgba(255,255,255,0.1)` dark, never a tinted neutral (reads as dirt on the image edge). |
+| Inset inputs | Inputs slightly darker than their surface, not lighter — they are "inset" and receive content. |
 
 ```css
 /* Good: subtle, multi-layer (Stripe-style) */
@@ -285,37 +258,36 @@ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 
 | Rule | Detail |
 |------|--------|
-| Structure | CSS Grid or Flexbox. NEVER absolute positioning for structural layout. |
+| Structure | CSS Grid or Flexbox — Flexbox for 1D, Grid for 2D. NEVER absolute positioning for structural layout. |
 | Viewport | `h-dvh` — NEVER `h-screen` (iOS Safari). |
 | Overflow | `min-w-0` on flex/grid children. `flex-1 min-w-0` on flex children with text. |
-| Z-index | Fixed semantic scale — NEVER `z-[999]`. |
+| Z-index | Fixed semantic scale (dropdown → sticky → backdrop → modal → toast → tooltip) — NEVER `z-[999]`. |
 | Safe area | `safe-area-inset` on fixed elements for mobile. |
 | Container queries | `@container` for component-level responsiveness. |
-| Cards | Containers, not decoration. NEVER wrap everything in cards. NEVER nest cards inside cards. Card appropriateness test: "Is this content independently actionable or navigable?" If no, use borders, spacing, or background color instead. Form field groups → section dividers, settings → section headings + dividers, activity feeds → list rows with border-bottom, stat metrics → KPI strip (single border with grid, not individual cards). |
-| Overflow ban | `overflow: hidden` is BANNED as layout repair — it hides the problem instead of fixing it. Fix the content or container sizing. |
-| H1 line limit | H1 MUST NOT exceed 3 lines on desktop. If it does, the container is too narrow — widen with `max-w-5xl` or wider, not shrink the font. |
-| Layout budget | For fixed-height regions, calculate `usableHeight = trackHeight - padding - borders - gaps` vs contentHeight. If content > usable, the design is invalid — reduce content, don't hide overflow. |
-| Sizing contract | Before placing any element, declare: **Hug** (size wraps content — buttons, badges), **Fill** (expands to parent — content areas, `flex: 1`), or **Fixed** (explicit dimension — sidebars, avatars). Skipping this produces brittle layouts. |
-| Grid completeness | NEVER leave empty grid cells. If `items % columns ≠ 0`: remainder of 1 → last item spans full row; remainder of 2 → last two items each span half. Use `auto-fill` with `minmax(280px, 1fr)` for truly variable counts. For 3-6 stat metrics, use a KPI strip (single border + hairline dividers) instead of individual cards — it handles any count cleanly. |
-| Touch targets | 44x44px minimum on mobile. |
-| Responsive | Prefer 2-tier (mobile + desktop). NEVER hide core functionality on mobile. |
-| Square elements | Use `size-*` instead of `w-* h-*` (e.g., `size-10` not `w-10 h-10`). |
-| Input method | Detect with `@media (pointer: coarse)` for touch, `@media (hover: none)` for no-hover devices. |
+| Cards | Containers, not decoration. NEVER wrap everything in cards. NEVER nest cards. Card test: "Is this content independently actionable or navigable?" If no → borders, spacing, or background. Form field groups → section dividers; settings → headings + dividers; activity feeds → list rows with border-bottom; stat metrics → KPI strip (single border with grid, not individual cards). |
+| Overflow ban | `overflow: hidden` is BANNED as layout repair — fix the content or container sizing. |
+| H1 line limit | H1 MUST NOT exceed 3 lines on desktop. Widen the container (`max-w-5xl`+), don't shrink the font. |
+| Layout budget | For fixed-height regions: `usableHeight = trackHeight - padding - borders - gaps` vs contentHeight. Content > usable = invalid design — reduce content, don't hide overflow. |
+| Sizing contract | Before placing any element, declare: **Hug** (wraps content — buttons, badges), **Fill** (expands — content areas, `flex: 1`), or **Fixed** (explicit — sidebars, avatars). |
+| Grid completeness | NEVER leave empty grid cells. `items % columns ≠ 0`: remainder 1 → last item spans full row; remainder 2 → last two span half each. `auto-fill` + `minmax(280px, 1fr)` for variable counts. |
+| Touch targets | 44×44px minimum on mobile, 40×40px desktop. Extend with a pseudo-element if the visible element is smaller. Hit areas of adjacent controls must never overlap. |
+| Responsive | Prefer 2-tier (mobile + desktop). NEVER hide core functionality on mobile. Test extremes: 100+ char strings, emoji, RTL, empty, 1000+ items. |
+| Square elements | `size-*` instead of `w-* h-*`. |
+| Input method | `@media (pointer: coarse)` for touch, `@media (hover: none)` for no-hover devices. |
 
 **Structural completeness** — a viewport should feel composed, not assembled with gaps:
 - **App shells:** Navigation context (sidebar, top bar, or both) + full-height content area. A form in a void = missing structure.
-- **Dashboards:** Fill the grid. Empty grid cells = layout hole. If 5 items in a 3-column layout, span one item across 2 columns. Every dashboard needs visual data — not just numbers in cards. Use sparklines in stat cards for trend, progress rings for goal completion, color-coded category indicators, and at least one chart panel with labeled axes. A dashboard of only text and numbers is a spreadsheet, not a dashboard.
+- **Dashboards:** Fill the grid; see [reference/data-dense.md](reference/data-dense.md).
 - **Detail pages:** Primary content + supporting context (metadata sidebar, related items, activity feed). A single centered element on a wide screen wastes the viewport.
 
 **Spatial composition:**
 - Asymmetry over centering. `grid-cols-[2fr_1fr]` is more dynamic than equal columns.
 - Vary section density. Hero with generous whitespace → dense feature grid → spacious testimonial.
-- Background zones: alternate surface treatments (tinted sections, subtle texture, full-bleed accent bands) to break visual monotony.
 - Whitespace is composition, not emptiness. Intentional whitespace is *consistent and framed*; accidental emptiness is *asymmetric and unfinished*.
 
 **Sidebar visual hierarchy** — sidebars must recede, not compete:
 - Text/icons: 40-50% opacity when inactive, full opacity when active/hovered
-- Background: same hue family as content area, just 1-2 lightness steps dimmer (e.g., content `oklch(0.97...)` → sidebar `oklch(0.94...)`). NEVER dark sidebar + light content — the contrast cliff makes them look like two unrelated apps.
+- Background: same hue family as content area, 1-2 lightness steps dimmer. NEVER dark sidebar + light content — the contrast cliff reads as two unrelated apps.
 - Width: fixed (200-280px), collapsible to icon-only
 - Content area ALWAYS wins the visual hierarchy contest
 
@@ -344,21 +316,24 @@ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 | Primitives | Use accessible primitives (shadcn, Base UI, Radix). NEVER mix systems. NEVER rebuild keyboard/focus behavior. |
 | Variants | CVA or equivalent. Never inline ternary chains. `cn()` for class composition. |
 | Semantic HTML | `<button>` for actions, `<a>` for navigation. NEVER `<div onClick>`. |
-| Button text | MUST use `white-space: nowrap`. Button labels NEVER wrap to two lines — if text doesn't fit, shorten the label or widen the button. |
+| Button text | `white-space: nowrap`. Labels NEVER wrap to two lines — shorten the label or widen the button. |
 | Icon-only buttons | MUST have `aria-label`. |
 | Destructive actions | MUST use `AlertDialog`. Prefer undo over confirmation dialogs — users click through confirmations mindlessly. |
+| Optimistic UI | Low-stakes reversible actions only (toggle, reorder). NEVER payments or deletions. Failed optimistic updates revert state + show error. |
 | Errors | Inline, next to where the action happened. Not in a toast. |
 | Empty states | Clear message + CTA + optional illustration. NEVER just "No items." |
-| Loading | Use structural skeletons that preview content shape, not generic spinners. |
+| Loading | Structural skeletons that preview content shape, not generic spinners. |
+| Numbers & dates | `Intl.NumberFormat` / `Intl.DateTimeFormat`, never string concatenation. |
+| Dropdown clipping | `position: absolute` inside `overflow: hidden/auto` gets clipped — use popover API, `position: fixed`, or a portal. |
 | Paste | NEVER block paste in inputs/textareas. |
 
 **Interaction states** — EVERY interactive element MUST have ALL of these:
 
 | State | Implementation |
 |-------|---------------|
-| Hover | Subtle lift, color shift, or underline |
+| Hover | Subtle lift, color shift, or underline — gated by `@media (hover: hover)` |
 | Focus | `focus-visible:ring-2 focus-visible:ring-ring` — NEVER remove |
-| Active | `active:scale-[0.97]` with 100ms ease-out |
+| Active | `active:scale-[0.97]` with 100ms ease-out (floor 0.95 — below feels exaggerated) |
 | Disabled | `opacity-50 pointer-events-none cursor-not-allowed` |
 | Loading | Disable + "Saving..." text + `aria-busy={isLoading}` |
 
@@ -413,7 +388,8 @@ When output looks "almost good but not quite," use this diagnostic:
 | Feels cramped | Uniform tight spacing, no breathing room | Increase gap between sections (keep tight within groups) |
 | Feels empty despite content | Too much whitespace between items, thin typography | Tighten item spacing, increase font weight on key elements |
 | Layout clips on real content | Fixed heights without overflow | Use min-h instead of h, add overflow-y-auto on scrollable regions |
-| Dark mode looks washed out | Same chroma/weight as light mode | Desaturate accents slightly, reduce font weight (350 → 400) |
+| Dark mode looks washed out | Same chroma/weight as light mode | Desaturate accents slightly, reduce font weight (400 → 350) |
+| Body text hard to read | Muted gray on tinted near-white | Bump foreground toward the ink end of the scale — verify contrast against the actual bg |
 | Numbers feel jumpy on update | Missing tabular-nums | Add `font-variant-numeric: tabular-nums` to all numeric displays |
 | Sidebar fights content area | Sidebar too bright, same visual weight | Dim sidebar bg 1-2 steps, reduce inactive icon/text to 40-50% opacity |
 
@@ -435,8 +411,8 @@ When requirements conflict, sacrifice in this order (last = drop first):
 
 Re-read every line you wrote. Verify:
 
-1. **No slop patterns** — Zero items from the anti-slop table
-2. **No hardcoded colors** — Every color uses semantic tokens. Zero hex/rgb/hsl in JSX.
+1. **No slop patterns** — Zero items from the anti-slop table (including eyebrows, numbered scaffolding, ghost-cards, over-rounding, cream-by-reflex)
+2. **No hardcoded colors** — Every color uses semantic tokens. Zero hex/rgb/hsl/oklch in JSX.
 3. **No arbitrary values** — No `text-[13px]`, `p-[17px]`, `w-[423px]`
 4. **`h-dvh` not `h-screen`**
 5. **Interaction states complete** — Every button has hover, focus-visible, active, disabled
@@ -449,10 +425,11 @@ Re-read every line you wrote. Verify:
 12. **The swap test** — Could you swap the font for Inter and the layout for centered-heading+3-card-grid without anyone noticing? If yes, you defaulted — go back and make real choices.
 13. **No side-stripe borders** — Zero `border-left`/`border-right` >1px used as colored accents
 14. **Three-surface limit** — Count visible surface levels. Max 3.
-15. **Grid completeness** — Zero empty grid cells. Count items vs columns: if remainder exists, last items must span to fill.
-16. **Button text** — Zero buttons with text wrapping to two lines. All buttons must use `white-space: nowrap`.
-17. **Monochrome mud** — Primary scale and neutral scale must differ in hue by ≥120°. If everything is the same hue family, the page looks like a sepia photo.
-18. **Section color consistency** — All section backgrounds use the same neutral scale. Zero sections with a unique hue not shared by the rest of the page.
+15. **Grid completeness** — Zero empty grid cells. If remainder exists, last items span to fill.
+16. **Button text** — Zero buttons with text wrapping to two lines.
+17. **Monochrome mud** — Primary and neutral scales differ in hue by ≥120°.
+18. **Section color consistency** — All section backgrounds use the same neutral scale.
+19. **Reference gates honored** — Name which reference files you read this session (color / typography / motion / data-dense). If a mandatory trigger fired (greenfield palette, any animation, font work, dashboard/table) and you didn't read its file, read it now and re-verify the affected code.
 
 If ANY fail, fix before responding.
 
@@ -464,5 +441,7 @@ See **Design Decision Gate** above for mandatory loading triggers.
 
 | Area | File |
 |------|------|
-| Motion & Animation | [reference/motion.md](reference/motion.md) — animation library selection, frequency gate, duration ladder, easing, springs, performance |
+| Color & Contrast | [reference/color.md](reference/color.md) — OKLCH spine derivation, name→hue formula, companion scales, gamut safety, APCA/WCAG contrast, dark mode |
+| Typography Depth | [reference/typography.md](reference/typography.md) — font files, variable fonts, scale mechanics, wrapping, punctuation, underlines, RTL |
+| Motion & Animation | [reference/motion.md](reference/motion.md) — frequency gate, library selection, duration ladder, easing, springs, gestures, performance |
 | Data-Dense UI | [reference/data-dense.md](reference/data-dense.md) — dashboard composition, table patterns, chart selection, data visualization |

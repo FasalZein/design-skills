@@ -1,6 +1,6 @@
 ---
 name: design-qa
-description: Universal UI quality gates — accessibility, consistency, hardening, performance, responsive checks. Pre-ship checklist. Works with any AI agent, any framework.
+description: Binary pass/fail quality gates for UI code — run before shipping any component, page, or feature. Use when the user asks to QA, audit, review, or harden UI, before merging UI work, or after any design implementation to verify it. Covers anti-slop, accessibility, consistency, interaction states, performance, responsive, and live in-browser verification.
 globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css", "**/*.scss"]
 ---
 
@@ -19,7 +19,7 @@ bash design-qa/scripts/design-scan.sh [target-dir] --critical-only
 
 Requires: ripgrep (`rg`). Optional: ast-grep (`sg`).
 
-After the fast scan, run the manual gates below for judgment-based checks. Read the code, run each gate in order, report failures with line numbers and fixes.
+After the fast scan, run the manual gates below for judgment-based checks. Read the code, run each gate in order, report failures with line numbers and fixes. Finish with Gate 12 (live verification) whenever the app can be rendered — the rendered page outranks source-level passes.
 
 ---
 
@@ -34,6 +34,11 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 | No identical card grid | Cards in a grid have varied content/layout, not 3x identical template |
 | No glow effects | Zero `shadow-*-*/glow` or colored `box-shadow` spread |
 | No nested cards | Zero Card/panel inside other Card/panel |
+| No eyebrow scaffolding | Zero tiny uppercase tracked kickers repeated above every section; zero "01 / 02 / 03" section markers outside real sequences |
+| No side-stripe accents | Zero `border-left`/`border-right` >1px used as colored accents |
+| No ghost-cards | Zero elements pairing a 1px border with a soft box-shadow ≥16px blur |
+| No over-rounding | Zero `border-radius` ≥24px on cards, sections, or inputs |
+| No reflex cream bg | Body/section background is not a warm near-white picked "for warmth" (`--paper`/`--cream`/`--sand`-style tokens = flag) |
 | Font is intentional | Not using Inter/Roboto/Arial as a "just pick something" default |
 
 ## Gate 2: Typography
@@ -46,6 +51,9 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 | Headings: text-balance | All `<h1>`-`<h6>` use `text-balance` or `text-pretty` |
 | Line length controlled | Body text has `max-w-prose` or equivalent (45-75ch) |
 | Max 3 font weights | More than 3 distinct `font-*` weights per view = flag |
+| Web fonts are woff2 | Owned font assets are `.woff2` (`.woff` legacy fallback only). `.ttf`/`.otf` served = flag |
+| No faked bold/italic | `font-synthesis: none` set; every used weight/style has a loaded file |
+| Mobile inputs ≥ 16px | Input text ≥ 16px on mobile viewports; zoom never disabled to compensate |
 
 ## Gate 3: Color
 
@@ -92,6 +100,7 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 | Initial focus on open | Dialogs set initial focus on first interactive or explicit target |
 | aria-expanded | Accordion/collapsible triggers have `aria-expanded` + `aria-controls` |
 | aria-busy | Containers receiving async content use `aria-busy={true}` |
+| Hit areas don't collide | Expanded hit targets of adjacent interactive controls never overlap |
 | Paste not blocked | No `onPaste={e => e.preventDefault()}` |
 
 ## Gate 7: Accessibility
@@ -119,6 +128,7 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 | Numbers formatted | Large numbers use `Intl.NumberFormat` |
 | Dates formatted | Dates use `Intl.DateTimeFormat` or relative format |
 | Skeletons match layout | Skeleton shapes mirror actual content, not generic rectangles |
+| Truncation recoverable | Material truncated text reachable in full — tooltip, expansion, or detail view |
 | Double-submit prevented | Form submit buttons disable during async |
 | Error recovery | Every error state has retry action or clear path forward |
 
@@ -134,6 +144,10 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 | Lists virtualized | 100+ items use virtual scrolling |
 | Inputs debounced | Search/filter: 200-300ms debounce |
 | Cleanup on unmount | useEffect cleanup cancels subscriptions, aborts fetch |
+| No mount animation on defaults | Default-state `AnimatePresence` uses `initial={false}` (deliberate first-load entrances exempt) |
+| No parent CSS-var animation | Parent custom properties not updated per-frame to drive child transforms |
+| Hidden-tab timers pause | Timed toasts/auto-dismiss pause while document is hidden |
+| Content visible without JS animation | No content whose visibility depends on a class-triggered transition firing (ships blank in hidden tabs/headless) |
 | No console.log | Zero `console.log/warn/error` not wrapped in dev check |
 
 ## Gate 10: Responsive
@@ -156,6 +170,25 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 | Double-submit prevented | Form submit disables during async |
 | Optimistic rollback | Failed optimistic updates revert state + show error |
 
+## Gate 12: Live Verification (agent-browser)
+
+Static gates read source; this gate checks the **rendered page**. Run whenever a dev server exists or can be started. Load the CLI workflow first: `agent-browser skills get core`. Then verify — every check binary:
+
+| Check | Pass Condition |
+|-------|---------------|
+| Page renders | Screenshot at 1440px and 375px — no blank sections, no overlapping text, no horizontal scroll at 375px |
+| Console clean | Zero errors and zero React/hydration warnings in the browser console on load and after primary interactions |
+| Interaction states real | Hover + focus a primary button and screenshot — visible state change for each; tab through the page — focus ring visible on every interactive element |
+| Headings render in order | Accessibility snapshot shows h1→h2→h3 with one h1 |
+| Rendered contrast | Sample body text + its actual rendered background from the screenshot — ≥ 4.5:1 |
+| Dark mode (if present) | Toggle and screenshot — no unreadable text, no pure-black bg, no invisible borders |
+| Long content survives | Inject/enter a 100+ char string in a title or input — no layout break, truncation has full-value access |
+| Empty state renders | Navigate to a list with no data — message + CTA visible, not a blank region |
+| Reduced motion respected | Emulate `prefers-reduced-motion: reduce` — positional animations gone, content still visible |
+| Mobile tap targets | At 375px, primary actions ≥ 44px and reachable without horizontal scroll |
+
+Attach screenshot paths to the QA report. A failure here outranks any static-gate pass — the rendered page is the product.
+
 ---
 
 ## Report Format
@@ -173,12 +206,13 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 - **[Gate]: [Check]** — [File:Line] — [Issue and fix]
 ```
 
-**Severity:** Critical = accessibility violations, anti-slop, broken interaction states. High = missing loading states, hardcoded colors, no empty states. Medium = missing text-balance, non-debounced inputs, missing tabular-nums.
+**Severity:** Critical = accessibility violations, anti-slop, broken interaction states, live-verification failures (blank render, console errors, unreadable contrast). High = missing loading states, hardcoded colors, no empty states. Medium = missing text-balance, non-debounced inputs, missing tabular-nums.
 
-## Quick-Check (5 items for fast PR reviews)
+## Quick-Check (6 items for fast PR reviews)
 
 1. No anti-slop patterns (Gate 1)
 2. No hardcoded colors (Gate 3)
 3. Focus visible on all interactives (Gate 6)
 4. Empty states exist (Gate 8)
 5. No layout animations (Gate 9)
+6. Renders clean at 1440px + 375px with zero console errors (Gate 12)

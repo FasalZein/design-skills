@@ -54,9 +54,9 @@ Data-dense UIs benefit from subtle surface variation to create depth and section
 | Aesthetic | Background options |
 |-----------|-------------------|
 | **Editorial / warm** | Warm off-white base (`oklch(0.97 0.01 80)`), subtle paper grain via CSS noise, tinted section bands |
-| **Technical / stark** | Pure neutral base, faint dot grid (`radial-gradient` repeating pattern), thin rule lines between sections |
+| **Technical / stark** | Neutral base, thin rule lines between sections, subtle border treatments (dot/line grids are banned — see anti-slop) |
 | **Friendly / soft** | Soft radial gradient behind hero metrics, pastel-tinted card surfaces, gentle shadow layering |
-| **Bold / expressive** | Mesh gradient accent panels, aurora wash on header areas, high-contrast dark sections for emphasis |
+| **Bold / expressive** | Max ONE dark (neutral-950) or primary-tinted panel for emphasis; the rest stays on the neutral scale |
 | **Neutral / professional** | Alternating gray-50/white sections, minimal — rely on borders and spacing over color |
 
 **Rules:**

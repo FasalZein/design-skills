@@ -99,6 +99,12 @@ Bounce range: 0.1–0.3 for gestures/decorative only. bounce: 0 for all standard
 
 Safe default config: stiffness 100, damping 20. Springs maintain velocity when interrupted; CSS transitions restart from zero — this is why springs feel better for gestures and interruptible animations.
 
+**Gesture robustness:**
+- Capture the initiating pointer (`setPointerCapture`) and ignore secondary touch points during a drag.
+- Swipe-to-dismiss accepts distance OR velocity — a quick flick dismisses without a long drag.
+- Apply progressively stronger damping when dragging past a boundary (rubber-banding), never a hard stop.
+- Verify complex motion frame-by-frame in DevTools slow-motion; test gestures on physical touch hardware.
+
 ## Mechanics
 
 - Never start scale from 0. Use `scale(0.95)` + `opacity: 0` as hidden state.
@@ -109,6 +115,12 @@ Safe default config: stiffness 100, damping 20. Springs maintain velocity when i
 - Asymmetric press/release: press is slow and deliberate (~2s linear), release is always snappy (~200ms ease-out).
 - `prefers-reduced-motion` means fewer and gentler, NOT zero — keep opacity/color fades, remove positional movement.
 - Gate hover effects: `@media (hover: hover) and (pointer: fine)` to avoid sticky hover on touch devices.
+- Prefer `@starting-style` for CSS-only entry transitions where supported; fall back to a mounted-state/data-attribute pattern.
+- Skip animation on first render: `AnimatePresence initial={false}` for default-state icon swaps, toggles, tabs, and segmented controls. Exempt intentional first-load entrances.
+- Reveal animations must enhance an already-visible default. NEVER gate content visibility on a class-triggered transition — transitions pause in hidden tabs and headless renderers, so the reveal never fires and the section ships blank.
+- Pause toast auto-dismiss timers while the document/tab is hidden.
+- Hide by own size with percentage translates (`translateY(100%)`), not fixed pixel offsets.
+- `clip-path` earns its place for geometric relationships: hold-to-confirm progress (fill slowly while pressed, reset fast on release), comparison sliders, image reveals.
 
 ## Performance
 

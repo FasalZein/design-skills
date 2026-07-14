@@ -77,7 +77,7 @@ rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
 
 # HIGH: Arbitrary spacing (px values in spacing utilities)
 rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e '[pm][xytblres]-\[\d+px\]' \
+  -e '\b[pm][xytblres]?-\[\d+px\]' \
   -e 'gap-\[\d+px\]' \
   -e 'space-[xy]-\[\d+px\]' \
   "$TARGET" 2>/dev/null | sed 's/^/HIGH|ARBITRARY_SPACING|/' > "$TMPDIR/05.txt" &
@@ -145,6 +145,30 @@ rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
   grep -v 'focus-visible:' | \
   sed 's/^/HIGH|FOCUS_REMOVED|/' > "$TMPDIR/15.txt" &
 
+# CRITICAL: Stripe backgrounds + sketchy SVG filters (decoration reflexes)
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e 'repeating-linear-gradient' \
+  -e 'feTurbulence' -e 'feDisplacementMap' \
+  "$TARGET" 2>/dev/null | sed 's/^/CRITICAL|DECOR_REFLEX|/' > "$TMPDIR/16.txt" &
+
+# HIGH: Over-rounding (border-radius ≥24px on surfaces)
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e 'rounded-\[(2[4-9]|[3-9][0-9])px\]' \
+  -e 'border-radius:\s*(2[4-9]|[3-9][0-9])px' \
+  -e '\brounded-(3xl|4xl)\b' \
+  "$TARGET" 2>/dev/null | sed 's/^/HIGH|OVER_ROUNDED|/' > "$TMPDIR/17.txt" &
+
+# MEDIUM: Eyebrow kickers (uppercase + wide tracking combo)
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e 'uppercase[^"]*tracking-wide' \
+  -e 'tracking-wide[^"]*uppercase' \
+  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|EYEBROW|/' > "$TMPDIR/18.txt" &
+
+# MEDIUM: Cream-reflex token names + positive tracking on body text
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e '\-\-(paper|cream|sand|linen|parchment|bone|ivory|wheat|biscuit)' \
+  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|CREAM_TOKEN|/' > "$TMPDIR/19.txt" &
+
 # Wait for all parallel scans
 wait
 
@@ -205,6 +229,10 @@ fix_for() {
     ZOOM_DISABLED)      echo "Remove user-scalable=no / maximum-scale=1. Users must be able to zoom (WCAG 1.4.4)." ;;
     PASTE_BLOCKED)      echo "Remove onPaste preventDefault. Never block paste in inputs." ;;
     FOCUS_REMOVED)      echo "Add focus-visible:ring-2 alongside outline-none, or remove outline-none." ;;
+    DECOR_REFLEX)       echo "Remove stripe/turbulence decoration. Use neutral-scale surface variation or border treatments." ;;
+    OVER_ROUNDED)       echo "Cards top out at 12-16px radius (rounded-xl/2xl). Full-pill only for tags/buttons." ;;
+    EYEBROW)            echo "Drop the uppercase tracked kicker scaffold. Real headings and spacing do this job." ;;
+    CREAM_TOKEN)        echo "Cream/sand body bg is the AI warm-neutral reflex. Carry warmth via accent + typography instead." ;;
     STRUCTURAL)         echo "See ast-grep rule output for specific fix." ;;
     *)                  echo "" ;;
   esac
@@ -241,7 +269,7 @@ if $JSON_MODE; then
   while IFS='|' read -r severity category rest; do
     file=$(echo "$rest" | cut -d: -f1)
     lineno=$(echo "$rest" | cut -d: -f2)
-    content=$(echo "$rest" | cut -d: -f3- | head -c 200 | sed 's/"/\\"/g; s/\\/\\\\/g')
+    content=$(echo "$rest" | cut -d: -f3- | head -c 200 | sed 's/\\/\\\\/g; s/"/\\"/g')
     $first || echo ","
     first=false
     printf '    {"severity":"%s","category":"%s","file":"%s","line":"%s","content":"%s","fix":"%s"}' \

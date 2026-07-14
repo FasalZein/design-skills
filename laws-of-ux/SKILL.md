@@ -1,6 +1,6 @@
 ---
 name: laws-of-ux
-description: User-psychology rules for UX decisions — cognitive load, attention, memory, mental models, motor cost, perception. Use when choosing nav structure, form length, decision flows, content ordering, error recovery, onboarding, progress indicators, or microcopy. Complements design-craft (craft) with the WHY (psychology).
+description: User-psychology rules for UX decisions — cognitive load, attention, memory, mental models, motor cost, perception. Use when choosing nav structure, form length, decision flows, error recovery, onboarding, progress indicators, or microcopy, or when a flow feels confusing, overwhelming, or hard to complete. Complements design-craft (craft) with the WHY (psychology).
 globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.html"]
 ---
 
@@ -175,38 +175,13 @@ Before finishing any UX-significant work, run each check. Fix failures before re
 
 ---
 
-## Coverage Table
+## Review Output Format
 
-Every entry from the original skill mapped to its new home.
+When reviewing existing UX (rather than building), present findings as a markdown table — every violation, not a subset:
 
-| Law / Principle | Primary Category | Cross-reference |
+| Violation | Law | Fix |
 |---|---|---|
-| Hick's Law | 1. Navigation | 4. CTAs (menus) |
-| Miller's Law | 2. Forms | — |
-| Working Memory / Recognition | 1. Navigation | 2. Forms |
-| Cognitive Load | Global Principles | All |
-| Choice Overload | 4. CTAs | 1. Navigation |
-| Tesler's Law | Global Principles | 2. Forms |
-| Occam's Razor | Global Principles | All |
-| Jakob's Law | 1. Navigation | — |
-| Mental Model | 1. Navigation | — |
-| Active User Paradox | 7. Content & Copy | 8. Error Handling |
-| Von Restorff Effect | 4. CTAs | — |
-| Selective Attention / Banner Blindness | 7. Content & Copy | — |
-| Serial Position Effect | 1. Navigation | 4. CTAs |
-| Aesthetic-Usability Effect | 6. Visual Grouping | — |
-| Peak-End Rule | 3. Multi-step Flows | — |
-| Zeigarnik Effect | 3. Multi-step Flows | — |
-| Goal-Gradient Effect | 3. Multi-step Flows | — |
-| Flow | 3. Multi-step Flows | 5. Feedback |
-| Fitts's Law | 4. CTAs | 8. Error Handling |
-| Doherty Threshold | 5. Feedback | — |
-| Parkinson's Law | 3. Multi-step Flows | — |
-| Gestalt: Proximity | 6. Visual Grouping | — |
-| Gestalt: Similarity | 6. Visual Grouping | — |
-| Gestalt: Common Region | 6. Visual Grouping | — |
-| Gestalt: Connectedness | 6. Visual Grouping | — |
-| Gestalt: Prägnanz | 6. Visual Grouping | — |
-| Postel's Law | 2. Forms | 8. Error Handling |
-| Pareto / 80-20 | Global Principles | — |
-| Cognitive Bias | 2. Forms | — |
+| 11 items in primary nav | Hick's Law | Keep 6, move the rest behind "More" with progressive disclosure |
+| Checkout has no step indicator | Zeigarnik / Goal-Gradient | Add "Step 2 of 4" segmented bar, completed segments filled |
+
+Cite file and component when not obvious from the row. If a category was checked and passed, omit it — silence = pass.

@@ -14,16 +14,13 @@ Three skills that layer together — craft, psychology, and quality gates.
 
 The implementation rulebook. Anti-slop detection, semantic color tokens, typography scale, spacing system, animation architecture (with a frequency gate that asks "should this even animate?"), layout, interaction states, component patterns, data-dense UI, and UX writing.
 
-Loaded as a lean router with 7 on-demand reference files — your agent only pulls the depth it needs:
+Loaded as a lean router with 4 on-demand reference files — your agent only pulls the depth it needs:
 
 | Reference | What it covers |
 |-----------|---------------|
-| `typography.md` | Type scale, font choices, tabular-nums, sentence case, text-balance |
-| `color.md` | OKLCH, semantic tokens, dark mode, 60-30-10, inline oklch ban |
-| `spacing.md` | 4px grid, border radius, concentric radius, shadows |
-| `motion.md` | Frequency gate, duration scale, springs, easing, reduced motion |
-| `layout.md` | Grid/flex, sidebar hierarchy, responsive, progressive disclosure |
-| `components.md` | Interaction states, empty states, error messages, symptom-to-fix table |
+| `color.md` | OKLCH lightness spine, name→hue derivation, gamut safety, APCA contrast, dark mode |
+| `typography.md` | Font files, variable fonts, scale mechanics, wrapping, punctuation, underlines, RTL |
+| `motion.md` | Frequency gate, library selection, duration ladder, easing, springs, gestures |
 | `data-dense.md` | Tables, dashboards, financial UI, performance |
 
 ### laws-of-ux
@@ -32,7 +29,7 @@ Loaded as a lean router with 7 on-demand reference files — your agent only pul
 
 ### design-qa
 
-11-gate pre-ship checklist and a sub-second scanner built on ripgrep + ast-grep. Catches accessibility violations, hardcoded colors, arbitrary spacing, AI slop patterns, missing interaction states, and more. Binary pass/fail — no ambiguity, no "looks good to me."
+12-gate pre-ship checklist and a sub-second scanner built on ripgrep + ast-grep. Catches accessibility violations, hardcoded colors, arbitrary spacing, AI slop patterns, missing interaction states, and more — then Gate 12 verifies the **rendered page** live via agent-browser (screenshots at 1440/375px, console errors, focus rings, contrast). Binary pass/fail — no ambiguity, no "looks good to me."
 
 ---
 
@@ -88,7 +85,7 @@ bash design-qa/scripts/design-scan.sh ./src --critical-only
 
 **Requires:** [ripgrep](https://github.com/BurntSushi/ripgrep). Optional: [ast-grep](https://ast-grep.github.io/) for structural checks.
 
-**What it catches:** AI slop patterns, hardcoded colors (hex, rgb, hsl, oklch inline), `h-screen`, `transition-all`, `div onClick`, `tabindex > 0`, zoom disabled, paste blocked, bare focus removal, arbitrary spacing/sizing, animation anti-patterns, nested cards, missing aria-labels.
+**What it catches:** AI slop patterns, hardcoded colors (hex, rgb, hsl, oklch inline), `h-screen`, `transition-all`, `div onClick`, `tabindex > 0`, zoom disabled, paste blocked, bare focus removal, arbitrary spacing/sizing, animation anti-patterns, nested cards, missing aria-labels, stripe/turbulence decoration, over-rounding (≥24px), eyebrow kickers, cream-reflex tokens.
 
 ---
 
@@ -120,18 +117,15 @@ This is what every AI agent produces when you say "build me a dashboard." It's t
 
 ```
 design-craft/
-  SKILL.md                  <- Anti-slop + conflict priority + self-check (auto-loaded)
+  SKILL.md                  <- Anti-slop + decision gates + core rules + self-check (auto-loaded)
   reference/
-    typography.md            <- On-demand
     color.md                 <- On-demand
-    spacing.md               <- On-demand
+    typography.md            <- On-demand
     motion.md                <- On-demand
-    layout.md                <- On-demand
-    components.md            <- On-demand
     data-dense.md            <- On-demand
 
 design-qa/
-  SKILL.md                  <- 11 quality gates
+  SKILL.md                  <- 12 quality gates (Gate 12 = live agent-browser verification)
   scripts/design-scan.sh    <- Automated scanner (ripgrep + ast-grep)
   rules/                    <- ast-grep structural rules
 
