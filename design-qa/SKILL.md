@@ -29,10 +29,19 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 
 | Check | Pass Condition |
 |-------|---------------|
-| No purple-blue gradients | Zero purple/blue/violet gradient combinations |
+| No slop gradients | Zero purple/violet/indigo → blue/pink/fuchsia gradient combos; zero two-stop dark neutral gradients (`from-slate-900 to-slate-800`) |
+| No gradient orbs | Zero decorative blurred gradient blobs (`blur-2xl/3xl` + gradient div) |
 | No gradient text | Zero `bg-clip-text text-transparent bg-gradient-*` on metrics/headings |
 | No glassmorphism | Zero decorative `backdrop-blur` (functional blur like overlays OK) |
 | No hero metric template | Not using big-number-in-card with small-label-below pattern |
+| No pricing template | Not shipping 3-tier + "Most Popular" badge + green checks verbatim |
+| No trust-strip theater | Zero "Trusted by N,000+" bars, logo marquees, or fake terminal/mac-window mockups |
+| No footer scaffold | Footer columns reflect real pages, not the Product/Company/Resources/Legal template |
+| No H1 pill badge | Zero "✨ New:" pill kickers above the H1 |
+| No pulse begging | `animate-pulse`/`animate-ping` only on skeletons, never pricing/CTAs |
+| No motion monotony | Not the identical fade-in-up + uniform 0.1s stagger on every section |
+| No template copy | Zero banned phrases: Effortlessly, Streamline, Revolutionize, Unlock, AI-powered (non-AI product), "It's not just X, it's Y", "Welcome to our platform", "Built with ❤️" |
+| Buttons are live | Every button/link has a real handler or destination — zero `href="#"`, empty onClick, non-persisting toggles |
 | No identical card grid | Cards in a grid have varied content/layout, not 3x identical template |
 | No glow effects | Zero `shadow-*-*/glow` or colored `box-shadow` spread |
 | No nested cards | Zero Card/panel inside other Card/panel |
@@ -42,6 +51,9 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 | No over-rounding | Zero `border-radius` ≥24px on cards, sections, or inputs |
 | No reflex cream bg | Body/section background is not a warm near-white picked "for warmth" (`--paper`/`--cream`/`--sand`-style tokens = flag) |
 | Font is intentional | Not using Inter/Roboto/Arial as a "just pick something" default |
+| No uncustomized stack | shadcn/Tailwind defaults customized — no verbatim default variant strings, radii, tokens |
+
+Weak tells flag only in combination (3+ together = fail): Lucide-only icons, default FAQ accordion, `max-w-7xl mx-auto` on every section, colored-span H1 emphasis.
 
 ## Gate 2: Typography
 

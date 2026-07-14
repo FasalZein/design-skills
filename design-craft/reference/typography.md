@@ -15,8 +15,7 @@ Good typography is mostly restraint: a sensible scale, comfortable spacing, and 
 
 - Heading levels come from the document outline; size comes from CSS. Map each level to a descending scale step — a lower level never renders larger than a higher one. Never skip levels or pick an `h4` because it "looks right". One `h1` per page.
 - Line-height unitless and by role: display 1.0–1.1, headings 1.2–1.3, body 1.5–1.6. Fixed values like `24px` don't scale.
-- Tracking by size: slight negative (`tracking-tight`) on large display text only; slight positive only on small uppercase labels; body at reading sizes gets neither.
-- **Display tracking floor: ≥ -0.04em.** Tighter and letters touch — cramped, not "designed". -0.02 to -0.03em is plenty for tight display headings.
+- Tracking is a value table, not a judgment call: ≥48px → `-0.02em`; 30–47px → `-0.01em`; <30px → `0`; small uppercase labels → `+0.05em`. Hard floor `-0.03em` — tighter and letters touch, which reads as cramped, not "designed".
 - **Display size ceiling: clamp() max ≤ 6rem (~96px).** Above that the page is shouting.
 - Size floors: body 16px; UI text 14px; captions 13px; below 12px is exceptional. Inputs ≥16px on mobile viewports (`text-base sm:text-sm`) or iOS Safari zooms the page — and never "fix" that with `maximum-scale=1`, which blocks zoom everywhere else and fails WCAG.
 

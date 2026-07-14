@@ -18,11 +18,19 @@ These are the fingerprints of AI-generated UI. Violating even one makes the outp
 
 | AI Slop Pattern | Why It Screams "AI" |
 |---|---|
-| Purple-to-blue gradient hero | Single most common AI training pattern |
+| Purple/violet/indigo → blue/pink/fuchsia gradients | The loudest AI tell — <5% of human-designed sites use them |
+| Two-stop dark neutral gradient (`from-slate-900 to-slate-800`) | The dark-mode "premium" default — reads as nothing up close. Use one flat surface |
+| Gradient orbs / blurred blobs behind heroes (`blur-3xl` + gradient) | The new glow — decorative noise. Use neutral surface variation |
+| Bento grid as default features section | 2025-26 successor to the 3-card grid: one `col-span-2` hero tile + identical icon-heading-line tiles. A grid earns its cells with real, differentiated content |
 | Gradient text on metrics/headings (`bg-clip-text`) | Decorative without purpose — solid color, emphasis via weight/size |
 | Dark mode + glowing accents as default | Avoids actual design decisions |
 | Glassmorphism everywhere | Overrepresented in 2021-2023 training data |
 | Centered heading + subtitle + button + 3-card grid | The #1 AI layout — appears in 90%+ of template sites |
+| 3-tier pricing with "Most Popular" badge + green checks | ~78% of AI output. Design pricing from the actual plans, not the template |
+| Marquee or "Trusted by N,000+" logo strip | Fake social proof — round numbers, placeholder logos. Show real customers or nothing |
+| 4-column footer scaffold (Product / Company / Resources / Legal) | Structural fingerprint of generated sites — a footer links only pages that exist |
+| Fake terminal / mac-window mockup (3 traffic-light dots) | Stock "technical" prop — show the real product or nothing |
+| Pill badge above the H1 ("✨ New: …") | The 2025 variant of the eyebrow kicker |
 | Hero metrics: 3-4 identical big-number cards | Generic SaaS template. Instead: inline key-value bar, or ONE prominent metric with context |
 | Large rounded icons above headings | Templated, adds no value |
 | Inter/Roboto/Arial as default font | No brand consideration |
@@ -34,9 +42,14 @@ These are the fingerprints of AI-generated UI. Violating even one makes the outp
 | Every button is primary | No hierarchy |
 | Dot/line grid as hero or section background | Lazy technical filler — not a design choice |
 | Glow effects as primary affordances | Decorative noise |
+| `animate-pulse`/`animate-ping` on pricing or CTAs | Attention-begging — pulse belongs to skeletons only |
+| Identical fade-in-up reveal on every section + uniform 0.1s stagger | Motion monotony — one primitive applied everywhere. Each reveal fits what it reveals ([reference/motion.md](reference/motion.md)) |
+| Unmodified shadcn/Tailwind defaults (verbatim variant strings, default radii/tokens) | The stack isn't the tell — shipping it uncustomized is. Customize tokens, radii, variants |
 | "John Doe", "Jane Doe", "Acme Corp" | Training-data leakage |
 | "99.99%", "50%" as metrics | Round/predictable = placeholder |
-| "Seamless", "Unleash", "Next-Gen", "Elevate" | AI copywriting clichés |
+| "Seamless(ly)", "Unleash", "Next-Gen", "Elevate", "Effortlessly", "Streamline", "Revolutionize", "Unlock", "AI-powered" (when the product isn't AI) | AI copywriting clichés |
+| "It's not just X, it's Y" / "More than just X" | Negative parallelism — the clearest AI writing structure. Make the specific claim |
+| "Welcome to our platform", "Everything you need to X", "Take your X to the next level", "Built with ❤️" | Template copy — say what the product actually does |
 | ALL CAPS labels/tabs/headings | Shouting hierarchy substitute |
 | Title Case everywhere | AI tell — use sentence case |
 | Tiny uppercase tracked eyebrow above every section ("ABOUT", "PROCESS") | The saturated 2023 kicker scaffold. One named kicker as a deliberate brand system is voice; an eyebrow on every section is AI grammar |
@@ -150,7 +163,7 @@ Pick a font based on the product's aesthetic direction. The font must match the 
 | Numeric data | `tabular-nums` on all numbers — prices, counts, dates, IDs, table columns |
 | Headings | `text-balance`. Body: `text-pretty`. Max line length: `max-w-[65ch]` |
 | Line height | Unitless. Body: 1.5. Headings: 1.2–1.3. Large display: 1.0–1.1 |
-| Large display text | `tracking-tight` on text-3xl+, floor -0.04em. NEVER add positive tracking except small uppercase labels. |
+| Letter-spacing (exact values, no judgment) | ≥48px display: `-0.02em`. 30–47px headings: `-0.01em`. Below 30px: `0` — body and UI text always default tracking. Small uppercase labels only: `+0.05em`. Never tighter than `-0.03em` anywhere. |
 | Case | Sentence case for headings, labels, tabs, buttons — stored in natural case, styled with `text-transform`. ALL CAPS only for micro-meta (timestamps, badges ≤3 words). |
 | Font loading | `.woff2` only. `font-display: swap`. `font-synthesis: none`. Sizes in `rem`/`em`. `antialiased` once on root. |
 | Fluid type | Use `clamp()` for marketing/content pages. Fixed sizes for app UI. |
@@ -326,6 +339,7 @@ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 | Loading | Structural skeletons that preview content shape, not generic spinners. |
 | Numbers & dates | `Intl.NumberFormat` / `Intl.DateTimeFormat`, never string concatenation. |
 | Dropdown clipping | `position: absolute` inside `overflow: hidden/auto` gets clipped — use popover API, `position: fixed`, or a portal. |
+| Dead controls | Every button and link has a real handler or destination. `href="#"`, empty onClick, toggles that don't persist = broken, not placeholder. |
 | Paste | NEVER block paste in inputs/textareas. |
 
 **Interaction states** — EVERY interactive element MUST have ALL of these:
