@@ -14,12 +14,13 @@ Three skills that layer together — craft, psychology, and quality gates.
 
 The implementation rulebook. Anti-slop detection, semantic color tokens, typography scale, spacing system, animation architecture (with a frequency gate that asks "should this even animate?"), layout, interaction states, component patterns, data-dense UI, and UX writing.
 
-Loaded as a lean router with 4 on-demand reference files — your agent only pulls the depth it needs:
+Loaded as a lean router with 5 on-demand reference files — your agent only pulls the depth it needs:
 
 | Reference | What it covers |
 |-----------|---------------|
 | `color.md` | OKLCH lightness spine, name→hue derivation, gamut safety, APCA contrast, dark mode |
 | `typography.md` | Font files, variable fonts, scale mechanics, wrapping, punctuation, underlines, RTL |
+| `spacing.md` | 4pt scale, rhythm, concentric radius, shadow-as-border, optical alignment, hit areas |
 | `motion.md` | Frequency gate, library selection, duration ladder, easing, springs, gestures |
 | `data-dense.md` | Tables, dashboards, financial UI, performance |
 
@@ -121,6 +122,7 @@ design-craft/
   reference/
     color.md                 <- On-demand
     typography.md            <- On-demand
+    spacing.md               <- On-demand
     motion.md                <- On-demand
     data-dense.md            <- On-demand
 

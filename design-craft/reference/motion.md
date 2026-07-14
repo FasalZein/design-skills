@@ -11,7 +11,7 @@ Before choosing duration or easing, answer this first:
 | Occasional (modals, drawers, toasts) | Standard animation |
 | Rare / first-time (onboarding, celebrations) | Full delight |
 
-Hard rule: keyboard-initiated actions MUST NEVER animate. If the action is triggered more than tens of times per day, skip the rest of this file.
+Hard rules: keyboard-initiated actions MUST NEVER animate. Every motion must serve a UX purpose (guide attention, show state change, reveal relationship) — never decorate. If the action triggers more than tens of times per day, skip the rest of this file.
 
 ## Animation Library Selection
 
@@ -29,23 +29,12 @@ Pick the simplest tool that handles the job. Never mix libraries for the same co
 
 **Rules:**
 - CSS first. Only reach for JS animation when CSS can't express it (exit animations, gesture physics, complex timelines).
+- CSS transitions for interactive state changes — they interrupt cleanly mid-animation. Keyframes only for staged sequences that run once. Rapidly-triggered elements (toasts, toggles) MUST use transitions, not keyframes.
 - Check `package.json` before importing any animation library. If missing, output the install command before the code.
 - NEVER mix motion/react and GSAP in the same component. Pick one per interaction surface.
 - For single-file HTML pages without a build system: CSS transitions + keyframes + WAAPI only. No npm dependencies.
 
-## Duration Ladder
-
-| Element | Duration |
-|---------|----------|
-| Button press feedback | 100–160ms |
-| Tooltips, small popovers | 125–200ms |
-| Dropdowns, selects | 150–250ms |
-| Modals, drawers | 200–500ms |
-| Any user-initiated animation | ≤300ms total |
-
-Similar UI elements must use identical timing values — never mix 200ms and 250ms for two dropdowns.
-
-## Duration Scale
+## Duration
 
 ```
 100-150ms: Instant feedback (button press, toggle, tooltip)
@@ -54,17 +43,19 @@ Similar UI elements must use identical timing values — never mix 200ms and 250
 500-800ms: Entrance animations (page load, hero)
 ```
 
-Open durations MUST be longer than close durations. Asymmetric timing: slow where the user is deciding, fast where the system responds.
+- Any user-initiated animation ≤300ms total. Interaction feedback <200ms.
+- Similar UI elements use identical timing values — never 200ms and 250ms for two dropdowns.
+- Open durations longer than close durations. Exits ≈75% of entrance duration. Asymmetric timing: slow where the user is deciding, fast where the system responds.
 
 | Component | Open | Close |
 |-----------|------|-------|
+| Tooltip | 125ms | 100ms |
 | Dropdown | 250ms | 150ms |
 | Modal | 250ms | 150ms |
 | Panel/drawer | 400ms | 350ms |
-| Tooltip | 125ms | 100ms |
 | Toast | 400ms | 200ms |
 
-## Easing Curves (use these, not CSS defaults)
+## Easing (use these, not CSS defaults)
 
 ```css
 --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);    /* Default — smooth, refined */
@@ -75,17 +66,17 @@ Open durations MUST be longer than close durations. Asymmetric timing: slow wher
 
 | Context | Easing |
 |---------|--------|
-| Entrances | `ease-out` (arrives fast, settles) |
+| Entrances | `ease-out` (arrives fast, settles) — NEVER `ease-in`, it delays initial movement and feels sluggish |
 | Exits | `ease-in` (builds momentum before departure) |
-| On-screen moves | `ease-in-out` |
+| On-screen moves | `ease-in-out` (custom: `cubic-bezier(0.77, 0, 0.175, 1)`) |
 | Hover/color | `ease` |
 | Constant motion (progress bar, marquee) | `linear` |
 
-NEVER use `ease-in` for entering elements — it delays initial movement and feels sluggish. Recommended custom curves: `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`, `--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1)`. NEVER `transition: all` — specify exact properties.
+NEVER bounce or elastic easing on standard UI — acceptable only for gesture physics (drag momentum, decorative mouse tracking).
 
-## Spring Animations
+## Springs & Gestures
 
-For gesture interactions (drag, dismiss, mouse tracking) where the user may interrupt mid-animation, use springs instead of CSS transitions:
+For gesture interactions (drag, dismiss, mouse tracking) where the user may interrupt mid-animation, use springs — they maintain velocity when interrupted; CSS transitions restart from zero.
 
 ```js
 // Apple-style (recommended — easier to reason about):
@@ -95,9 +86,7 @@ For gesture interactions (drag, dismiss, mouse tracking) where the user may inte
 { type: "spring", duration: 0.3, bounce: 0 }
 ```
 
-Bounce range: 0.1–0.3 for gestures/decorative only. bounce: 0 for all standard UI transitions. NEVER bounce on buttons, tabs, menus, or form controls.
-
-Safe default config: stiffness 100, damping 20. Springs maintain velocity when interrupted; CSS transitions restart from zero — this is why springs feel better for gestures and interruptible animations.
+Bounce 0.1–0.3 for gestures/decorative only; `bounce: 0` for all standard UI. NEVER bounce on buttons, tabs, menus, or form controls. Safe default config: stiffness 100, damping 20.
 
 **Gesture robustness:**
 - Capture the initiating pointer (`setPointerCapture`) and ignore secondary touch points during a drag.
@@ -107,30 +96,29 @@ Safe default config: stiffness 100, damping 20. Springs maintain velocity when i
 
 ## Mechanics
 
-- Never start scale from 0. Use `scale(0.95)` + `opacity: 0` as hidden state.
-- Stagger delays: 30–50ms per item max. Stagger is decorative — never block interaction during it.
-- Popovers scale from trigger: use `transform-origin` from trigger position. Modals are the exception — always `transform-origin: center`.
-- Tooltips: animate first hover normally; subsequent hovers in the same group show instantly (`transition-duration: 0ms`).
-- Context menus: exit animation only, no entrance. Users expect instant response at cursor.
-- Asymmetric press/release: press is slow and deliberate (~2s linear), release is always snappy (~200ms ease-out).
-- `prefers-reduced-motion` means fewer and gentler, NOT zero — keep opacity/color fades, remove positional movement.
+- Enter from `scale(0.95)` or higher + `opacity: 0`. NEVER `scale(0)` — it looks broken.
+- Button press: `active:scale-[0.97]` with 100ms ease-out. Press slow and deliberate, release always snappy (~200ms ease-out).
+- Icon swaps: animate `opacity` (0→1), `scale` (0.25→1), and `blur` (4px→0) instead of toggling visibility. Without a motion library, keep both icons mounted (one absolute) and cross-fade with CSS.
+- Popovers/tooltips scale from the trigger: `transform-origin` from trigger position (`var(--radix-popover-content-transform-origin)`). Modals are the exception — always center origin.
+- Tooltips: first hover in a group animates normally; subsequent adjacent tooltips open instantly (`transition-duration: 0ms`) while the user is still in the group.
+- Context menus: exit animation only, no entrance — users expect instant response at cursor.
+- Stagger: 30–50ms per item, max 5–8 items, decorative only — never block interaction during it.
+- Hide by own size with percentage translates (`translateY(100%)`), not fixed pixel offsets.
 - Gate hover effects: `@media (hover: hover) and (pointer: fine)` to avoid sticky hover on touch devices.
 - Prefer `@starting-style` for CSS-only entry transitions where supported; fall back to a mounted-state/data-attribute pattern.
-- Skip animation on first render: `AnimatePresence initial={false}` for default-state icon swaps, toggles, tabs, and segmented controls. Exempt intentional first-load entrances.
+- Skip animation on first render: `AnimatePresence initial={false}` for default-state icon swaps, toggles, tabs, segmented controls. Exempt intentional first-load entrances.
 - Reveal animations must enhance an already-visible default. NEVER gate content visibility on a class-triggered transition — transitions pause in hidden tabs and headless renderers, so the reveal never fires and the section ships blank.
-- Pause toast auto-dismiss timers while the document/tab is hidden.
-- Hide by own size with percentage translates (`translateY(100%)`), not fixed pixel offsets.
+- Pause toast auto-dismiss timers while the document/tab is hidden. Pause looping animations when off-screen (IntersectionObserver).
 - `clip-path` earns its place for geometric relationships: hold-to-confirm progress (fill slowly while pressed, reset fast on release), comparison sliders, image reveals.
+- NEVER `transition: all` — always specify exact properties (`transition-colors`, `transition-transform`, `transition-opacity`).
 
-## Performance
+## Transition Architecture
 
-- Only animate `transform` and `opacity` — they're GPU-composited. Everything else triggers layout/paint.
-- Framer Motion shorthand (`x`, `y`, `scale`) is NOT hardware-accelerated — use full `transform` string for GPU compositing.
-- Never drive animation from `scrollTop`/`scrollY` — use Scroll Timelines or IntersectionObserver.
-- `backdrop-blur` ONLY on fixed/sticky elements — never on scrolling containers.
-- `will-change: transform` only when first-frame stutter is observed; remove after. Never `will-change: all`.
-- Pause looping animations when off-screen via IntersectionObserver.
-- Never animate inherited CSS custom properties — triggers recalc on all children.
+- **Shared elements morph between states.** When a card expands to a detail view, morph the card — don't unmount/remount. Use `layoutId` (motion/react) or the View Transitions API.
+- **Directional consistency:** forward navigation → content enters from right; back → enters from left. Tab switching: indicator and content slide in the tab's direction.
+- **Persistent elements don't re-animate.** A header/nav that survives a route change never replays its entrance.
+- **Enter/exit pattern:** stagger semantic chunks ~100ms apart. Exits softer than enters — small fixed `translateY`, not full height.
+- **Data-dense/professional apps default to NO animation.** Only: state changes that need attention, overlay enter/exit, loading→loaded.
 
 ## Scroll Entry Pattern
 
@@ -141,47 +129,11 @@ Safe default config: stiffness 100, damping 20. Springs maintain velocity when i
 | Duration | 600–800ms with expo ease |
 | Trigger | IntersectionObserver with `{ once: true, rootMargin: "-100px" }` |
 
-## Rules
-
-- MUST animate ONLY `transform` and `opacity`. NEVER animate `width`, `height`, `top`, `left`, `margin`, `padding` — they trigger layout reflow. For height: use `grid-template-rows: 0fr → 1fr`. For layout-like effects on large surfaces: use FLIP.
-- MUST keep interaction feedback under 200ms. Under 300ms for standard transitions.
-- MUST respect `prefers-reduced-motion` — see Reduced Motion section below.
-- MUST use ease-out for entrances, ease-in-out for moving elements.
-- MUST set `transform-origin` to trigger location for popovers/tooltips (`var(--radix-popover-content-transform-origin)` or `var(--transform-origin)`). Modals keep center origin.
-- MUST enter from `scale(0.95)` or higher with opacity. NEVER `scale(0)` — it looks broken.
-- MUST gate hover animations behind `@media (hover: hover) and (pointer: fine)`.
-- Exit animations: ~75% of entrance duration. Use ease-in for exits.
-- Stagger delays for lists: 30-50ms per item, max 5-8 items staggered.
-- Button press feedback: `active:scale-[0.97]` with 100ms ease-out.
-- Use CSS transitions for interactive state changes — they can be interrupted mid-animation. Reserve keyframes for staged sequences that run once. Rapidly-triggered elements (toasts, toggles) MUST use CSS transitions, not keyframes.
-- NEVER use bounce or elastic easing on standard UI. Acceptable only for gesture physics (drag momentum, decorative mouse tracking).
-- NEVER apply `will-change` outside active animation scope. Only for `transform`, `opacity`, `filter` — never `all`.
-- NEVER animate decoratively. Every motion must serve a UX purpose.
-- NEVER animate `blur()` continuously or on large surfaces. Short one-time blur ≤8px is acceptable for icon swaps and crossfade masking.
-- Pause looping animations when element is off-screen (Intersection Observer).
-- NEVER use `transition: all` — always specify exact properties.
-- NEVER use Framer Motion `x`/`y` shorthand props under load — they run on the main thread. Use `transform: "translateX()"` for GPU compositing.
-- NEVER update CSS variables on parent containers to animate children — triggers style recalc on all descendants. Apply `transform` directly on the target element.
-
-## Transition Architecture
-
-**Shared element transitions:** Elements must visually travel between states. When a card expands to a detail view, morph the card — don't unmount/remount. Use `layoutId` (Framer Motion) or View Transitions API.
-
-**Directional consistency:** Navigate forward → content enters from right. Navigate back → content enters from left. Tab switching: slide indicator + content slides in direction of the tab.
-
-**Persistent elements don't re-animate.** If a header/nav stays across route changes, never re-animate it.
-
-**For data-dense/professional apps:** Default to NO animation. Only add purposeful transitions for: (1) state changes that need attention, (2) overlays entering/exiting, (3) loading→loaded transitions.
-
-**Enter/exit pattern:** Stagger semantic chunks with ~100ms delay. Exits softer than enters — small fixed `translateY` instead of full height.
-
-**Icon animations:** Animate with `opacity`, `scale`, and `blur` instead of toggling visibility. Scale from `0.25` to `1`, opacity `0` to `1`, blur `4px` to `0px`.
-
-**Tooltip skip-delay:** First tooltip in a group delays normally. Subsequent adjacent tooltips open instantly with `transition-duration: 0ms` while the user is still hovering in the group.
+Prefer CSS `animation-timeline: view()` for scroll-driven effects; never drive animation from `scrollTop`/`scrollY` listeners.
 
 ## Reduced Motion
 
-Prefer selective reduction over nuclear reset. Keep opacity and color transitions that aid comprehension. Remove transform, position, and clip-path animations:
+`prefers-reduced-motion` means fewer and gentler, NOT zero — keep opacity/color fades that aid comprehension, remove transform, position, and clip-path movement. The nuclear reset is the floor, not the goal:
 
 ```css
 @media (prefers-reduced-motion: reduce) {
@@ -200,12 +152,16 @@ const shouldReduceMotion = useReducedMotion();
 const closedX = shouldReduceMotion ? 0 : '-100%';
 ```
 
-## Rendering Cost Reference
+## Performance
 
-Before choosing an animation technique, know the cost:
+Rendering cost, cheapest first — pick the technique before the effect:
 
-- **Composite only (free):** transform, opacity
-- **Paint (small/isolated surfaces only):** color, borders, filters (including blur ≤8px)
-- **Layout (never animate):** width, height, padding, margin, grid-template-columns
+- **Composite (free):** `transform`, `opacity` — the only properties to animate by default. For height: `grid-template-rows: 0fr → 1fr`. For layout-like effects on large surfaces: FLIP.
+- **Paint (small/isolated surfaces only):** color, borders, filters. Short one-time blur ≤8px is acceptable for icon swaps and crossfade masking; NEVER animate `blur()` continuously or on large surfaces.
+- **Layout (never animate):** `width`, `height`, `top`, `left`, `margin`, `padding`, `grid-template-columns`.
 
-For scroll-driven effects, prefer CSS `animation-timeline: view()` over JS scroll listeners.
+Also:
+- motion/react shorthand props (`x`, `y`, `scale`) run on the main thread — use the full `transform` string for GPU compositing under load.
+- `backdrop-blur` ONLY on fixed/sticky elements — never on scrolling containers, never combined with transitions/animations.
+- `will-change: transform` only when first-frame stutter is observed; remove after. Only for `transform`/`opacity`/`filter` — never `all`, never permanent.
+- NEVER animate inherited CSS custom properties or update parent CSS variables per frame to drive children — triggers style recalc on all descendants. Apply `transform` directly on the target.

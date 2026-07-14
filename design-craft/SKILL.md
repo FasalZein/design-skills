@@ -91,6 +91,7 @@ The archetype and density decisions drive everything else. An "app shell / balan
 **Reference loading triggers (MANDATORY):**
 - GREENFIELD color work, or any palette/contrast/dark-mode task → **READ [reference/color.md](reference/color.md)**
 - Choosing/loading fonts, long-form text, truncation, or any typography beyond the core table below → **READ [reference/typography.md](reference/typography.md)**
+- Nested rounded surfaces, shadow systems, optical alignment, or spacing rhythm problems → **READ [reference/spacing.md](reference/spacing.md)**
 - Modals, drawers, transitions, gestures, or any interactive motion → **READ [reference/motion.md](reference/motion.md)**
 - Dashboard, data table, chart, or financial UI → **READ [reference/data-dense.md](reference/data-dense.md)**
 
@@ -120,7 +121,7 @@ Before building any hero or landing section, pick ONE architecture:
 
 | Aesthetic | Background options |
 |-----------|-------------------|
-| **Editorial** | Neutral-50 base, subtle paper grain via CSS noise, alternate neutral-50/neutral-100 between sections |
+| **Editorial** | Neutral-50 base, alternate neutral-50/neutral-100 between sections, hairline rules between content blocks |
 | **Technical / stark** | Neutral-50 base, thin rule lines between sections, subtle border treatments |
 | **Friendly / soft** | Soft radial gradient from neutral-50 to neutral-100, gentle shadow layering on cards |
 | **Bold / expressive** | One hero section can use a dark (neutral-950) or primary-tinted panel. Rest stays neutral. Max ONE dark section per page. |
@@ -443,5 +444,6 @@ See **Design Decision Gate** above for mandatory loading triggers.
 |------|------|
 | Color & Contrast | [reference/color.md](reference/color.md) — OKLCH spine derivation, name→hue formula, companion scales, gamut safety, APCA/WCAG contrast, dark mode |
 | Typography Depth | [reference/typography.md](reference/typography.md) — font files, variable fonts, scale mechanics, wrapping, punctuation, underlines, RTL |
+| Spacing & Surfaces Depth | [reference/spacing.md](reference/spacing.md) — 4pt scale, rhythm, concentric radius, shadow-as-border recipes, optical alignment, hit areas |
 | Motion & Animation | [reference/motion.md](reference/motion.md) — frequency gate, library selection, duration ladder, easing, springs, gestures, performance |
 | Data-Dense UI | [reference/data-dense.md](reference/data-dense.md) — dashboard composition, table patterns, chart selection, data visualization |

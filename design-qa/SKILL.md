@@ -11,11 +11,13 @@ Structured quality gate for UI code. Run against any component, page, or feature
 ## Fast Scan
 
 ```bash
-bash design-qa/scripts/design-scan.sh [target-dir] --fix        # Full scan with fixes
-bash design-qa/scripts/design-scan.sh [target-dir] --no-ui       # Skip upstream primitives
-bash design-qa/scripts/design-scan.sh [target-dir] --json        # JSON for CI
-bash design-qa/scripts/design-scan.sh [target-dir] --critical-only
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" [target-dir] --fix        # Full scan with fixes
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" [target-dir] --no-ui      # Skip upstream primitives
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" [target-dir] --json       # JSON for CI
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" [target-dir] --critical-only
 ```
+
+If `$PI_SKILL_DIR` is unset, resolve the script relative to this SKILL.md's directory.
 
 Requires: ripgrep (`rg`). Optional: ast-grep (`sg`).
 
@@ -46,7 +48,7 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 | Check | How to Verify |
 |-------|--------------|
 | Project type scale only | Zero arbitrary font sizes: `text-[*px]`, `text-[*rem]`, `font-size:` |
-| No letter-spacing mods | Zero `tracking-*`, `letter-spacing` unless in design spec |
+| Letter-spacing by size only | Negative tracking only on display text (text-3xl+, floor -0.04em); positive tracking only on small uppercase labels. `tracking-wide+` on body text = flag |
 | Numeric data: tabular-nums | All `<td>`, `<th>` with numbers, prices, counts, dates use `tabular-nums` |
 | Headings: text-balance | All `<h1>`-`<h6>` use `text-balance` or `text-pretty` |
 | Line length controlled | Body text has `max-w-prose` or equivalent (45-75ch) |
@@ -63,7 +65,7 @@ After the fast scan, run the manual gates below for judgment-based checks. Read 
 | No pure black/white areas | `bg-black`, `bg-white`, `#000`, `#fff` on containers/pages = flag |
 | No gray on colored bg | `text-gray-*` or `text-muted-*` on colored backgrounds = flag |
 | Status colors semantic | green=success, red=error, amber=warning, blue=info. No inversions |
-| Contrast ≥ 4.5:1 | WCAG AA. APCA: \|Lc\| ≥ 60 body, ≥ 45 large. OKLCH: ΔL ≥ 0.4 body |
+| Contrast ≥ 4.5:1 | WCAG AA against actual rendered bg. APCA: \|Lc\| ≥ 75 body, ≥ 60 labels, ≥ 45 large. OKLCH: ΔL ≥ 0.4 body |
 | No inline oklch | Zero `bg-[oklch(...)]` in JSX. OKLCH belongs in CSS tokens only |
 | Max 2 accent colors | Count distinct accent/brand colors per view |
 
