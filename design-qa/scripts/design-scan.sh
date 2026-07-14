@@ -169,6 +169,44 @@ rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
   -e '\-\-(paper|cream|sand|linen|parchment|bone|ivory|wheat|biscuit)' \
   "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|CREAM_TOKEN|/' > "$TMPDIR/19.txt" &
 
+# CRITICAL: Slop gradient family (violet→pink/fuchsia + two-stop dark neutral)
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e 'from-(purple|violet|indigo)-[0-9]+[^"'"'"']*to-(pink|fuchsia|rose)-[0-9]+' \
+  -e 'from-(slate|zinc|neutral|gray)-[89]00[^"'"'"']*to-(slate|zinc|neutral|gray)-[89]00' \
+  "$TARGET" 2>/dev/null | sed 's/^/CRITICAL|SLOP_GRADIENT|/' > "$TMPDIR/20.txt" &
+
+# MEDIUM: Gradient orbs / decorative pulse / marquee trust strips
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e '(gradient|from-[a-z]+-[0-9]+)[^"'"'"']*blur-(2xl|3xl)' \
+  -e 'blur-(2xl|3xl)[^"'"'"']*(gradient|from-[a-z]+-[0-9]+)' \
+  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|ORB_BLOB|/' > "$TMPDIR/21.txt" &
+
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e 'animate-(pulse|ping)' \
+  "$TARGET" 2>/dev/null | grep -vi 'skeleton\|loading' | sed 's/^/MEDIUM|PULSE_DECOR|/' > "$TMPDIR/22.txt" &
+
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e 'animate-marquee|keyframes +marquee' \
+  -e 'Trusted by [0-9]' \
+  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|TRUST_THEATER|/' > "$TMPDIR/23.txt" &
+
+# MEDIUM: AI copy tells
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE -i \
+  -e 'effortlessly|streamline|revolutioniz|unlock the power|welcome to our platform|take your [a-z]+ to the next level' \
+  -e "(it'?s|this is)n'?o?t? (just|only|simply) [^<]{3,60}, (it'?s|but)" \
+  -e '(built|made|crafted) with (❤|♥|love)' \
+  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|SLOP_COPY|/' > "$TMPDIR/24.txt" &
+
+# HIGH: Dead controls + unmodified shadcn fingerprint
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e 'href="#"' \
+  -e 'javascript:void' \
+  "$TARGET" 2>/dev/null | sed 's/^/HIGH|DEAD_CONTROL|/' > "$TMPDIR/25.txt" &
+
+rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
+  -e 'whitespace-nowrap rounded-md text-sm font-medium ring-offset-background' \
+  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|SHADCN_DEFAULT|/' > "$TMPDIR/26.txt" &
+
 # Wait for all parallel scans
 wait
 
@@ -233,6 +271,13 @@ fix_for() {
     OVER_ROUNDED)       echo "Cards top out at 12-16px radius (rounded-xl/2xl). Full-pill only for tags/buttons." ;;
     EYEBROW)            echo "Drop the uppercase tracked kicker scaffold. Real headings and spacing do this job." ;;
     CREAM_TOKEN)        echo "Cream/sand body bg is the AI warm-neutral reflex. Carry warmth via accent + typography instead." ;;
+    SLOP_GRADIENT)      echo "The AI gradient family. One flat surface from the neutral scale, or a committed brand color." ;;
+    ORB_BLOB)           echo "Remove decorative blurred gradient blobs. Use neutral surface variation for depth." ;;
+    PULSE_DECOR)        echo "animate-pulse/ping belongs to skeletons only. Emphasize the featured item with weight/contrast." ;;
+    TRUST_THEATER)      echo "Drop marquee/'Trusted by N+' strips. Real customers with permission, or nothing." ;;
+    SLOP_COPY)          echo "AI copy tell. Say what the product actually does, in specific verbs." ;;
+    DEAD_CONTROL)       echo "Wire a real handler/destination or remove the control. href='#' is a broken promise." ;;
+    SHADCN_DEFAULT)     echo "Unmodified shadcn variant string. Customize tokens, radii, and variants to the brand." ;;
     STRUCTURAL)         echo "See ast-grep rule output for specific fix." ;;
     *)                  echo "" ;;
   esac
