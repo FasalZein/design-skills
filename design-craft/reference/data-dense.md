@@ -49,7 +49,7 @@ Pick the right format based on what the user needs to *do* with the data:
 
 ## Background Treatments
 
-Pick surface treatments from the aesthetic-direction table in SKILL.md (Hero & Visual Composition) — same neutral scale, no per-section hues. Dashboard-specific rules:
+All dashboard surfaces come from the derived neutral scale — alternate stop-50/stop-100, thin rule lines, or at most one dark/primary-tinted emphasis panel. Never a new hue per section.
 
 - Background treatments mark section boundaries — they replace, not supplement, heavy divider lines.
 - Limit to 2-3 distinct surface levels per view. More creates visual noise.
