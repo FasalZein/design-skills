@@ -1,6 +1,6 @@
 ---
 name: design-craft
-description: Opinionated UI craft rules that break out of the AI-slop median. Use when building or restyling any UI — pages, components, dashboards, forms, landing pages — or when existing UI looks generic, templated, or machine-made. Covers typography, color, spacing, layout, motion, interaction states, and UX writing.
+description: Anti-slop UI craft rules that break out of the AI-generated median. Use when building or restyling any UI — pages, components, dashboards, forms, landing pages — when existing UI looks generic or machine-made, or when another skill needs rules for typography, color, spacing, layout, motion, or interaction states.
 globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css", "**/*.scss"]
 ---
 

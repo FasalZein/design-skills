@@ -47,23 +47,14 @@ Pick the right format based on what the user needs to *do* with the data:
 - Limit to 5-7 series per chart. Beyond that, group or offer filters.
 - Use the semantic color system — don't hardcode chart colors.
 
-## Background Treatments by Aesthetic Direction
+## Background Treatments
 
-Data-dense UIs benefit from subtle surface variation to create depth and section boundaries. Match to the aesthetic direction from the planning gate:
+Pick surface treatments from the aesthetic-direction table in SKILL.md (Hero & Visual Composition) — same neutral scale, no per-section hues. Dashboard-specific rules:
 
-| Aesthetic | Background options |
-|-----------|-------------------|
-| **Editorial / warm** | Neutral-50 base from the derived neutral scale (never a reflex-warm hue), tinted section bands from the same scale |
-| **Technical / stark** | Neutral base, thin rule lines between sections, subtle border treatments (dot/line grids are banned — see anti-slop) |
-| **Friendly / soft** | Soft radial gradient behind hero metrics, pastel-tinted card surfaces, gentle shadow layering |
-| **Bold / expressive** | Max ONE dark (neutral-950) or primary-tinted panel for emphasis; the rest stays on the neutral scale |
-| **Neutral / professional** | Alternating gray-50/white sections, minimal — rely on borders and spacing over color |
-
-**Rules:**
 - Background treatments mark section boundaries — they replace, not supplement, heavy divider lines.
 - Limit to 2-3 distinct surface levels per view. More creates visual noise.
-- Decorative backgrounds go behind low-density areas (headers, hero metrics). Dense data areas stay clean.
-- For dark mode: reduce gradient intensity by 40-50%, never invert grain/texture patterns.
+- Decorative treatments go behind low-density areas (headers, summary bars). Dense data areas stay clean.
+- For dark mode: reduce any gradient intensity by 40-50%.
 
 ## Performance
 
