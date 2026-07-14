@@ -40,7 +40,7 @@ trap 'rm -rf "$TMPDIR"' EXIT
 
 # Common ripgrep flags — single source of truth
 RG_BASE="--line-number --with-filename --no-heading"
-RG_GLOBS="--glob=*.tsx --glob=*.jsx --glob=*.ts --glob=*.css --glob=*.scss"
+RG_GLOBS="--glob=*.tsx --glob=*.jsx --glob=*.ts --glob=*.js --glob=*.css --glob=*.scss --glob=*.html --glob=*.vue --glob=*.svelte --glob=*.astro"
 RG_EXCLUDE="--glob=!node_modules/** --glob=!dist/** --glob=!build/** --glob=!.next/** --glob=!*.d.ts --glob=!*.test.* --glob=!*.spec.* --glob=!*.stories.*"
 if $SKIP_UI; then
   RG_EXCLUDE="$RG_EXCLUDE --glob=!**/components/ui/**"
