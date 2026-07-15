@@ -141,6 +141,31 @@ Dead air (at 1440px) — merges every visible text/visual element into occupied 
 
 Set `marketing` from the declared archetype before running. `fail` non-empty = probe failure. `judge` rows are section-boundary air on marketing pages (stacked paddings — usually legal) but floating-content bugs inside one continuous surface — check each against the screenshot.
 
+Landing continuity (marketing pages, at 1440px) — render-level, so it catches every emission style (logical properties, arbitrary class names). Sticky/fixed bars are exempt (their seam is chrome, not a section boundary):
+
+```js
+(() => { const vw = innerWidth;
+  const names = [...document.querySelectorAll('*')].filter(e => {
+    const r = e.getBoundingClientRect(); if (r.width < vw*0.7) return false;   // sections live in max-width columns
+    const s = getComputedStyle(e);
+    if (s.position === 'sticky' || s.position === 'fixed') return false;
+    if (e.closest('table,thead,tbody,ul,ol')) return false;
+    const top = parseFloat(s.borderTopWidth) > 0 && s.borderTopStyle !== 'none';
+    const bot = parseFloat(s.borderBottomWidth) > 0 && s.borderBottomStyle !== 'none';
+    const hr = e.tagName === 'HR' || (r.height <= 2 && !/rgba\(0, 0, 0, 0\)|transparent/.test(s.backgroundColor));
+    return top || bot || hr;
+  }).map(e => e.tagName + '.' + String(e.className).split(' ')[0]);
+  const rules = {}; names.forEach(n => rules[n] = (rules[n]||0) + 1);
+  const bgs = [...document.querySelectorAll('body > *, body > * > section, main > *, main section')]
+    .filter(e => { const r = e.getBoundingClientRect(); return r.width >= vw*0.7 && r.height > 120; })
+    .map(e => getComputedStyle(e).backgroundColor)
+    .filter(c => c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c));
+  return { rules, surfaceChanges: [...new Set(bgs)].length };
+})()
+```
+
+Reading the result on a marketing page: a `SECTION.*`/wrapper `DIV.*` entry with count 1–2 = a section seam — **fail**. The same class repeated 3+ times = list/row separators (component anatomy — legal). A single non-sticky `HEADER`/`FOOTER` seam = judge against the screenshot. `surfaceChanges ≤ 3` (base + one emphasis panel + footer). App shells are exempt from this probe — their seams are shell anatomy.
+
 Focus visibility: key-tab through the page and screenshot mid-cycle — every stop shows a visible ring.
 
 Layout shift: screenshot immediately after load and again after network idle; differing layouts = unreserved async space.

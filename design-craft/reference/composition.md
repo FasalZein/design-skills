@@ -99,20 +99,18 @@ Mirror the real information architecture: link only pages that exist, grouped by
 
 **Complete when:** every link resolves; column count ≤ real content groups.
 
-## 9. Background zones & section variety
+## 9. Landing continuity & background zones
 
-All section backgrounds come from one neutral scale (kernel rule). Legal variety within that:
+A landing page is **one continuous canvas**: every section sits on the same base surface (stop-50), and section boundaries come from spacing, density shifts, and content rhythm — never from full-width hairline rules and never from a background change per section. Stacked different-colored boxes with borders between them is the template tell; continuity is what makes a page read as designed.
 
-| Aesthetic | Treatment |
-|---|---|
-| Editorial | stop-50 base, stop-50/stop-100 alternation, hairline rules between blocks |
-| Technical / stark | stop-50 base, thin rules, border treatments |
-| Friendly / soft | soft radial stop-50→stop-100, gentle shadow layering |
-| Bold / expressive | ONE dark (stop-950) or primary-tinted emphasis panel per page; rest neutral |
+Legal surface changes — at most two per page, transitioning by surface change alone (no border at the seam):
 
-Plus: density shifts (airy hero → dense grid → spacious close), one emphasis panel, real media, or a bounded brand texture ([spacing.md](spacing.md) texture rules). Flat white void everywhere is visual poverty; a different color per section is the opposite failure.
+1. **One emphasis panel** — a dark (stop-950) or primary-tinted band for the peak moment (usually the final CTA).
+2. **The footer** — may sit one stop away (stop-100) or share the emphasis surface.
 
-**Complete when:** section boundaries are perceptible in the squint test without any hue change between sections.
+Variety within the single canvas: density shifts (airy hero → dense grid → spacious close), real media, one bounded brand texture ([spacing.md](spacing.md) texture rules), and component-level surfaces (cards, panels — whose borders/rules are component anatomy, not section separators). Hairline rules stay legal inside components (tables, lists) and in app-shell seams (top bar, sidebar) — not between marketing sections.
+
+**Complete when:** scrolling the full page crosses at most two background changes and zero full-width horizontal rules between sections; boundaries still read in the squint test from spacing alone.
 
 ## Shell patterns (copy-paste)
 

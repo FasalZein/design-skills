@@ -55,6 +55,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | No template copy | Zero: Effortlessly, Streamline, Revolutionize, Unlock, AI-powered (non-AI product), "It's not just X, it's Y", "Welcome to our platform", "Built with ❤️" — in rendered copy; identifiers don't count |
 | Motion earns its place | Pulse/ping only as skeleton feedback or accessible live-status; reveals differ by content, not one fade-in-up everywhere |
 | No side-stripe accents (auto) | Zero colored `border-left` bars on cards/callouts/items — tint or dot instead, never stripe + tint; `blockquote` exempt |
+| Landing continuity (auto: section borders) | Marketing pages: zero full-width `border-top/bottom` rules between sections; ≤2 background changes across the page (one emphasis panel + footer); component-internal rules exempt |
 | Kickers are bounded | One brand kicker or micro-meta label passes; the same uppercase-tracked eyebrow repeated across 2+ sections fails; numbered markers only on real sequences |
 | Radius matches role | ≥24px on cards/sections/inputs fails outside a declared soft-organic/playful direction |
 | Warmth is a system | Warm neutrals pass as a coherent derived scale; a lone `--cream`/`--paper` body token fails |
@@ -199,7 +200,7 @@ Static gates read source; this gate checks the **rendered page**.
 
 **States:** loaded (both required viewports) — then empty, loading, error, long-content, interactive states at one representative viewport each; dark mode and reduced-motion when supported. Repeat a state at a second viewport only when responsive behavior could change its verdict.
 
-**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands (Gate 4 limits) at 1440px · reduced-motion emulation removes positional animation · no blank sections.
+**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands (Gate 4 limits) at 1440px · marketing: zero full-width section rules and ≤3 distinct section surfaces · reduced-motion emulation removes positional animation · no blank sections.
 
 **Screenshot review (judgment):** overlap, hierarchy, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against Gate 1.
 

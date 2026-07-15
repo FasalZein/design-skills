@@ -4,3 +4,5 @@
 .meta { maximum-scale=1 }
 .mixed { color: #fff; background: var(--surface); }
 .event-card { border-left: 3px solid var(--accent); background: var(--surface-tint); }
+section { border-top: 1px solid var(--border); }
+.section-divider { border-bottom: 1px solid var(--border); }

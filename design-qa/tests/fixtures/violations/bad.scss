@@ -1,3 +1,6 @@
 .title { letter-spacing: -0.1em; }
 .panel { height: 100vh; color: #222; }
 .logical-stripe { border-inline-start: 4px solid var(--warning); }
+.services-section {
+  border-block-start: 1px solid var(--border);
+}

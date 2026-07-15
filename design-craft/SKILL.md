@@ -132,7 +132,7 @@ Loading strategy, fallback metrics, variable fonts, CJK: [reference/typography.m
 
 **Universal status colors** — success=green, error/destructive=red, warning=amber, info=blue. Users already know these; never invert, never use brand accent for status.
 
-60-30-10: 60% neutrals, 30% secondary, 10% accent; one accent at 100/60/20/10% opacity before adding a second. All section backgrounds come from the same neutral scale — variety comes from density, typography, and rhythm, not per-section color changes. Token names reveal the product (`--meridian-600`, not `--gray-700`).
+60-30-10: 60% neutrals, 30% secondary, 10% accent; one accent at 100/60/20/10% opacity before adding a second. All section backgrounds come from the same neutral scale, and a landing page is one continuous canvas: at most one emphasis panel + the footer change surface, no full-width rules between sections — variety comes from density, typography, and rhythm. Token names reveal the product (`--meridian-600`, not `--gray-700`).
 
 Gamut mapping, P3, warm-neutral branch, APCA (supplementary only), dark-mode depth: [reference/color.md](reference/color.md).
 

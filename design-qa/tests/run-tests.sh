@@ -51,7 +51,7 @@ rm -rf "$(dirname "$HOSTILE")"
 
 # --- per-category detection on violations ---
 CATS=$(bash "$SCAN" "$FIX/violations" --json 2>/dev/null | jq -r '.categories | keys | join(" ")')
-for want in SLOP_GRADIENT GRADIENT_TEXT GRADIENT_ORB DEAD_CONTROL DIV_ONCLICK TABINDEX_POSITIVE SIDE_STRIPE \
+for want in SLOP_GRADIENT GRADIENT_TEXT GRADIENT_ORB DEAD_CONTROL DIV_ONCLICK TABINDEX_POSITIVE SIDE_STRIPE SECTION_BORDER \
             ZOOM_DISABLED PASTE_BLOCKED H_SCREEN HARDCODED_COLOR ARBITRARY_VALUE TRACKING_TIGHTER \
             LAYOUT_ANIM TRANSITION_ALL CONSOLE_LOG; do
   case " $CATS " in *" $want "*) ok ;; *) ko "category $want not detected" ;; esac
@@ -70,6 +70,8 @@ probe TRACKING_TIGHTER bad.scss   # letter-spacing:-0.1em
 probe HARDCODED_COLOR bad.css     # hex sharing a line with var(--)
 probe SIDE_STRIPE     bad.css     # css left-stripe
 probe SIDE_STRIPE     Bad2.tsx    # tailwind border-l-4 + border-amber-500
+probe SECTION_BORDER  bad.css     # section { border-top }
+probe SECTION_BORDER  bad2.html   # <section class="border-t">
 probe ARBITRARY_VALUE Bad2.tsx    # text-[1.125rem], w-[50px]
 probe LAYOUT_ANIM     Bad2.tsx    # transition-[height]
 probe CONSOLE_LOG     bad.ts

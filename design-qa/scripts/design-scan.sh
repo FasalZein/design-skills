@@ -113,6 +113,13 @@ run_check SIDE_STRIPE critical \
   -e 'border-l-[0-9]+[^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)' \
   -e 'border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)(-[0-9]+)?[^"'\''<>]{0,80}border-l-[0-9]'
 
+run_check SECTION_BORDER critical \
+  "Landing pages are one continuous canvas: boundaries from spacing/density, not rules. Emphasis panel + footer change surface without a border at the seam." "" \
+  -U \
+  -e '<(section|footer)[^>]{0,200}\bborder-[tby]\b' \
+  -e '(^|[,{ ])(section|footer)\s*(,[^{]*)?\{[^}]*border-(top|bottom|block(-(start|end))?)\s*:\s*[0-9]' \
+  -e '\.[a-z-]*section[a-z-]*[^{]*\{[^}]*border-(top|bottom|block(-(start|end))?)\s*:\s*[0-9]'
+
 run_check TABINDEX_POSITIVE critical \
   "Fix DOM order instead; tabIndex > 0 breaks natural tab flow." "" \
   -e 'tabIndex=\{?[1-9]' -e 'tabindex="[1-9]'
