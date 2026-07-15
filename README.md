@@ -58,7 +58,7 @@ Each skill is a self-contained `SKILL.md` (+ optional `reference/` folder). Drop
 Mechanical checks only — the things regex can prove. Contextual judgment (eyebrow repetition, radius intent, warm-neutral coherence, copy quality) stays in the manual gates where it belongs.
 
 ```bash
-# from an installed skill: bash "$PI_SKILL_DIR/scripts/design-scan.sh" <target>
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" ./src             # installed skill (repo checkout: design-qa/scripts/design-scan.sh)
 bash design-qa/scripts/design-scan.sh ./src                   # human output
 bash design-qa/scripts/design-scan.sh ./src --json            # pure JSON on stdout for CI
 bash design-qa/scripts/design-scan.sh ./src --critical-only   # gate only Critical findings

@@ -143,10 +143,14 @@ run_check HARDCODED_COLOR high \
   -e '\b(bg|text|border|from|to|via|fill|stroke|ring|shadow|outline)-\[(#|rgb|hsl|oklch)' \
   -e '(color|background(-color)?|border(-color)?|fill|stroke|box-shadow|outline)\s*:\s*[^;]*(#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|oklch\()'
 
+run_check NAMED_COLOR high \
+  "Components use semantic tokens only (bg-primary, text-muted-foreground) - raw palette utilities bypass the design system." "" \
+  -e '["'\''[:space:]](bg|text|border|ring|fill|stroke|divide|outline|decoration|caret)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-[0-9]{2,3}\b'
+
 run_check ARBITRARY_VALUE high \
   "Use the spacing/type scale (4px grid); arbitrary px values break the system." "" \
   -e '\b[pm][trblxy]?-\[[0-9]' -e '\bgap-\[[0-9]' -e '\bspace-[xy]-\[[0-9]' \
-  -e '\btext-\[[0-9]+(\.[0-9]+)?(px|rem)' -e '\b[wh]-\[[0-9]{2,}(\.[0-9]+)?px' -e '\bz-\[[0-9]{3}'
+  -e '\btext-\[[0-9]+(\.[0-9]+)?(px|rem)' -e '\b[wh]-\[[0-9]+(\.[0-9]+)?px' -e '\bz-\[[0-9]{3}'
 
 run_check TRACKING_TIGHTER high \
   "Tracking floor is -0.03em; below 30px use 0. Exact ladder: design-craft type kernel." "" \

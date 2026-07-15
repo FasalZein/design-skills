@@ -20,7 +20,7 @@ bash "$PI_SKILL_DIR/scripts/design-scan.sh" <target-dir> --allow-empty    # zero
 
 If `$PI_SKILL_DIR` is unset, resolve the script relative to this SKILL.md's directory.
 
-**Dependencies:** `rg` and `jq` required in every mode. `ast-grep` optional (adds structural TSX/JSX/HTML checks).
+**Dependencies:** `rg` and `jq` required in every mode. `ast-grep` optional (adds structural TSX checks).
 
 **Support tiers:** lexical checks cover `tsx jsx ts js css scss html vue svelte astro mdx`; structural checks are TSX-only (the shipped ast-grep rule set). Symlinked files are not followed.
 
@@ -81,7 +81,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 
 | Check | How to Verify |
 |-------|--------------|
-| No hardcoded colors | Zero hex/`rgb(`/`hsl(`/`oklch(` in component markup; OKLCH lives in `:root` tokens |
+| No hardcoded colors | Zero hex/`rgb(`/`hsl(`/`oklch(` in component markup; zero raw palette utilities (`bg-purple-500` — scanner NAMED_COLOR); OKLCH lives in `:root` tokens |
 | No pure black/white surfaces | `bg-black`, `bg-white`, `#000`, `#fff` on containers/pages = flag |
 | No gray on colored bg | `text-gray-*`/`text-muted-*` on colored backgrounds = flag |
 | Status colors semantic | green=success, red=error, amber=warning, blue=info — never inverted, never the brand accent |
@@ -200,9 +200,9 @@ Static gates read source; this gate checks the **rendered page**.
 
 **States:** loaded (both required viewports) — then empty, loading, error, long-content, interactive states at one representative viewport each; dark mode and reduced-motion when supported. Repeat a state at a second viewport only when responsive behavior could change its verdict.
 
-**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands above the runbook probe's fail tier at 1440px (judge-tier bands reviewed against Gate 4) · marketing: zero full-width section rules and ≤3 distinct section surfaces · reduced-motion emulation removes positional animation · no blank sections.
+**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands above the runbook probe's fail tier at 1440px (judge-tier bands reviewed against Gate 4) · marketing: zero full-width section rules and ≤3 distinct section surfaces · reduced-motion emulation removes positional animation.
 
-**Screenshot review (judgment):** overlap, hierarchy, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against Gate 1.
+**Screenshot review (judgment):** overlap, hierarchy, blank/thin sections, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against Gate 1.
 
 Exact commands, probe JavaScript, and evidence schema: **READ [reference/live-verification.md](reference/live-verification.md)** before running this gate.
 
