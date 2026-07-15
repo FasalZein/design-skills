@@ -6,24 +6,26 @@ Pass conditions, state/viewport matrices, N-A rules, and the completion criterio
 
 ```bash
 agent-browser skills get core        # load the CLI workflow reference
+AB="agent-browser --session <app>-qa" # ISOLATED session — parallel agents share the default
+                                      # instance and will hijack your tabs mid-verification
 # resolve the target: project dev/preview command (package.json scripts) or supplied URL
 # static single-file builds: file:///absolute/path/index.html works directly
 ```
 
-Run each Gate 12 session fresh — stale tabs carry console history that pollutes error capture.
+Use `$AB` for every command below; `$AB close` when done. Run each Gate 12 session fresh — stale tabs carry console history that pollutes error capture.
 
 ## Per-cell loop (every required state × viewport)
 
 Responsive and state logic often runs once at load, so **set the viewport first and navigate fresh for every cell** — resizing an open page is not a valid mobile test. Collect all evidence per cell:
 
 ```bash
-agent-browser set viewport 375 812          # BEFORE navigation
-agent-browser open "$URL"                   # fresh navigation for this cell
-agent-browser errors                        # must print nothing
-agent-browser console                       # zero errors; warnings judged
-agent-browser snapshot -i                   # accessibility tree: headings, roles, names
-agent-browser screenshot "$EVIDENCE_DIR/<app>-<state>-375.png"
-# then run every probe below in this same cell
+$AB set viewport 375 812          # BEFORE navigation
+$AB open "$URL"                   # fresh navigation for this cell
+$AB errors                        # must print nothing
+$AB console                       # zero errors; warnings judged
+$AB snapshot -i                   # accessibility tree: headings, roles, names
+$AB screenshot "$EVIDENCE_DIR/<app>-<state>-375.png"
+# then run every probe below (via $AB eval) in this same cell
 ```
 
 Repeat with `set viewport 1440 900` (and `768 1024` when a tablet breakpoint exists). Failed asset/API requests:
@@ -39,11 +41,11 @@ Drive each required state through the app itself (navigate, filter to zero resul
 Dark mode / reduced motion:
 
 ```bash
-agent-browser eval "document.documentElement.classList.add('dark')"   # or the project's toggle
-agent-browser set media --reduced-motion reduce
+$AB eval "document.documentElement.classList.add('dark')"   # or the project's toggle
+$AB set media --reduced-motion reduce
 ```
 
-## Machine probes (run via `agent-browser eval`)
+## Machine probes (run via `$AB eval`)
 
 Horizontal overflow (at 375px):
 
@@ -112,7 +114,7 @@ Target size (at 375px) — two buckets: below 24px fails outright (WCAG floor); 
 
 `fail` non-empty = probe failure. Every primary control appearing in `judge44` fails the review unless it is a genuinely secondary/inline control.
 
-Focus visibility: `agent-browser` key-tab through the page and screenshot mid-cycle — every stop shows a visible ring.
+Focus visibility: key-tab through the page and screenshot mid-cycle — every stop shows a visible ring.
 
 Layout shift: screenshot immediately after load and again after network idle; differing layouts = unreserved async space.
 
