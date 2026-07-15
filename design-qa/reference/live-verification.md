@@ -127,14 +127,16 @@ Dead air (at 1440px) — merges every visible text/visual element into occupied 
   for(const l of leaves){ if(cur&&l.top<=cur.end+4){cur.end=Math.max(cur.end,l.bottom);cur.last=l.t;}
     else{if(cur)bands.push(cur);cur={start:l.top,end:l.bottom,last:l.t};}}
   if(cur)bands.push(cur);
+  const marketing = /* set from the declared archetype */ false;
+  const FAIL = marketing ? 256 : 128, JUDGE = marketing ? 128 : 64;
   const out={fail:[],judge:[]};
   for(let i=1;i<bands.length;i++){const g=Math.round(bands[i].start-bands[i-1].end);
-    if(g>128) out.fail.push({gap:g,after:bands[i-1].last,before:bands[i].last});
-    else if(g>64) out.judge.push({gap:g,after:bands[i-1].last,before:bands[i].last});}
+    if(g>FAIL) out.fail.push({gap:g,after:bands[i-1].last,before:bands[i].last});
+    else if(g>JUDGE) out.judge.push({gap:g,after:bands[i-1].last,before:bands[i].last});}
   return out; })()
 ```
 
-`fail` non-empty = probe failure (128px exceeds even the marketing band limit + tolerance). Each `judge` row: legal on a marketing page up to 96px, a bug on app/data surfaces above 64px — check against the declared archetype.
+Set `marketing` from the declared archetype before running. `fail` non-empty = probe failure. `judge` rows are section-boundary air on marketing pages (stacked paddings — usually legal) but floating-content bugs inside one continuous surface — check each against the screenshot.
 
 Focus visibility: key-tab through the page and screenshot mid-cycle — every stop shows a visible ring.
 

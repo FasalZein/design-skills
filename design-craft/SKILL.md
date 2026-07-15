@@ -158,7 +158,7 @@ page: 32–64px — page-level margins
 | Radius | One base radius, derive the rest; concentric nesting: outer = inner + padding. Scale values and aesthetic exceptions: [reference/spacing.md](reference/spacing.md). |
 | Targets | Mobile web ≥44×44 CSS px (WCAG AA floor is 24px; Android-native prefers 48dp). Extend with pseudo-elements when the visible element is smaller. Adjacent hit areas never overlap. |
 | Tokens | Framework scale only — never `p-[13px]`, `gap-[7px]`. Acceptable arbitrary: `max-w-[65ch]`, `min-h-[*rem]`, grid templates. |
-| Height | Comes from content + the ladder, never from `min-height` + vertical centering (sole exception: a full-viewport hero where scale is the declared feature). Empty vertical bands between content blocks: ≤64px on app/data surfaces, ≤96px on marketing pages — anything larger is an unowned gap: pull the next block up or give the band content. |
+| Height | Comes from content + the ladder, never from `min-height` + vertical centering (sole exception: a full-viewport hero where scale is the declared feature). Empty bands between blocks **within one surface**: ≤64px app/data, ≤128px marketing. At section boundaries stacked paddings may total ~192px on marketing pages; >256px is dead air anywhere. Larger = unowned gap: pull the next block up or give the band content. |
 
 Density modes, block text rhythm, elevation ladder, shadows, safe areas, optical alignment: [reference/spacing.md](reference/spacing.md). Shell geometry, gutters, lockups: [reference/composition.md](reference/composition.md).
 

@@ -97,7 +97,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Density consistent | One density mode per surface; grouped controls share heights |
 | Block rhythm | Headings bind to what follows (space above > below); labels sit 4–8px from their inputs |
 | No triple responsive padding | `p-2 md:p-4 lg:p-6 xl:p-8` = flag; one value per semantic context |
-| No dead air | Zero empty vertical bands >64px (app/data) / >96px (marketing) between content blocks at 1440px; height from content, not `min-height` + centering |
+| No dead air | At 1440px: zero empty bands >64px (app/data) / >128px (marketing) within one surface; zero bands >256px anywhere; height from content, not `min-height` + centering |
 | Empty states top-anchored | Inside a data region the message sits where the first row would; region collapses to message height |
 | Section origin aligned | Heading and its section controls share a baseline; adjacent columns start at the same y |
 
@@ -204,7 +204,7 @@ Static gates read source; this gate checks the **rendered page**.
 
 Exact commands, probe JavaScript, and evidence schema: **READ [reference/live-verification.md](reference/live-verification.md)** before running this gate.
 
-**Complete when** every required state × viewport has a screenshot + console/error capture recorded, all machine probes pass, and no Critical visual finding remains. Attach screenshot paths and repro steps for every finding. A failure here outranks any static-gate pass — the rendered page is the product.
+**Complete when** every required state × viewport has a screenshot + console/error capture recorded, **every machine probe is listed in the report with its measured result** (a probe not listed was not run — the gate is incomplete), all probes pass, and no Critical visual finding remains. Attach screenshot paths and repro steps for every finding. A failure here outranks any static-gate pass — the rendered page is the product.
 
 ---
 
