@@ -106,9 +106,12 @@ run_check DIV_ONCLICK critical \
   -e '<(div|span)[^>]{0,300}@click' -e '<(div|span)[^>]{0,300}\bon:click'
 
 run_check SIDE_STRIPE critical \
-  "The signature LLM tell. Tinted surface OR a leading dot/chip - one cue; category color goes in a filled dot/label, never an edge bar." \
-  'blockquote' \
-  -e 'border-(left|inline-start):\s*[2-9]px\s+solid\s+(var\(|#|oklch\(|rgba?\(|hsla?\()' \
+  "The signature LLM tell. Tinted surface OR a leading dot/chip - one cue; category color goes in a filled dot/label, never an edge bar. Timeline rails/blockquotes: allowlist." \
+  'blockquote|\.quote|timeline|rail|connector' \
+  -e 'border-(left|inline-start):\s*([2-9](px)?|[0-9]*\.[0-9]+r?em|[1-9][0-9]*r?em|[0-9]+\.[0-9]+px)\s+solid\s+(var\(|#|oklch\(|rgba?\(|hsla?\()' \
+  -e 'border(Left|InlineStart)\s*:\s*["'\''`]' \
+  -e 'border-(left|inline-start)-width\s*:\s*[2-9]' \
+  -e 'box-shadow\s*:\s*inset\s+[2-9]px\s+0' \
   -e '\bborder-s-[1-9][^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent)' \
   -e 'border-l-[1-9][^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)' \
   -e 'border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)(-[0-9]+)?[^"'\''<>]{0,80}border-l-[1-9]'
@@ -145,7 +148,7 @@ run_check HARDCODED_COLOR high \
 
 run_check NAMED_COLOR high \
   "Components use semantic tokens only (bg-primary, text-muted-foreground) - raw palette utilities bypass the design system." "" \
-  -e '["'\''[:space:]](bg|text|border|ring|fill|stroke|divide|outline|decoration|caret)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-[0-9]{2,3}\b'
+  -e '["'\''[:space:]:](bg|text|border|ring|fill|stroke|divide|outline|decoration|caret)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-[0-9]{2,3}\b'
 
 run_check ARBITRARY_VALUE high \
   "Use the spacing/type scale (4px grid); arbitrary px values break the system." "" \
@@ -225,7 +228,7 @@ DOC=$(jq -s --arg target "$TARGET" --argjson scanned "$SCANNED" --argjson crit_o
   | ($issues | map(select(.severity=="medium")) | length) as $m
   | { status: (if ($issues|length) > 0 then "fail" else "pass" end),
       target: $target, scannedFiles: $scanned,
-      support: {lexical:["tsx","jsx","ts","js","css","scss","html","vue","svelte","astro","mdx"], structural:"ast-grep optional (tsx/jsx/html)"},
+      support: {lexical:["tsx","jsx","ts","js","css","scss","html","vue","svelte","astro","mdx"], structural:"ast-grep optional (TSX-only)"},
       total: ($issues|length), critical: $c, high: $h, medium: $m,
       score: ([0, (100 - 10*$c - 3*$h - $m)] | max),
       categories: ($issues | group_by(.category) | map({key: .[0].category, value: length}) | from_entries),

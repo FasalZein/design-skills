@@ -4,3 +4,6 @@
 .services-section {
   border-block-start: 1px solid var(--border);
 }
+.rem-stripe { border-inline-start: .25rem solid var(--accent); }
+.longhand { border-left-width: 4px; border-left-color: red; border-left-style: solid; }
+.shadow-stripe { box-shadow: inset 3px 0 0 var(--accent); }

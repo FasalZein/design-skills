@@ -73,6 +73,10 @@ probe SIDE_STRIPE     Bad2.tsx    # tailwind border-l-4 + border-amber-500
 probe SECTION_BORDER  bad.css     # section { border-top }
 probe SECTION_BORDER  bad2.html   # <section class="border-t">
 probe NAMED_COLOR     bad.html    # bg-purple-500
+probe NAMED_COLOR     Bad2.tsx    # hover:/md:/dark:/data-[]: variants
+probe SIDE_STRIPE     bad.scss    # border-inline-start + .25rem + longhand + inset shadow
+probe SIDE_STRIPE     Bad2.tsx    # style={{borderLeft}}
+probe SECTION_BORDER  bad.scss    # .services-section border-block-start
 probe ARBITRARY_VALUE bad.html    # w-[5px]
 probe ARBITRARY_VALUE Bad2.tsx    # text-[1.125rem], w-[50px]
 probe LAYOUT_ANIM     Bad2.tsx    # transition-[height]
@@ -142,6 +146,20 @@ OUT=$(env PATH="$BIN" bash "$SCAN" "$D" --json 2>/dev/null); RC=$?
 { [ "$RC" -eq 2 ] && printf '%s' "$OUT" | jq -e '.status=="error"' >/dev/null 2>&1; } \
   && ok || ko "jq-missing --json error output (exit $RC, stdout: ${OUT:-empty})"
 rm -rf "$D" "$BIN"
+
+# --- severity contract: SIDE_STRIPE critical, SECTION_BORDER high ---
+SEV=$(printf '%s' "$J" | jq -r '[.issues[] | select(.category=="SIDE_STRIPE") | .severity] | unique | join(",")')
+[ "$SEV" = "critical" ] && ok || ko "SIDE_STRIPE severity is '$SEV' (want critical)"
+SEV=$(printf '%s' "$J" | jq -r '[.issues[] | select(.category=="SECTION_BORDER") | .severity] | unique | join(",")')
+[ "$SEV" = "high" ] && ok || ko "SECTION_BORDER severity is '$SEV' (want high)"
+CO=$(bash "$SCAN" "$FIX/violations" --json --critical-only 2>/dev/null | jq -r '(.categories // {}) | keys | join(",")')
+case "$CO" in *SIDE_STRIPE*) ok ;; *) ko "--critical-only lost SIDE_STRIPE" ;; esac
+case "$CO" in *SECTION_BORDER*) ko "--critical-only includes high-severity SECTION_BORDER" ;; *) ok ;; esac
+
+# --- machine-readable support + error schema ---
+printf '%s' "$J" | jq -e '.support.structural | test("TSX-only")' >/dev/null 2>&1 && ok || ko "support.structural stale"
+ERR=$(bash "$SCAN" /nonexistent-dir-xyz --json 2>/dev/null)
+printf '%s' "$ERR" | jq -e '.status=="error" and (.errors|type=="array")' >/dev/null 2>&1 && ok || ko "error JSON shape (.errors must be array)"
 
 # --- critical-only gates only criticals ---
 ONLY=$(mktemp -d); printf '.x { transition: all 1s; }\n' > "$ONLY/style.css"
