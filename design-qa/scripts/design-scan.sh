@@ -6,6 +6,9 @@ set -u
 
 JSON=0; CRITICAL_ONLY=0; ALLOW_EMPTY=0; ALLOWLIST=""; TARGET=""
 
+# Pre-scan for --json so die() can emit JSON regardless of argument order
+for _a in "$@"; do [ "$_a" = "--json" ] && JSON=1 && break; done
+
 die() {
   if [ "$JSON" -eq 1 ]; then
     if command -v jq >/dev/null 2>&1; then
@@ -21,7 +24,7 @@ die() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --json) JSON=1 ;;
+    --json) ;; # already set in pre-scan
     --critical-only) CRITICAL_ONLY=1 ;;
     --allow-empty) ALLOW_EMPTY=1 ;;
     --allowlist=*) ALLOWLIST="${1#--allowlist=}" ;;
@@ -37,6 +40,12 @@ command -v rg >/dev/null 2>&1 || die "ripgrep (rg) is required"
 command -v jq >/dev/null 2>&1 || die "jq is required"
 [ -n "$TARGET" ] || die "no target directory given"
 [ -e "$TARGET" ] || die "target does not exist: $TARGET"
+# Single-file target: scan the parent directory filtered to just that file
+if [ -f "$TARGET" ]; then
+  SINGLE_FILE=$(basename "$TARGET")
+  TARGET=$(cd "$(dirname "$TARGET")" && pwd)
+  GLOBS=(-g "$SINGLE_FILE")
+fi
 
 GLOBS=(-g '*.tsx' -g '*.jsx' -g '*.ts' -g '*.js' -g '*.css' -g '*.scss' -g '*.html' -g '*.vue' -g '*.svelte' -g '*.astro' -g '*.mdx'
        -g '!node_modules' -g '!dist' -g '!build' -g '!.next')

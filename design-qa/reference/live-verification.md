@@ -112,8 +112,8 @@ Rendered contrast — normalizes ANY color syntax (oklch/hsl/named) by drawing i
         const r = ratio(c, bg);
         if (r < floor) fails.push({t:text.slice(0,30), r:+r.toFixed(2), need:floor}); }
     }
-    // non-text: form-control borders need 3:1 against the surrounding surface
-    if (e.matches('input,select,textarea') && parseFloat(st.borderTopWidth) > 0 && st.borderTopStyle !== 'none') {
+    // non-text: control borders need 3:1 against the surrounding surface
+    if (e.matches('input,select,textarea,button,[role=button]') && parseFloat(st.borderTopWidth) > 0 && st.borderTopStyle !== 'none' && !/rgba\(0, 0, 0, 0\)|transparent/.test(st.borderTopColor)) {
       const bc = parse(st.borderTopColor), bg = bgOf(e.parentElement || e);
       if (bc) { const r = ratio(over(bc, bg), bg);
         if (r < 3) fails.push({t:'border:' + (e.name || e.type || e.tagName), r:+r.toFixed(2), need:3}); }
