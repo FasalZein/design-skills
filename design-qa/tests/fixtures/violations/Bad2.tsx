@@ -10,3 +10,4 @@ export function Bad2() {
     </section>
   );
 }
+export const Stripe = () => <div className="border-l-4 border-amber-500 bg-amber-50">striped card</div>;

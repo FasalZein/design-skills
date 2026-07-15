@@ -17,7 +17,8 @@ Constraints + Consistency + Restraint = Quality. LLMs converge on the statistica
 | Purple/violet/indigo→pink/fuchsia gradients, gradient text, blurred gradient orbs | One flat committed surface, real media, or a tonal treatment derived from your own scale |
 | Decorative glass/glow/blur on static surfaces | Named elevation (tint + shadow); glass only on overlays with a readable fallback |
 | Centered hero + identical card grid; 3-4 equal big-number metric cards | A content-driven composition: asymmetric anchor + supporting cells, or one prominent metric with context — [reference/composition.md](reference/composition.md) |
-| Fake proof: "Trusted by 10,000+", logo marquees, "John Doe"/"Acme Corp", round metrics (99.99%), fake terminal/mac-window chrome | Real customers, real numbers, the real product — or omit the section entirely |
+| Fake proof: "Trusted by 10,000+", logo marquees, "John Doe"/"Acme Corp", round metrics (99.99%), fake terminal/browser/mac-window chrome (traffic-light dots on mockups included) | Real customers, real numbers, the real product surface without a fake window around it — or omit the section entirely |
+| Colored left-border stripes on cards, callouts, event/schedule items, alerts | Tinted surface OR a leading dot/chip/time column — one cue, never stripe + tint. Category color lives in a filled dot or label, not an edge bar (`blockquote` prose quotes exempt) |
 | Unmodified component-library defaults (verbatim shadcn variant strings, default radii/tokens, Inter-by-reflex) | Customize tokens, radius, and type to this product before composing pages |
 | Dead controls: `href="#"`, empty onClick, toggles that don't persist | Wire the real behavior or remove the control — a dead affordance is a broken promise |
 | Attention-begging motion: pulse/ping on CTAs or pricing, identical fade-in-up on every section | Motion communicates feedback, state, or spatial relationship, bounded to its role — [reference/motion.md](reference/motion.md) |
@@ -25,7 +26,7 @@ Constraints + Consistency + Restraint = Quality. LLMs converge on the statistica
 
 **The intent-and-repetition lens** — for every context-sensitive treatment (warm neutrals, texture, illustration, large radii, uppercase micro-labels, sparklines, dark sections): the treatment must communicate state, hierarchy, focus, information, or brand meaning, and be bounded to a named role. One brand kicker is voice; an eyebrow above every section is scaffolding. A skeleton pulse is feedback; a pricing pulse is begging. A coherent warm neutral scale is a palette; a `--cream` token by reflex is the median. Token names are never the failure — unbounded repetition without purpose is.
 
-**Combination tells** — individually forgivable, failing in combination (2+ together): eyebrow kickers on multiple sections, numbered section markers outside a real sequence, radius ≥24px outside a declared soft/playful direction, cards nested in cards, icon-heading-line cells repeated identically, side-stripe borders as accents, different background color per section.
+**Combination tells** — individually forgivable, failing in combination (2+ together): eyebrow kickers on multiple sections, numbered section markers outside a real sequence, radius ≥24px outside a declared soft/playful direction, cards nested in cards, icon-heading-line cells repeated identically, different background color per section.
 
 ---
 

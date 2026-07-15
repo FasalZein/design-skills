@@ -54,12 +54,13 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Stack is customized | shadcn/Tailwind tokens, radii, and variants customized to the product — `whitespace-nowrap` on buttons is required, the rest of a verbatim default variant string is the tell |
 | No template copy | Zero: Effortlessly, Streamline, Revolutionize, Unlock, AI-powered (non-AI product), "It's not just X, it's Y", "Welcome to our platform", "Built with ❤️" — in rendered copy; identifiers don't count |
 | Motion earns its place | Pulse/ping only as skeleton feedback or accessible live-status; reveals differ by content, not one fade-in-up everywhere |
+| No side-stripe accents (auto) | Zero colored `border-left` bars on cards/callouts/items — tint or dot instead, never stripe + tint; `blockquote` exempt |
 | Kickers are bounded | One brand kicker or micro-meta label passes; the same uppercase-tracked eyebrow repeated across 2+ sections fails; numbered markers only on real sequences |
 | Radius matches role | ≥24px on cards/sections/inputs fails outside a declared soft-organic/playful direction |
 | Warmth is a system | Warm neutrals pass as a coherent derived scale; a lone `--cream`/`--paper` body token fails |
 | Sparklines carry data | Real history + value + period + delta; decorative squiggles fail |
 | Illustration is owned | One consistent brand family in a named role; mixed stock/sketchy SVG fails |
-| Combination tells | 2+ together fail: nested cards, identical icon-heading cells, side-stripe accents, ghost-cards (1px border + ≥16px-blur shadow), per-section background hues |
+| Combination tells | 2+ together fail: nested cards, identical icon-heading cells, ghost-cards (1px border + ≥16px-blur shadow), per-section background hues |
 
 ## Gate 2: Typography
 

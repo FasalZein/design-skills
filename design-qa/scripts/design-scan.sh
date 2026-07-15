@@ -105,6 +105,14 @@ run_check DIV_ONCLICK critical \
   -e '<(div|span)[^>]{0,300}\bonClick' -e '<(div|span)[^>]{0,300}\bonclick=' \
   -e '<(div|span)[^>]{0,300}@click' -e '<(div|span)[^>]{0,300}\bon:click'
 
+run_check SIDE_STRIPE critical \
+  "The signature LLM tell. Tinted surface OR a leading dot/chip - one cue; category color goes in a filled dot/label, never an edge bar." \
+  'blockquote' \
+  -e 'border-(left|inline-start):\s*[2-9]px\s+solid\s+(var\(|#|oklch\(|rgba?\(|hsla?\()' \
+  -e '\bborder-s-[2-9][^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent)' \
+  -e 'border-l-[0-9]+[^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)' \
+  -e 'border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)(-[0-9]+)?[^"'\''<>]{0,80}border-l-[0-9]'
+
 run_check TABINDEX_POSITIVE critical \
   "Fix DOM order instead; tabIndex > 0 breaks natural tab flow." "" \
   -e 'tabIndex=\{?[1-9]' -e 'tabindex="[1-9]'
