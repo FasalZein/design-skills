@@ -45,6 +45,8 @@ $AB eval "document.documentElement.classList.add('dark')"   # or the project's t
 $AB set media --reduced-motion reduce
 ```
 
+Verify the emulation took: `$AB eval "matchMedia('(prefers-reduced-motion: reduce)').matches"`. When it reports `false` (known agent-browser gap), inject the page's own `@media (prefers-reduced-motion: reduce)` rules directly via `eval` and verify their effect instead — note the substitution in the evidence.
+
 ## Machine probes (run via `$AB eval`)
 
 Horizontal overflow (at 375px):
@@ -106,7 +108,8 @@ Target size (at 375px) — two buckets: below 24px fails outright (WCAG floor); 
 
 ```js
 (() => { const els=[...document.querySelectorAll('button,a,[role=button],input,select,[onclick]')]
-    .map(e=>({e, r:e.getBoundingClientRect()})).filter(x=>x.r.width>0&&x.r.height>0);
+    .map(e=>({e, r:(e.closest('label')||e).getBoundingClientRect()}))   // wrapped inputs: the label is the hit target
+    .filter(x=>x.r.width>0&&x.r.height>0);
   const name = x => (x.e.textContent?.trim() || x.e.getAttribute('aria-label') || x.e.tagName).slice(0,20);
   return { fail: els.filter(x=>x.r.width<24||x.r.height<24).map(name),
            judge44: els.filter(x=>(x.r.width<44||x.r.height<44)&&x.r.width>=24&&x.r.height>=24).map(name) }; })()
