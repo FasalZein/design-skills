@@ -22,7 +22,7 @@ If `$PI_SKILL_DIR` is unset, resolve the script relative to this SKILL.md's dire
 
 **Dependencies:** `rg` and `jq` required in every mode. `ast-grep` optional (adds structural TSX/JSX/HTML checks).
 
-**Support tiers:** lexical checks cover `tsx jsx ts js css scss html vue svelte astro mdx`; structural checks cover only ast-grep-supported languages (TSX/JSX/HTML). Vue/Svelte/Astro/MDX get lexical coverage only.
+**Support tiers:** lexical checks cover `tsx jsx ts js css scss html vue svelte astro mdx`; structural checks are TSX-only (the shipped ast-grep rule set). Symlinked files are not followed.
 
 **Exit contract:**
 
@@ -66,7 +66,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Check | How to Verify |
 |-------|--------------|
 | Project type scale only | Zero arbitrary font sizes: `text-[*px]`, `text-[*rem]`, `font-size:` outside the scale |
-| Tracking follows the kernel | Values match the design-craft type kernel table (±0.005em render adjustment); zero `tracking-tighter`; zero positive tracking on body text |
+| Tracking within bounds | Display/heading tracking between `-0.03em` and `0`; uppercase micro-labels at most `+0.05em`; body text `0`; zero `tracking-tighter` |
 | Font is loadable | Chosen font has a real source and license; `@font-face`/import resolves; stack ends in a generic family |
 | Numeric data: tabular-nums | All numbers that align or update — prices, counts, dates, table columns |
 | Headings: text-balance | `<h1>`–`<h6>` use `text-balance` or `text-pretty` |
@@ -85,7 +85,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Status colors semantic | green=success, red=error, amber=warning, blue=info — never inverted, never the brand accent |
 | Color never sole indicator | Every status pairs with icon, text, or pattern |
 | Contrast floors (WCAG 2.x) | ≥4.5:1 body, ≥3:1 large text, ≥3:1 required non-text UI (input borders, meaningful icons, focus rings) — against the actual rendered background, placeholders included. APCA is advisory only, never the pass condition |
-| Max 2 accent colors | Count distinct accent/brand colors per view |
+| Accents match declared strategy | Restrained/Committed: ≤2 accent colors per view. Full-palette and categorical data-viz: every hue maps to a named role — unnamed extras fail |
 
 ## Gate 4: Spacing
 
@@ -189,7 +189,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 
 Static gates read source; this gate checks the **rendered page**.
 
-**Prerequisites:** a dev/preview command exists (or a URL is supplied) and `agent-browser` responds. Both present → the gate is mandatory. Neither obtainable → record `Gate 12: N-A — no renderable target: <reason>`. N-A is never a pass; a state that should exist but cannot be exposed is a failing state check.
+**Prerequisites:** a dev/preview command exists (or a URL is supplied) and `agent-browser` responds. Both present → the gate is mandatory. Either missing → record `Gate 12: N-A — <which prerequisite is missing and why>`. N-A is never a pass; a state that should exist but cannot be exposed is a failing state check.
 
 **Viewports:** 375×812 and 1440×900 always; 768×1024 when the layout has a tablet breakpoint.
 
@@ -197,7 +197,7 @@ Static gates read source; this gate checks the **rendered page**.
 
 **Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · reduced-motion emulation removes positional animation · no blank sections.
 
-**Screenshot review (judgment):** overlap, hierarchy, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against the design-craft guardrails.
+**Screenshot review (judgment):** overlap, hierarchy, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against Gate 1.
 
 Exact commands, probe JavaScript, and evidence schema: **READ [reference/live-verification.md](reference/live-verification.md)** before running this gate.
 

@@ -12,24 +12,29 @@ agent-browser skills get core        # load the CLI workflow reference
 
 Run each Gate 12 session fresh — stale tabs carry console history that pollutes error capture.
 
-## Per-viewport loop
+## Per-cell loop (every required state × viewport)
+
+Responsive and state logic often runs once at load, so **set the viewport first and navigate fresh for every cell** — resizing an open page is not a valid mobile test. Collect all evidence per cell:
 
 ```bash
-agent-browser set viewport 1440 900        # before navigation
-agent-browser open "$URL"
+agent-browser set viewport 375 812          # BEFORE navigation
+agent-browser open "$URL"                   # fresh navigation for this cell
 agent-browser errors                        # must print nothing
-agent-browser console                       # zero errors/warnings that matter
+agent-browser console                       # zero errors; warnings judged
 agent-browser snapshot -i                   # accessibility tree: headings, roles, names
-agent-browser screenshot gate12-1440-loaded.png
-agent-browser set viewport 375 812
-agent-browser screenshot gate12-375-loaded.png
+agent-browser screenshot "$EVIDENCE_DIR/<app>-<state>-375.png"
+# then run every probe below in this same cell
 ```
 
-Repeat `set viewport 768 1024` when the layout has a tablet breakpoint.
+Repeat with `set viewport 1440 900` (and `768 1024` when a tablet breakpoint exists). Failed asset/API requests:
+
+```js
+performance.getEntriesByType('resource').filter(r => r.responseStatus >= 400 || (r.responseStatus === 0 && r.duration > 0)).map(r => r.name)
+```
 
 ## State setup
 
-Drive each required state through the app itself (navigate, filter to zero results, submit invalid input, throttle/block the API for error states) or project fixtures. Record how each state was produced — that's the repro step for any finding. A state that should exist but cannot be exposed = failing state check (SKILL.md rule).
+Drive each required state through the app itself (navigate, filter to zero results, submit invalid input, block the API for error states) or project fixtures. Record how each state was produced — that's the repro step for any finding. A state that should exist but cannot be exposed = failing state check (SKILL.md rule).
 
 Dark mode / reduced motion:
 
@@ -46,37 +51,71 @@ Horizontal overflow (at 375px):
 document.documentElement.scrollWidth <= window.innerWidth
 ```
 
-Heading order:
+Heading order — first heading is an h1, exactly one h1, no forward skips:
 
 ```js
 (() => { const hs=[...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map(h=>+h.tagName[1]);
-  const oneH1 = hs.filter(l=>l===1).length===1;
-  const noSkip = hs.every((l,i)=>i===0||l<=hs[i-1]+1);
-  return {oneH1, noSkip}; })()
+  return { startsAtH1: hs[0]===1, oneH1: hs.filter(l=>l===1).length===1,
+           noSkip: hs.every((l,i)=>i===0||l<=hs[i-1]+1) }; })()
 ```
 
-Rendered contrast (body text vs nearest opaque background; WCAG relative luminance):
+Rendered contrast — normalizes ANY color syntax (oklch/hsl/named) by drawing it to a 1×1 canvas and reading the pixel back (string parsing is unsafe: modern Chromium serializes `fillStyle` in the original color space). Composites alpha over the resolved background, walks up through transparent backgrounds, and applies the correct tier (3:1 for large text = ≥24px or ≥18.66px bold; 4.5:1 otherwise). Placeholders probed explicitly:
 
 ```js
-(() => { const lum = c => { const [r,g,b]=c.match(/\d+(\.\d+)?/g).map(Number).slice(0,3).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4}); return .2126*r+.7152*g+.0722*b };
-  const bg = el => { for(let n=el;n;n=n.parentElement){ const c=getComputedStyle(n).backgroundColor; if(c&&!c.includes('0, 0, 0, 0')&&c!=='transparent') return c } return 'rgb(255,255,255)' };
-  return [...document.querySelectorAll('p,li,td,span,label')].filter(e=>e.innerText?.trim()&&e.offsetHeight).slice(0,80).map(e=>{const c=getComputedStyle(e).color,b=bg(e);const L1=lum(c),L2=lum(b);const r=(Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05);return {t:e.innerText.slice(0,30),r:+r.toFixed(2)}}).filter(x=>x.r<4.5); })()
+(() => {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  const parse = v => { if (!v) return null;
+    ctx.fillStyle = '#123456'; ctx.fillStyle = v;
+    if (ctx.fillStyle === '#123456' && v.replace(/\s/g,'').toLowerCase() !== '#123456') return null;
+    ctx.clearRect(0,0,1,1); ctx.fillRect(0,0,1,1);
+    const d = ctx.getImageData(0,0,1,1).data; return [d[0], d[1], d[2], d[3]/255]; };
+  const lum = ([r,g,b]) => { const f = v => { v/=255; return v<=.03928 ? v/12.92 : ((v+.055)/1.055)**2.4 };
+    return .2126*f(r)+.7152*f(g)+.0722*f(b); };
+  const comp = (fg, bg) => fg[3] >= 1 ? fg : [0,1,2].map(i => fg[i]*fg[3] + bg[i]*(1-fg[3])).concat([1]);
+  const bgOf = el => { let acc = null;
+    for (let n = el; n; n = n.parentElement) {
+      const c = parse(getComputedStyle(n).backgroundColor); if (!c) continue;
+      if (c[3] === 0) continue;
+      if (acc) return comp(acc, c);            // partial overlay composited over this layer
+      if (c[3] >= 1) return c; acc = c;
+    } return acc ? comp(acc, [255,255,255,1]) : [255,255,255,1]; };
+  const fails = [];
+  for (const e of document.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li,td,th,span,label,a,button,dt,dd,figcaption,input,textarea')) {
+    const text = e.matches('input,textarea') ? e.placeholder : (e.childNodes.length && [...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()) ? e.textContent : '');
+    if (!text?.trim() || !e.offsetHeight) continue;
+    const st = getComputedStyle(e);
+    const fg = parse(e.matches('input,textarea') ? (getComputedStyle(e,'::placeholder').color || st.color) : st.color);
+    if (!fg) { fails.push({t:text.slice(0,30), r:'MANUAL — unparseable color'}); continue; }
+    const bg = bgOf(e); const c = comp(fg, bg);
+    const L1 = lum(c), L2 = lum(bg);
+    const r = (Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05);
+    const px = parseFloat(st.fontSize), bold = parseInt(st.fontWeight) >= 700;
+    const floor = (px >= 24 || (px >= 18.66 && bold)) ? 3 : 4.5;
+    if (r < floor) fails.push({t:text.slice(0,30), r:+r.toFixed(2), need:floor});
+  }
+  return fails.slice(0,40);
+})()
 ```
 
-Empty array = pass. Semi-transparent layered backgrounds can fool this probe — confirm those hits in the screenshot before reporting.
+Empty array = pass. Any `MANUAL` row means the probe could not measure — check that element in the screenshot, never assume it passed. Text over images/gradients is outside this probe — judge it in screenshot review.
 
-Target size (at 375px):
+Target size (at 375px) — two buckets: below 24px fails outright (WCAG floor); interactive controls 24–43px are listed for the 44px product-target judgment in screenshot review:
 
 ```js
-[...document.querySelectorAll('button,a,[role=button],input,select')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.width<24||r.height<24)}).map(e=>e.textContent?.slice(0,20)||e.ariaLabel)
+(() => { const els=[...document.querySelectorAll('button,a,[role=button],input,select,[onclick]')]
+    .map(e=>({e, r:e.getBoundingClientRect()})).filter(x=>x.r.width>0&&x.r.height>0);
+  const name = x => (x.e.textContent?.trim() || x.e.getAttribute('aria-label') || x.e.tagName).slice(0,20);
+  return { fail: els.filter(x=>x.r.width<24||x.r.height<24).map(name),
+           judge44: els.filter(x=>(x.r.width<44||x.r.height<44)&&x.r.width>=24&&x.r.height>=24).map(name) }; })()
 ```
 
-Flags below the 24px WCAG floor; judge 24–44px primary controls against the 44px product target in review.
+`fail` non-empty = probe failure. Every primary control appearing in `judge44` fails the review unless it is a genuinely secondary/inline control.
 
-Focus visibility: `agent-browser` key-tab through the page (or `eval` a focus walk) and screenshot mid-cycle — every stop shows a visible ring.
+Focus visibility: `agent-browser` key-tab through the page and screenshot mid-cycle — every stop shows a visible ring.
 
 Layout shift: screenshot immediately after load and again after network idle; differing layouts = unreserved async space.
 
 ## Evidence
 
-Per state × viewport, record: state name, how it was produced, viewport, screenshot path, errors/console output, probe results. Findings carry: gate check, severity, screenshot path, repro steps. Keep artifacts under one directory per run (`design-qa-live/<app>-<viewport>-<state>.png`).
+Per cell (state × viewport), record: state name, how it was produced, viewport, screenshot path, errors/console/failed-request output, every probe result. Findings carry: gate check, severity, screenshot path, repro steps. Keep artifacts under one directory per run (`design-qa-live/<app>-<state>-<viewport>.png`).

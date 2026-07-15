@@ -8,8 +8,6 @@ globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.html", "**/*.cs
 
 Constraints + Consistency + Restraint = Quality. LLMs converge on the statistical median of every Tailwind tutorial and template — generic, safe, forgettable. This skill provides the decisions a strong designer would make, pre-made: executable kernels for type, color, spacing, and interaction, plus branch recipes for everything else.
 
-> "If you showed this to someone and said 'AI made this,' would they believe you immediately? If yes, that's the problem."
-
 ---
 
 ## Hard Guardrails
@@ -51,9 +49,9 @@ State these decisions explicitly in your reasoning:
 
 1. **Structural archetype:** app shell (sidebar + content) · marketing page (sections + CTA) · focused tool (centered workspace) · dashboard (data-dense grid) · editorial (long-form reading)
 2. **Visual density:** sparse · balanced · dense
-3. **Aesthetic direction** — a specific adjective pair matched to the product, not "modern" or "clean": stark technical, bold expressive, soft organic, restrained editorial, luxury refined, playful toy-like, retro-futuristic, industrial utilitarian. Never default to the same direction twice in a row.
+3. **Aesthetic direction** — a specific adjective pair matched to the product, not "modern" or "clean": stark technical, bold expressive, soft organic, restrained editorial, luxury refined, playful toy-like, retro-futuristic, industrial utilitarian.
 4. **Initial mode from the physical scene** — write one sentence: who uses this, where, under what light, in what mood. That sentence picks light or dark. Design the chosen mode first; derive the other via semantic token remapping, never as a separate design.
-5. **Typeface** — from the font menu below, matched to the aesthetic; verify the font's source and availability before committing.
+5. **Typeface** — from the font menu below, matched to the aesthetic (availability rule in the type kernel).
 6. **Color strategy** — BROWNFIELD: list existing tokens. GREENFIELD: run the color kernel below.
 7. **Composition** — hero architecture from the menu below (marketing) or shell recipe from [reference/composition.md](reference/composition.md) (apps, dashboards, settings, detail pages).
 8. **The unforgettable question:** "If someone saw 10 similar pages today, what would make them remember THIS one?" Name one concrete visual or structural choice.
@@ -89,7 +87,7 @@ Hero rules: spacing min `py-24 md:py-32`; headline sizes from the type kernel wi
 
 ## Type Kernel
 
-Five roles: **Display** (hero statements), **Heading** (section/page titles), **Body** (reading text), **Caption** (supporting meta), **Micro** (labels, badges). Fewer sizes with more contrast beat many close sizes.
+Five roles with default sizes — adjust deliberately per aesthetic, never by reflex: **Display** `clamp(2.5rem, 1.5rem + 4vw, 6rem)` (hero statements) · **Heading** `1.5–2.25rem` (section/page titles) · **Body** `1rem` (reading text) · **Caption** `0.875rem` (supporting meta) · **Micro** `0.75rem` (labels, badges). Fewer sizes with more contrast beat many close sizes — app UI rarely needs more than these five plus one intermediate heading step.
 
 | Rule | Value |
 |---|---|
@@ -120,16 +118,16 @@ Loading strategy, fallback metrics, variable fonts, CJK: [reference/typography.m
 
 ## Color Kernel
 
-**Strategy axis** — state before picking colors: **Restrained** (tinted neutrals + one accent ≤10%, default for tools/dashboards) · **Committed** (one saturated color carries 30–60%, marketing) · **Full palette** (3-4 named roles, campaigns/data viz) · **Drenched** (the surface IS the color, heroes). "Restrained by reflex" is the same failure as "Inter by reflex."
+**Strategy axis** — state before picking colors: **Restrained** (tinted neutrals + one accent ≤10%, default for tools/dashboards, chroma ×0.6) · **Committed** (one saturated color carries 30–60%, marketing, ×1.0) · **Full palette** (3-4 named roles, campaigns/data viz, ×1.2) · **Drenched** (the surface IS the color, heroes, ×1.4). The multiplier scales every stop's chroma; re-clamp against the gamut caps after scaling. "Restrained by reflex" is the same failure as "Inter by reflex."
 
 **GREENFIELD derivation (executable, in order):**
 
-1. **Hue from the product name:** `H = (first_letter_ordinal × 137 + second_letter_ordinal × 47) mod 360` (a=1…z=26). Never replace with a category stereotype. If the derived hue cannot meet contrast/gamut after capping, shift ±30° and re-derive.
-2. **12-stop lightness spine** at the derived hue: `L = 0.99, 0.96, 0.90, 0.82, 0.71, 0.64, 0.55, 0.49, 0.40, 0.32, 0.27, 0.24` (stops 50…950). Chroma follows a bell curve — near zero at both ends, peak ~0.10–0.14 at stops 400–600; cap C at `0.09` for hues 170–210° and ~`0.18` elsewhere (sRGB safety).
+1. **Hue from the product name:** `H = (first_letter_ordinal × 137 + second_letter_ordinal × 47) mod 360` (a=1…z=26; skip non-letters, and if fewer than two letters exist, reuse the first). Never replace with a category stereotype. If the derived hue cannot meet contrast/gamut after capping, shift ±30° and re-derive. A solid committed surface at the derived hue is always legal — the gradient guardrail bans gradient treatments, not hues.
+2. **12-stop lightness spine** at the derived hue: `L = 0.99, 0.96, 0.90, 0.82, 0.71, 0.64, 0.55, 0.49, 0.40, 0.32, 0.27, 0.24` (stops 50…950). Committed-strategy chroma per stop: `C = 0.02, 0.04, 0.06, 0.09, 0.11, 0.13, 0.13, 0.12, 0.10, 0.08, 0.06, 0.05` — scale by the strategy multiplier, then cap C at `0.09` for hues 170–210° and ~`0.18` elsewhere (sRGB safety).
 3. **Companion neutral scale** at `H+180°` (≥120° separation), C ≤ 0.02 — the tinted neutrals that replace dead white/gray. Never `#fff`/`#000` as surfaces; use stop-50/stop-100.
 4. **Map to semantic tokens:** `--background --foreground --card --primary --secondary --muted --accent --destructive --border --ring`. Components use ONLY semantic tokens — never `bg-blue-500`, never inline hex/rgb/oklch in markup. Opacity modifiers on tokens are allowed (`bg-primary/10`).
 5. **Contrast floors (WCAG 2.x conformance):** 4.5:1 normal text, 3:1 large text, 3:1 for required non-text UI (borders of inputs, icons carrying meaning, focus rings) — measured against the actual rendered background, placeholders included. Fix failures by moving L, not C. Every status conveys through a non-color cue too (icon, text, weight).
-6. **Dark mode is a remap:** invert the semantic lightness mapping onto tonal surfaces (lighter = closer), reduce chroma slightly, prefer surface tint over shadow, weight 350 only when the loaded font provides it. Swap the semantic layer, not components.
+6. **Dark mode is a remap:** invert the semantic lightness mapping onto tonal surfaces (lighter = closer), reduce chroma ~10–20%, prefer surface tint over shadow, weight 350 only when the loaded font provides it. Swap the semantic layer, not components.
 
 **Universal status colors** — success=green, error/destructive=red, warning=amber, info=blue. Users already know these; never invert, never use brand accent for status.
 
@@ -173,10 +171,11 @@ Density modes, block text rhythm, elevation ladder, shadows, safe areas, optical
 | Viewport | `h-dvh`, never `h-screen` (iOS Safari). |
 | Overflow | `min-w-0` on flex/grid children with text. `overflow: hidden` is banned as layout repair — fix the content or the container. |
 | Z-index | Fixed semantic scale (dropdown → sticky → backdrop → modal → toast → tooltip), never `z-[999]`. |
+| Overlays | Dropdowns/tooltips inside `overflow: hidden/auto` ancestors get clipped — use the Popover API, `position: fixed`, or a portal. |
 | Sizing contract | Declare per element: **Hug** (wraps content), **Fill** (`flex: 1`), or **Fixed** (sidebars, avatars). |
 | Grids | No empty cells: remainder 1 → last item spans the row; remainder 2 → both span half. `auto-fill` + `minmax(280px, 1fr)` for variable counts. |
 | Semantic HTML | `<button>` for actions, `<a>` for navigation — never `<div onClick>`. Icon-only controls get `aria-label`. |
-| Responsive | 2-tier default (mobile + desktop). Never hide core functionality on mobile. Test extremes: 100+ char strings, emoji, RTL, empty, 1000+ items. |
+| Responsive | 2-tier default (mobile + desktop). `@container` queries when the same component serves different-width regions. Never hide core functionality on mobile. Test extremes: 100+ char strings, emoji, RTL, empty, 1000+ items. |
 | Asymmetry | `grid-cols-[2fr_1fr]` beats equal columns; vary section density; whitespace is composition — consistent and framed, not accidental. |
 
 **Structural completeness:** an app shell has navigation context + full-height content (a form in a void is missing structure); a dashboard fills its grid; a detail page pairs primary content with supporting context. Complete recipes: [reference/composition.md](reference/composition.md).
@@ -218,7 +217,7 @@ Specific verb + object on buttons. One term per concept (Delete/Remove → pick 
 | Cramped | Uniform tight spacing | Increase section gaps, keep group spacing tight |
 | Empty despite content | Oversized gaps, thin type | Tighten item spacing, add weight to key elements |
 | Clips on real content | Fixed heights | `min-h` + `overflow-y-auto` on scroll regions |
-| Dark mode washed out | Same chroma/weight as light | Slightly desaturate, reduce weight where the font allows |
+| Dark mode washed out | Same chroma/weight as light | Reduce chroma ~10–20%, reduce weight where the font allows |
 | Numbers jump on update | Missing tabular-nums | `font-variant-numeric: tabular-nums` |
 | Sidebar fights content | Too bright, equal weight | Dim shell 1–2 steps, inactive items to reduced opacity |
 
@@ -243,18 +242,3 @@ Re-read every line you wrote. Verify each item; fix failures before responding.
 7. **References honored** — name which reference files you read this session. If a mandatory trigger fired and its file went unread, read it now and re-verify the affected code.
 
 When the work claims done, run the `design-qa` gates (scanner + live render).
-
----
-
-## Reference Index
-
-| Area | File |
-|---|---|
-| Color depth | [reference/color.md](reference/color.md) — gamut mapping, P3, warm neutrals, APCA, dark mode |
-| Typography depth | [reference/typography.md](reference/typography.md) — loading, fallback metrics, variable fonts, CJK |
-| Spacing depth | [reference/spacing.md](reference/spacing.md) — density, rhythm, elevation, radius, safe areas |
-| Composition | [reference/composition.md](reference/composition.md) — shells, sidebars, gutters, lockups, settings, features, pricing, proof, footers |
-| Product states | [reference/product-states.md](reference/product-states.md) — loading tiers, empty/error copy, validation, destructive, optimistic |
-| Motion | [reference/motion.md](reference/motion.md) — durations, easing, choreography, reduced motion |
-| Data-dense UI | [reference/data-dense.md](reference/data-dense.md) — tables, KPIs, chart selection, chart accessibility |
-| Visual assets | [reference/visual-assets.md](reference/visual-assets.md) — icons, imagery, illustration, emoji |

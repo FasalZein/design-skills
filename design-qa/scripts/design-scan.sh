@@ -7,8 +7,13 @@ set -u
 JSON=0; CRITICAL_ONLY=0; ALLOW_EMPTY=0; ALLOWLIST=""; TARGET=""
 
 die() {
-  if [ "$JSON" -eq 1 ] && command -v jq >/dev/null 2>&1; then
-    jq -n --arg e "$1" '{status:"error",errors:[$e]}'
+  if [ "$JSON" -eq 1 ]; then
+    if command -v jq >/dev/null 2>&1; then
+      jq -n --arg e "$1" '{status:"error",errors:[$e]}'
+    else
+      msg=${1//\\/\\\\}; msg=${msg//\"/\\\"}
+      printf '{"status":"error","errors":["%s"]}\n' "$msg"
+    fi
   fi
   echo "design-scan error: $1" >&2
   exit 2
@@ -36,58 +41,69 @@ command -v jq >/dev/null 2>&1 || die "jq is required"
 GLOBS=(-g '*.tsx' -g '*.jsx' -g '*.ts' -g '*.js' -g '*.css' -g '*.scss' -g '*.html' -g '*.vue' -g '*.svelte' -g '*.astro' -g '*.mdx'
        -g '!node_modules' -g '!dist' -g '!build' -g '!.next')
 
-FILES_LIST=$(rg --files "${GLOBS[@]}" "$TARGET" 2>/dev/null); RC=$?
+TMP=$(mktemp -d) || die "mktemp failed"
+trap 'rm -rf "$TMP"' EXIT
+
+# NUL-delimited count via temp file: bash $() strips NUL bytes, and newline-delimited
+# counting miscounts newline-containing filenames. Symlinks are not followed (policy).
+rg --files -0 "${GLOBS[@]}" "$TARGET" > "$TMP/files0" 2>/dev/null; RC=$?
 [ "$RC" -ge 2 ] && die "rg --files failed (exit $RC)"
-SCANNED=$(printf '%s' "$FILES_LIST" | grep -c . || true)
+SCANNED=$(tr -cd '\0' < "$TMP/files0" | wc -c | tr -d ' ')
 if [ "$SCANNED" -eq 0 ] && [ "$ALLOW_EMPTY" -eq 0 ]; then
   die "no supported files under $TARGET (use --allow-empty to accept)"
 fi
-
-TMP=$(mktemp -d) || die "mktemp failed"
-trap 'rm -rf "$TMP"' EXIT
 FINDINGS="$TMP/findings.jsonl"; : > "$FINDINGS"
 
 # run_check CATEGORY SEVERITY FIX EXCLUDE_RE [rg-args...]
 run_check() {
   local cat="$1" sev="$2" fix="$3" excl="$4"; shift 4
   local out rc
-  out=$(rg --json "${GLOBS[@]}" "$@" "$TARGET" 2>"$TMP/rg.err"); rc=$?
+  out=$(rg --json -a "${GLOBS[@]}" "$@" "$TARGET" 2>"$TMP/rg.err"); rc=$?
   if [ "$rc" -ge 2 ]; then die "check $cat failed: $(head -1 "$TMP/rg.err")"; fi
   [ "$rc" -eq 1 ] && return 0
+  # Literal (non-regex) prefix strip: target paths may contain regex metacharacters like [slug].
   printf '%s' "$out" | jq -c --arg cat "$cat" --arg sev "$sev" --arg fix "$fix" --arg excl "$excl" --arg tgt "$TARGET" '
     select(.type=="match")
     | {category:$cat, severity:$sev, fix:$fix,
-       file:(.data.path.text | sub("^" + $tgt + "/?"; "")),
+       file:(.data.path.text | if startswith($tgt) then .[($tgt|length):] | ltrimstr("/") else . end),
        line:.data.line_number,
        content:(.data.lines.text | gsub("[\\n\\t]";" ") | .[0:200] | sub("^\\s+";""))}
     | select(($excl == "") or ((.content | test($excl)) | not))
-  ' >> "$FINDINGS" || die "jq normalization failed for $cat"
+  ' >> "$FINDINGS" 2>"$TMP/jq.err" || die "jq normalization failed for $cat"
+  [ -s "$TMP/jq.err" ] && die "jq normalization error for $cat: $(head -1 "$TMP/jq.err")"
+  return 0
 }
 
 # ---- Critical: Gate 1 hard guardrails + accessibility blockers (mechanical subset) ----
+# Multiline gaps use [^"'<>] so a match never crosses an attribute or element boundary
+# (from-purple on one element + to-pink on another is NOT one gradient).
 run_check SLOP_GRADIENT critical \
   "The AI gradient family. One flat committed surface, real media, or a tonal treatment from your own scale." "" \
-  -U --multiline-dotall \
-  -e 'from-(purple|violet|indigo)-[0-9]+.{0,160}?to-(pink|fuchsia|rose)-[0-9]+' \
-  -e 'from-(slate|zinc|neutral|gray)-[89]00.{0,160}?to-(slate|zinc|neutral|gray)-[89]00'
+  -U \
+  -e 'from-(purple|violet|indigo)-[0-9]+[^"'\''<>]{0,160}to-(pink|fuchsia|rose|blue|cyan)-[0-9]+' \
+  -e 'from-(slate|zinc|neutral|gray)-[89]00[^"'\''<>]{0,160}to-(slate|zinc|neutral|gray)-[89]00'
 
 run_check GRADIENT_TEXT critical \
   "Solid color; emphasis via weight/size." "" \
-  -e 'bg-clip-text[^\"]*text-transparent' -e 'text-transparent[^\"]*bg-clip-text'
+  -U \
+  -e 'bg-clip-text[^"'\''<>]{0,160}text-transparent' -e 'text-transparent[^"'\''<>]{0,160}bg-clip-text'
 
 run_check GRADIENT_ORB critical \
   "Remove decorative blurred gradient blobs; use neutral surface variation for depth." "" \
-  -U --multiline-dotall \
-  -e 'blur-(2xl|3xl).{0,160}?(bg-gradient-to|from-[a-z]+-[0-9]{3})' \
-  -e '(bg-gradient-to|from-[a-z]+-[0-9]{3})[^<]{0,160}?blur-(2xl|3xl)'
+  -U \
+  -e 'blur-(2xl|3xl)[^"'\''<>]{0,160}(bg-gradient-to|from-[a-z]+-[0-9]{3})' \
+  -e '(bg-gradient-to|from-[a-z]+-[0-9]{3})[^"'\''<>]{0,160}blur-(2xl|3xl)'
 
 run_check DEAD_CONTROL critical \
   "Wire a real handler/destination or remove the control." "" \
-  -e 'href="#"' -e "href='#'" -e 'javascript:void'
+  -e 'href="#?"' -e "href='#?'" -e 'javascript:void' \
+  -e 'on[A-Z][a-zA-Z]*=\{\s*\(\s*\)\s*=>\s*\{\s*\}\s*\}'
 
 run_check DIV_ONCLICK critical \
   "Use <button> for actions, <a> for navigation." "" \
-  -e '<(div|span)[^>]*\bonClick' -e '<(div|span)[^>]*\bonclick=' -e '<(div|span)[^>]*@click' -e '<(div|span)[^>]*\bon:click'
+  -U \
+  -e '<(div|span)[^>]{0,300}\bonClick' -e '<(div|span)[^>]{0,300}\bonclick=' \
+  -e '<(div|span)[^>]{0,300}@click' -e '<(div|span)[^>]{0,300}\bon:click'
 
 run_check TABINDEX_POSITIVE critical \
   "Fix DOM order instead; tabIndex > 0 breaks natural tab flow." "" \
@@ -95,11 +111,11 @@ run_check TABINDEX_POSITIVE critical \
 
 run_check ZOOM_DISABLED critical \
   "Never disable zoom; fix mobile input font-size (>=16px) instead." "" \
-  -e 'user-scalable\s*=\s*no' -e 'maximum-scale\s*=\s*1(\.0*)?[",]'
+  -e 'user-scalable\s*=\s*no' -e 'maximum-scale\s*=\s*1(\.0*)?(["'\'',> ]|$)'
 
 run_check PASTE_BLOCKED critical \
   "Never block paste in inputs." "" \
-  -e 'onPaste=\{[^}]{0,60}preventDefault' -e "addEventListener\\(['\"]paste['\"][^)]{0,80}preventDefault"
+  -e 'onPaste=\{[^}]{0,60}preventDefault' -e "addEventListener\\(['\"]paste['\"].{0,80}preventDefault"
 
 # ---- High: system violations ----
 run_check H_SCREEN high \
@@ -108,34 +124,32 @@ run_check H_SCREEN high \
 
 run_check HARDCODED_COLOR high \
   "Move to a semantic token in :root; components use var(--token) / token classes only." \
-  '^--|^\s*--[a-zA-Z0-9-]+\s*:|var\(--' \
+  '--[a-zA-Z0-9-]+\s*:\s*[^;}]*(#[0-9a-fA-F]|rgba?\(|hsla?\(|oklch\()' \
   -e '\b(bg|text|border|from|to|via|fill|stroke|ring|shadow|outline)-\[(#|rgb|hsl|oklch)' \
   -e '(color|background(-color)?|border(-color)?|fill|stroke|box-shadow|outline)\s*:\s*[^;]*(#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|oklch\()'
 
 run_check ARBITRARY_VALUE high \
   "Use the spacing/type scale (4px grid); arbitrary px values break the system." "" \
   -e '\b[pm][trblxy]?-\[[0-9]' -e '\bgap-\[[0-9]' -e '\bspace-[xy]-\[[0-9]' \
-  -e '\btext-\[[0-9]+(px|rem)' -e '\b[wh]-\[[0-9]{3,}px' -e '\bz-\[[0-9]{3}'
+  -e '\btext-\[[0-9]+(\.[0-9]+)?(px|rem)' -e '\b[wh]-\[[0-9]{2,}(\.[0-9]+)?px' -e '\bz-\[[0-9]{3}'
 
 run_check TRACKING_TIGHTER high \
-  "Tracking floor is -0.03em (type kernel): >=48px -0.02em, 30-47px -0.01em, below 0." "" \
-  -e '\btracking-tighter\b' -e 'letter-spacing:\s*-0\.0(3[1-9]|[4-9])'
+  "Tracking floor is -0.03em; below 30px use 0. Exact ladder: design-craft type kernel." "" \
+  -e '\btracking-tighter\b' -e 'letter-spacing:\s*-(0\.0(3[1-9]|[4-9])|0\.[1-9]|[1-9])'
 
 run_check LAYOUT_ANIM high \
   "Animate opacity/transform only; layout properties jank. Use FLIP or grid-rows for size changes." "" \
-  -e 'transition(-property)?\s*:\s*[^;]*\b(width|height|top|left|margin|padding)\b'
+  -e 'transition(-property)?\s*:\s*[^;]*\b(width|height|top|left|margin|padding)\b' \
+  -e '\btransition-\[(width|height|top|left|margin|padding)'
 
 # ---- Medium: polish ----
 run_check TRANSITION_ALL medium \
   "Specify exact properties: transition-colors / transition-transform / transition-opacity." "" \
   -e '\btransition-all\b' -e 'transition:\s*all\b'
 
-run_check WILL_CHANGE medium \
-  "Scope will-change to the animation lifecycle; never permanent, never 'all'." "" \
-  -e 'will-change\s*:' -e '\bwill-change-\[?'
-
 run_check CONSOLE_LOG medium \
-  "Remove or gate behind a dev-environment check." "" \
+  "Remove or gate behind a dev-environment check." \
+  'import\.meta\.env|process\.env|NODE_ENV' \
   -e 'console\.(log|warn)\('
 
 # ---- Optional structural checks (ast-grep) ----
@@ -144,13 +158,18 @@ for c in ast-grep sg; do
   if command -v "$c" >/dev/null 2>&1 && "$c" --version 2>/dev/null | grep -qi 'ast-grep'; then SG_BIN="$c"; break; fi
 done
 if [ -n "$SG_BIN" ] && [ -d "$(dirname "$0")/../rules" ]; then
-  SG_OUT=$("$SG_BIN" scan --config "$(dirname "$0")/../sgconfig.yml" --json "$TARGET" 2>/dev/null) || SG_OUT="[]"
+  SG_OUT=$("$SG_BIN" scan --config "$(dirname "$0")/../sgconfig.yml" --json "$TARGET" 2>"$TMP/sg.err") \
+    || die "ast-grep scan failed: $(head -1 "$TMP/sg.err")"
+  # Structural rules map onto the same canonical categories as their lexical peers so dedup merges them.
   printf '%s' "$SG_OUT" | jq -c --arg tgt "$TARGET" '
-    .[]? | {category:("SG_" + (.ruleId | ascii_upcase | gsub("-";"_"))), severity:"high",
-      fix:(.message // "structural rule"), file:(.file | sub("^" + $tgt + "/?"; "")),
+    .[]? | {category:(if .ruleId == "div-with-onclick" then "DIV_ONCLICK"
+                      else ("SG_" + (.ruleId | ascii_upcase | gsub("-";"_"))) end),
+      severity:"critical",
+      fix:(.message // "structural rule"),
+      file:(.file | if startswith($tgt) then .[($tgt|length):] | ltrimstr("/") else . end),
       line:((.range.start.line // 0) + 1),
       content:((.text // "") | gsub("[\\n\\t]";" ") | .[0:200])}
-  ' >> "$FINDINGS" 2>/dev/null || true
+  ' >> "$FINDINGS" || die "ast-grep output is not valid JSON"
 fi
 
 # ---- Dedup ----

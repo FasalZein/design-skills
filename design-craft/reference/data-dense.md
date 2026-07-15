@@ -7,7 +7,7 @@ Data UI answers questions. Every table, KPI, and chart earns its place by answer
 - `tabular-nums` on all numeric columns; numbers right-aligned; units/currencies inline ("$2.4M"), not in separate columns.
 - Every metric pairs with context: "Revenue: $2.4M (+12% MoM)" — never a bare number.
 - Conventional color coding: green = positive, red = negative, never inverted, always with a redundant cue (arrow, sign) for color-blind users.
-- Row height is a density decision: 24px extreme (monitoring walls only) · 32px compact · **40px default** · 48px comfortable · 64px multi-line/spacious. Offer a persisted density toggle only in genuinely data-heavy tools.
+- Row height is a density decision: 24px extreme (monitoring walls only) · 32px compact · **40px default** · 48px comfortable · 64px multi-line/spacious. Density-toggle rule: [spacing.md](spacing.md).
 - Row separation: subtle alternating backgrounds OR border-bottom — never both.
 - Truncate descriptions, never numbers or IDs.
 - When a table and a chart show the same data, coordinate them: hovering a row highlights the mark, and vice versa.

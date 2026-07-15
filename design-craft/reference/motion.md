@@ -45,7 +45,7 @@ Pick the simplest tool that handles the job. Never mix libraries for the same co
 500-800ms: Entrance animations (page load, hero)
 ```
 
-- Any user-initiated animation ≤300ms total. Interaction feedback <200ms.
+- Interaction feedback <200ms; state/content changes ≤300ms; overlay enter/exit (modals, drawers, panels) follows the component table below.
 - Similar UI elements use identical timing values — never 200ms and 250ms for two dropdowns.
 - Open durations longer than close durations. Exits ≈75% of entrance duration. Asymmetric timing: slow where the user is deciding, fast where the system responds.
 

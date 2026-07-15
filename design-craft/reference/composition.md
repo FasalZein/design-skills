@@ -25,7 +25,7 @@ States: inactive items at reduced opacity (60–70% text, 40–50% icons); hover
 
 Mobile: the sidebar becomes a drawer (overlay + focus trap) or bottom nav (3–5 items) — never a squeezed 200px column.
 
-**Complete when:** header/nav/footer all present; active state visible without color vision; collapsed rail keeps labels as tooltips/aria-labels; content column wins the squint test.
+**Complete when:** header/nav/footer all present; active state visible without color vision; collapsed rail keeps labels as tooltips/aria-labels; content column wins the squint test (blur your eyes — the primary element and the groupings must still read; used throughout this file).
 
 ## 2. Gutters & containers
 

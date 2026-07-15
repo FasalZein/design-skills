@@ -15,16 +15,7 @@ oklch(L C H)          oklch(L C H / alpha)
 
 ## Chroma strategy
 
-The spine's bell curve is the shape; the strategy scales its amplitude:
-
-| Strategy | Multiplier |
-|---|---|
-| Restrained | ×0.6 |
-| Committed | ×1.0 |
-| Full palette | ×1.2 |
-| Drenched | ×1.4 |
-
-Hue is held constant through the whole procedure — >10° drift across stops reads as a broken palette. After scaling, re-clamp every stop against the gamut (below): ×1.2–1.4 will exceed sRGB for many hues, and the clamp must win.
+The per-stop chroma values and strategy multipliers live in the kernel. Depth: hue is held constant through the whole procedure — >10° drift across stops reads as a broken palette. After scaling, re-clamp every stop against the gamut (below): ×1.2–1.4 will exceed sRGB for many hues, and the clamp must win.
 
 ## Companion scales
 
@@ -58,7 +49,7 @@ Conformance is the measured WCAG 2.x ratio (kernel floors: 4.5:1 / 3:1 / 3:1 non
 
 Derive, don't hand-pick: invert the semantic lightness mapping (neutral-950 → background, neutral-50 → foreground) rather than choosing an unrelated dark palette. Then:
 
-- Reduce chroma moderately (~10–20%) — saturated accents vibrate on dark. Verify the reduced accents still meet the floors; re-measure, don't assume.
+- Reduce chroma per the kernel (~10–20%) — saturated accents vibrate on dark. Verify the reduced accents still meet the floors; re-measure, don't assume.
 - Depth from lighter surfaces, not shadows — the elevation ladder inverts to tint.
 - Reduce font weight (350) only when the loaded font actually provides it — a synthesized 350 is worse than 400.
 - Never pure black background; never pure white text.

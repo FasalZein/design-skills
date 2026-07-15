@@ -152,11 +152,12 @@ Fixed and sticky elements on mobile must respect device insets:
 
 ## Image outlines
 
-1px inset outline creates consistent depth without affecting layout:
+1px inset outline creates consistent depth without affecting layout (token in `:root` — the no-inline-oklch rule applies to outlines too):
 
 ```css
-img { outline: 1px solid oklch(0 0 0 / 0.1); outline-offset: -1px; }
-.dark img { outline-color: oklch(1 0 0 / 0.1); }
+:root { --img-outline: oklch(0 0 0 / 0.1); }
+.dark  { --img-outline: oklch(1 0 0 / 0.1); }
+img { outline: 1px solid var(--img-outline); outline-offset: -1px; }
 ```
 
 Pure black/white only (`outline-black/10 dark:outline-white/10`) — a tinted neutral (slate/zinc) picks up the surface color and reads as dirt on the image edge. `outline` over `border` so the image keeps its intended size.

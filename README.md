@@ -58,19 +58,21 @@ Each skill is a self-contained `SKILL.md` (+ optional `reference/` folder). Drop
 Mechanical checks only — the things regex can prove. Contextual judgment (eyebrow repetition, radius intent, warm-neutral coherence, copy quality) stays in the manual gates where it belongs.
 
 ```bash
+# from an installed skill: bash "$PI_SKILL_DIR/scripts/design-scan.sh" <target>
 bash design-qa/scripts/design-scan.sh ./src                   # human output
 bash design-qa/scripts/design-scan.sh ./src --json            # pure JSON on stdout for CI
 bash design-qa/scripts/design-scan.sh ./src --critical-only   # gate only Critical findings
 bash design-qa/scripts/design-scan.sh ./src --allowlist FILE  # structured exceptions (CATEGORY⇥PATH_REGEX⇥REASON)
+bash design-qa/scripts/design-scan.sh ./src --allow-empty     # zero supported files is not an error
 ```
 
-**Requires:** [ripgrep](https://github.com/BurntSushi/ripgrep) and [jq](https://jqlang.github.io/jq/). Optional: [ast-grep](https://ast-grep.github.io/) adds structural TSX/JSX/HTML checks.
+**Requires:** [ripgrep](https://github.com/BurntSushi/ripgrep) and [jq](https://jqlang.github.io/jq/). Optional: [ast-grep](https://ast-grep.github.io/) adds structural TSX checks.
 
-**Coverage tiers:** lexical checks on `tsx jsx ts js css scss html vue svelte astro mdx`; structural checks only where ast-grep supports the language.
+**Coverage tiers:** lexical checks on `tsx jsx ts js css scss html vue svelte astro mdx`; structural checks are TSX-only. Symlinks are not followed.
 
-**Exit contract:** `0` scanned & passed · `1` findings broke the gate · `2` could not produce reliable evidence (bad args, missing dependency, no supported files, tool failure, invalid JSON). A green exit proves a scan actually ran. Score is advisory; the exit code is the gate.
+**Exit contract:** `0` scanned & passed · `1` findings broke the gate · `2` could not produce reliable evidence (bad args, missing dependency, no supported files, tool failure, invalid JSON). A green exit without `--allow-empty` proves a scan actually ran. Score is advisory; the exit code is the gate.
 
-**What it catches:** the slop-gradient family, gradient text, gradient orbs, dead controls (`href="#"`), `<div onClick>`, positive tabindex, zoom disabled, paste blocked, `h-screen`/`100vh`, hardcoded colors outside `:root` tokens, arbitrary spacing/type values, `tracking-tighter`, layout-property transitions, `transition-all`, unscoped `will-change`, stray `console.log`.
+**What it catches:** the slop-gradient family, gradient text, gradient orbs, dead controls (`href="#"`, empty handlers), `<div onClick>`, positive tabindex, zoom disabled, paste blocked, `h-screen`/`100vh`, hardcoded colors outside `:root` tokens, arbitrary spacing/type values, tracking below the floor, layout-property transitions, `transition-all`, un-gated `console.log`.
 
 Contract tests: `bash design-qa/tests/run-tests.sh` (committed fixtures across all supported formats).
 

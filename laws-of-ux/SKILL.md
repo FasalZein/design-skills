@@ -37,7 +37,7 @@ Apply when: designing primary nav, menus, sidebars, site structure, breadcrumbs.
 Apply when: building input forms, settings pages, data entry flows, search.
 
 - **Group related fields into named blocks, not a flat list.** Address, payment, and identity fields should each form a distinct visual unit — never 12 flat fields. Aim for ≤7 items per group. (Miller's Law: working memory holds ~7±2 items)
-- **Accept every reasonable date, phone, and name format.** "Jan 5", "1/5", "2026-01-05" are all valid inputs. Normalize internally and display consistently. (Postel's Law)
+- **Accept every reasonable date, phone, and name format.** "Jan 5", "1/5", "2026-01-05" are all valid inputs. Normalize internally, display consistently, and never reject valid intent due to format — if the user types "555-867-5309" and your model wants "5558675309", convert silently. (Postel's Law)
 - **Validate a field when the user finishes it, not while they type.** Errors mid-keystroke punish incomplete input; errors deferred to submit arrive after the user has mentally left the field. Show the error inline, adjacent to the field, at field completion (blur); reserve submit-time validation for cross-field and server checks. (Postel's Law + Working Memory: put the error where and when the user is looking)
 - **Pre-fill every value the system can infer.** Name from session, country from IP, timezone from browser. Every field the user doesn't have to fill is friction removed. (Tesler's Law — see Global Principles)
 - **Pre-select the best default option.** Users anchor on the first value they see and default to pre-selected choices. Frame options to reduce regret. Never deceive, but never leave defaults unset. (Cognitive Bias: anchoring and status quo bias)
@@ -63,7 +63,6 @@ Apply when: designing buttons, action bars, toolbars, confirmation dialogs.
 
 - **Exactly 1 visually distinct primary CTA per view.** Every other action must be visually quieter. If everything is emphasized, nothing is. (Von Restorff Effect: the distinct item gets remembered)
 - **Make targets easy to hit: large, and near the user's resting attention.** Primary actions near the resting thumb position on mobile (bottom of screen); destructive actions — Delete, Remove, Deactivate — visually quieter and physically distant from Save. (Fitts's Law: target acquisition time = f(distance, size))
-- **Primary nav items at first and last positions in any list; key actions at edges, not center.** (Serial Position Effect — see Navigation for full context)
 - **Limit visible options in any action menu to ≤7.** For large catalogs, use filters or search. Add "Recommended" badges to the best option. (Hick's Law / Choice Overload)
 
 ---
@@ -73,7 +72,7 @@ Apply when: designing buttons, action bars, toolbars, confirmation dialogs.
 Apply when: building async actions, loading states, real-time updates, async submits.
 
 - **Provide immediate visual feedback for every user action.** No silent-on-click interactions anywhere; a pressed control shows it was pressed, an async action shows it is working. (Doherty Threshold / Flow: clear feedback is required for optimal engagement)
-- **Response under 400ms keeps flow unbroken.** Between 400ms and a few seconds, show the content's shape (skeleton) or update optimistically; past a few seconds, show measurable progress. (Doherty Threshold: sub-400ms keeps the user engaged; over 400ms breaks concentration)
+- **Response under 400ms keeps flow unbroken.** Past 400ms, show feedback in the control itself (pending state) or update optimistically; past ~1 second, show the content's shape (skeleton); past a few seconds, show measurable progress. (Doherty Threshold: sub-400ms keeps the user engaged; over 400ms breaks concentration)
 
 ---
 
@@ -103,8 +102,7 @@ Apply when: writing labels, empty states, onboarding copy, tooltips, confirmatio
 
 Apply when: designing validation, error states, empty states, destructive action flows.
 
-- **Errors appear inline, adjacent to the field that caused them** — not in a toast, not in a banner at the top. Timing follows the field-completion rule in Forms above. (Working Memory: put the error where the user is looking)
-- **Accept format variation; normalize internally.** If the user types "555-867-5309" and your model wants "5558675309", convert silently. Never reject valid intent due to format. (Postel's Law)
+- **Errors appear inline, adjacent to the field that caused them** — not in a toast, not in a banner at the top. Timing and format acceptance follow the Forms rules above. (Working Memory: put the error where the user is looking)
 - **Match the safety mechanism to reversibility.** A reversible destructive action gets immediate execution plus a visible undo window — confirmation dialogs for reversible actions train users to click through them. An irreversible or high-stakes action gets an explicit confirmation that names what is being destroyed and how much. In both cases the destructive control is visually quieter and physically distant from the primary action. (Fitts's Law: distance creates safety margin; habituation: repeated confirmations stop being read)
 - **An empty state explains itself and offers a way forward when one exists.** State the fact ("No deploys yet"), give context (why, or what this will show), and offer the next action when the user can actually take one. First-use, user-cleared, no-results, and error-caused empties are different states with different copy. (Active User Paradox: discoverable actions over passive dead ends)
 

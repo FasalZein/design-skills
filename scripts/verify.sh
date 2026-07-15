@@ -36,9 +36,12 @@ grep -n 'MUST use .AlertDialog' "$ROOT/design-qa/SKILL.md" >/dev/null 2>&1 && ba
 # 7. laws-of-ux stands alone (no cross-skill file pointers; skill-name mention in frontmatter description is fine)
 grep -nE '(design-craft|design-qa)/|reference/[a-z-]+\.md' "$ROOT/laws-of-ux/SKILL.md" >/dev/null 2>&1 && bad "laws-of-ux points into another skill's files" || say "laws-of-ux is self-contained"
 
-# 8. Gate count consistency
-grep -q 'Gate 12' "$ROOT/design-qa/SKILL.md" || bad "design-qa missing Gate 12"
-if grep -qn '11 gates' "$ROOT/README.md" 2>/dev/null; then bad "README says 11 gates"; else say "gate count consistent"; fi
+# 8. Gate count consistency: derive from design-qa, compare against every README claim
+GATES=$(grep -oE '^## Gate [0-9]+' "$ROOT/design-qa/SKILL.md" | awk '{print $3}' | sort -n | tail -1)
+[ -n "$GATES" ] || bad "could not derive gate count from design-qa/SKILL.md"
+CLAIMS=$(grep -oE '[0-9]+(-gate| gates)' "$ROOT/README.md" | grep -oE '^[0-9]+' | sort -u)
+for c in $CLAIMS; do [ "$c" = "$GATES" ] || bad "README claims $c gates; design-qa defines $GATES"; done
+say "gate count consistent ($GATES gates)"
 
 # 9. design-craft kernels present (color formula + spine inline, tracking table inline)
 grep -q '137' "$ROOT/design-craft/SKILL.md" || bad "color hue formula missing from kernel"
