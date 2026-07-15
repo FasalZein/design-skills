@@ -72,7 +72,7 @@ bash design-qa/scripts/design-scan.sh ./src --allow-empty     # zero supported f
 
 **Exit contract:** `0` scanned & passed · `1` findings broke the gate · `2` could not produce reliable evidence (bad args, missing dependency, no supported files, tool failure, invalid JSON). A green exit without `--allow-empty` proves a scan actually ran. Score is advisory; the exit code is the gate.
 
-**What it catches:** the slop-gradient family, gradient text, gradient orbs, dead controls (`href="#"`, empty handlers), `<div onClick>`, positive tabindex, zoom disabled, paste blocked, `h-screen`/`100vh`, hardcoded colors outside `:root` tokens, arbitrary spacing/type values, tracking below the floor, layout-property transitions, `transition-all`, un-gated `console.log`.
+**What it catches:** the slop-gradient family, gradient text, gradient orbs, colored side-stripe accent bars, section-seam borders on landing pages, dead controls (`href="#"`, empty handlers), `<div onClick>`, positive tabindex, zoom disabled, paste blocked, `h-screen`/`100vh`, hardcoded colors outside `:root` tokens, arbitrary spacing/type values, tracking below the floor, layout-property transitions, `transition-all`, un-gated `console.log`.
 
 Contract tests: `bash design-qa/tests/run-tests.sh` (committed fixtures across all supported formats).
 

@@ -43,6 +43,13 @@ CLAIMS=$(grep -oE '[0-9]+(-gate| gates)' "$ROOT/README.md" | grep -oE '^[0-9]+' 
 for c in $CLAIMS; do [ "$c" = "$GATES" ] || bad "README claims $c gates; design-qa defines $GATES"; done
 say "gate count consistent ($GATES gates)"
 
+# 8b. Dead-air band numbers agree across kernel, Gate 4, and the Gate 12 probe
+grep -q '≤64px app/data, ≤128px marketing' "$ROOT/design-craft/SKILL.md" || bad "kernel band limits changed — update Gate 4 + probe together"
+grep -q '>64px (app/data) / >128px (marketing)' "$ROOT/design-qa/SKILL.md" || bad "Gate 4 band limits drifted from kernel (64/128)"
+grep -q 'marketing ? 256 : 128' "$ROOT/design-qa/reference/live-verification.md" || bad "probe FAIL tier drifted (expect 256/128)"
+grep -q 'marketing ? 128 : 64' "$ROOT/design-qa/reference/live-verification.md" || bad "probe JUDGE tier drifted (expect 128/64)"
+grep -rn '64/96px' "$ROOT"/*/SKILL.md "$ROOT"/*/reference/*.md >/dev/null 2>&1 && bad "stale 64/96px band value resurfaced" || say "dead-air numbers consistent"
+
 # 9. design-craft kernels present (color formula + spine inline, tracking table inline)
 grep -q '137' "$ROOT/design-craft/SKILL.md" || bad "color hue formula missing from kernel"
 grep -q '0.99, 0.96, 0.90' "$ROOT/design-craft/SKILL.md" || bad "lightness spine missing from kernel"

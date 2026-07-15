@@ -31,8 +31,10 @@ $AB screenshot "$EVIDENCE_DIR/<app>-<state>-375.png"
 Repeat with `set viewport 1440 900` (and `768 1024` when a tablet breakpoint exists). Failed asset/API requests:
 
 ```js
-performance.getEntriesByType('resource').filter(r => r.responseStatus >= 400 || (r.responseStatus === 0 && r.duration > 0)).map(r => r.name)
+performance.getEntriesByType('resource').filter(r => r.responseStatus >= 400).map(r => r.name)
 ```
+
+`responseStatus: 0` on cross-origin entries is opaque (no Timing-Allow-Origin), not a failure — verify those by effect instead: `document.fonts.status === 'loaded'` for fonts, `img.complete && img.naturalWidth > 0` for images.
 
 ## State setup
 

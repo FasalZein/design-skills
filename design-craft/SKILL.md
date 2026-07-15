@@ -218,7 +218,7 @@ Specific verb + object on buttons. One term per concept (Delete/Remove → pick 
 | Everything competes | Multiple primary-weight elements | ONE dominant element, mute the rest |
 | Cramped | Uniform tight spacing | Increase section gaps, keep group spacing tight |
 | Empty despite content | Oversized gaps, thin type | Tighten item spacing, add weight to key elements |
-| Floaty content islands | `min-height` + centering, stacked margins, uniform huge section gaps | Height from content; snap every gap to the ladder; kill voids over the 64/96px band limit |
+| Floaty content islands | `min-height` + centering, stacked margins, uniform huge section gaps | Height from content; snap every gap to the ladder; kill voids over the Height rule's band limits |
 | Ragged two-column section | Heading, controls, and aside start at different y | One section origin: heading row baseline-aligned, both columns start one group unit below it |
 | Clips on real content | Fixed heights | `min-h` + `overflow-y-auto` on scroll regions |
 | Dark mode washed out | Same chroma/weight as light | Reduce chroma ~10–20%, reduce weight where the font allows |

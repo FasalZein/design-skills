@@ -109,12 +109,12 @@ run_check SIDE_STRIPE critical \
   "The signature LLM tell. Tinted surface OR a leading dot/chip - one cue; category color goes in a filled dot/label, never an edge bar." \
   'blockquote' \
   -e 'border-(left|inline-start):\s*[2-9]px\s+solid\s+(var\(|#|oklch\(|rgba?\(|hsla?\()' \
-  -e '\bborder-s-[2-9][^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent)' \
-  -e 'border-l-[0-9]+[^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)' \
-  -e 'border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)(-[0-9]+)?[^"'\''<>]{0,80}border-l-[0-9]'
+  -e '\bborder-s-[1-9][^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent)' \
+  -e 'border-l-[1-9][^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)' \
+  -e 'border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)(-[0-9]+)?[^"'\''<>]{0,80}border-l-[1-9]'
 
-run_check SECTION_BORDER critical \
-  "Landing pages are one continuous canvas: boundaries from spacing/density, not rules. Emphasis panel + footer change surface without a border at the seam." "" \
+run_check SECTION_BORDER high \
+  "Marketing scope: landing pages are one continuous canvas - boundaries from spacing/density, not rules. App-shell seams are legal: allowlist them." "" \
   -U \
   -e '<(section|footer)[^>]{0,200}\bborder-[tby]\b' \
   -e '(^|[,{ ])(section|footer)\s*(,[^{]*)?\{[^}]*border-(top|bottom|block(-(start|end))?)\s*:\s*[0-9]' \
