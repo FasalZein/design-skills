@@ -12,31 +12,32 @@ Three skills that layer together — craft, psychology, and quality gates.
 
 ### design-craft
 
-The implementation rulebook. Anti-slop detection, semantic color tokens, typography scale, spacing system, animation architecture (with a frequency gate that asks "should this even animate?"), layout, interaction states, component patterns, data-dense UI, and UX writing.
+The implementation rulebook. Executable kernels for type, color, spacing, and interaction states live in the always-loaded SKILL.md — the decisions a strong designer would make, pre-made (exact tracking values, a deterministic name→hue palette derivation, the 4px ladder, the five interaction states). Eight hard anti-slop guardrails, each paired with what to build instead, plus an intent-and-repetition lens for context-sensitive treatments.
 
-Loaded as a lean router with 5 on-demand reference files — your agent only pulls the depth it needs:
+Branch depth loads on demand:
 
 | Reference | What it covers |
 |-----------|---------------|
-| `color.md` | OKLCH lightness spine, name→hue derivation, gamut safety, APCA contrast, dark mode |
-| `typography.md` | Font files, variable fonts, scale mechanics, wrapping, punctuation, underlines, RTL |
-| `spacing.md` | 4pt scale, rhythm, concentric radius, shadow-as-border, optical alignment, hit areas |
-| `motion.md` | Frequency gate, library selection, duration ladder, easing, springs, gestures |
-| `data-dense.md` | Tables, dashboards, financial UI, performance |
+| `color.md` | Gamut mapping, P3, chroma strategy, warm neutrals, contrast method, dark mode |
+| `typography.md` | Font sourcing/loading, fallback metrics, variable fonts, wrapping, CJK |
+| `spacing.md` | Inset/stack, density modes, block rhythm, radius, elevation, safe areas, optical alignment |
+| `composition.md` | App shells, sidebars, gutters, metadata/date lockups, settings, features, pricing, proof, footers |
+| `product-states.md` | Loading tiers, empty/error copy, validation timing, destructive actions, optimistic updates |
+| `motion.md` | Frequency gate, duration ladder, easing, springs, gestures, reduced motion |
+| `data-dense.md` | Tables, KPIs, chart selection, chart accessibility, dashboards |
+| `visual-assets.md` | Icon systems, imagery pipeline, illustration roles, emoji |
 
 ### laws-of-ux
 
-30 laws from [lawsofux.com](https://lawsofux.com) turned into actionable constraints. Grouped by task: reducing decision cost, building on familiarity, directing attention, shaping experience, motor cost, Gestalt perception, and robustness. Includes a decision matrix and a self-check that actually catches violations instead of vibing about "intuitive design."
+30 laws from [lawsofux.com](https://lawsofux.com) turned into actionable constraints — the rule leads, the law name follows as the generalization hook. Grouped by engineering decision: navigation, forms, flows, CTAs, feedback, grouping, copy, error recovery. Includes a decision matrix and a decision audit. Fully standalone — load it alone or with the others.
 
 ### design-qa
 
-12-gate pre-ship checklist and a sub-second scanner built on ripgrep + ast-grep. Catches accessibility violations, hardcoded colors, arbitrary spacing, AI slop patterns, missing interaction states, and more — then Gate 12 verifies the **rendered page** live via agent-browser (screenshots at 1440/375px, console errors, focus rings, contrast). Binary pass/fail — no ambiguity, no "looks good to me."
+12-gate pre-ship checklist plus a fail-closed scanner. Gates 1–11 check source; Gate 12 verifies the **rendered page** live via agent-browser (screenshots at 375/1440px, console errors, focus cycle, measured contrast, target sizes) with a command-level runbook in `reference/live-verification.md`. Binary pass/fail — no ambiguity, no "looks good to me."
 
 ---
 
 ## Installation
-
-### Any agent that supports skills
 
 ```bash
 npx skills@latest add FasalZein/design-skills
@@ -46,21 +47,7 @@ Install a specific skill:
 
 ```bash
 npx skills@latest add FasalZein/design-skills --skill design-craft
-npx skills@latest add FasalZein/design-skills --skill design-qa
-npx skills@latest add FasalZein/design-skills --skill laws-of-ux
 ```
-
-### Manual install
-
-Copy the skill folder(s) into your agent's instruction directory:
-
-| Agent | Location |
-|-------|----------|
-| Claude Code | `~/.claude/skills/<skill-name>/` |
-| Codex | `.codex/instructions/` |
-| OpenCode | `.opencode/instructions/` |
-| Pi | Project instructions directory |
-| Droid | Agent instructions directory |
 
 Each skill is a self-contained `SKILL.md` (+ optional `reference/` folder). Drop it in, point your agent at it, done.
 
@@ -68,25 +55,24 @@ Each skill is a self-contained `SKILL.md` (+ optional `reference/` folder). Drop
 
 ## The scanner
 
-design-qa includes a standalone scanner that runs in ~0.2 seconds on a full React/Tailwind project. Zero config.
+Mechanical checks only — the things regex can prove. Contextual judgment (eyebrow repetition, radius intent, warm-neutral coherence, copy quality) stays in the manual gates where it belongs.
 
 ```bash
-# Full scan with fix suggestions
-bash design-qa/scripts/design-scan.sh ./src --fix
-
-# JSON output for CI pipelines
-bash design-qa/scripts/design-scan.sh ./src --json
-
-# Skip upstream UI primitives (shadcn, etc.)
-bash design-qa/scripts/design-scan.sh ./src --fix --no-ui
-
-# Critical issues only
-bash design-qa/scripts/design-scan.sh ./src --critical-only
+bash design-qa/scripts/design-scan.sh ./src                   # human output
+bash design-qa/scripts/design-scan.sh ./src --json            # pure JSON on stdout for CI
+bash design-qa/scripts/design-scan.sh ./src --critical-only   # gate only Critical findings
+bash design-qa/scripts/design-scan.sh ./src --allowlist FILE  # structured exceptions (CATEGORY⇥PATH_REGEX⇥REASON)
 ```
 
-**Requires:** [ripgrep](https://github.com/BurntSushi/ripgrep). Optional: [ast-grep](https://ast-grep.github.io/) for structural checks.
+**Requires:** [ripgrep](https://github.com/BurntSushi/ripgrep) and [jq](https://jqlang.github.io/jq/). Optional: [ast-grep](https://ast-grep.github.io/) adds structural TSX/JSX/HTML checks.
 
-**What it catches:** AI slop patterns, hardcoded colors (hex, rgb, hsl, oklch inline), `h-screen`, `transition-all`, `div onClick`, `tabindex > 0`, zoom disabled, paste blocked, bare focus removal, arbitrary spacing/sizing, animation anti-patterns, nested cards, missing aria-labels, stripe/turbulence decoration, over-rounding (≥24px), eyebrow kickers, cream-reflex tokens.
+**Coverage tiers:** lexical checks on `tsx jsx ts js css scss html vue svelte astro mdx`; structural checks only where ast-grep supports the language.
+
+**Exit contract:** `0` scanned & passed · `1` findings broke the gate · `2` could not produce reliable evidence (bad args, missing dependency, no supported files, tool failure, invalid JSON). A green exit proves a scan actually ran. Score is advisory; the exit code is the gate.
+
+**What it catches:** the slop-gradient family, gradient text, gradient orbs, dead controls (`href="#"`), `<div onClick>`, positive tabindex, zoom disabled, paste blocked, `h-screen`/`100vh`, hardcoded colors outside `:root` tokens, arbitrary spacing/type values, `tracking-tighter`, layout-property transitions, `transition-all`, unscoped `will-change`, stray `console.log`.
+
+Contract tests: `bash design-qa/tests/run-tests.sh` (committed fixtures across all supported formats).
 
 ---
 
@@ -108,9 +94,9 @@ bash design-qa/scripts/design-scan.sh ./src --critical-only
 </div>
 ```
 
-This is what every AI agent produces when you say "build me a dashboard." It's the statistical median of every Tailwind tutorial and Bootstrap template in the training data. It screams "AI made this" from across the room.
+This is the statistical median of every Tailwind tutorial in the training data. It screams "AI made this" from across the room.
 
-**With skills:** The anti-slop rules fire on the gradient. The color rules fire on `bg-purple-900`. The layout rules fire on `min-h-screen`. The component rules fire on the identical card grid. The content rules fire on `99.99%`. The scanner catches whatever the rules missed. Your agent is forced to actually think about design instead of reaching for the nearest template.
+**With skills:** the guardrails fire on the gradient, the glass, and the fake metric; the color kernel replaces `bg-purple-900` with derived semantic tokens; the composition recipes replace the identical card grid with something content-driven; the scanner and Gate 12 catch whatever slipped through — in the rendered page, not just the source.
 
 ---
 
@@ -118,27 +104,26 @@ This is what every AI agent produces when you say "build me a dashboard." It's t
 
 ```
 design-craft/
-  SKILL.md                  <- Anti-slop + decision gates + core rules + self-check (auto-loaded)
-  reference/
-    color.md                 <- On-demand
-    typography.md            <- On-demand
-    spacing.md               <- On-demand
-    motion.md                <- On-demand
-    data-dense.md            <- On-demand
-
-design-qa/
-  SKILL.md                  <- 12 quality gates (Gate 12 = live agent-browser verification)
-  scripts/design-scan.sh    <- Automated scanner (ripgrep + ast-grep)
-  rules/                    <- ast-grep structural rules
+  SKILL.md                      <- kernels + guardrails + decision gate + self-check (auto-loaded)
+  reference/                    <- 8 branch files, loaded by trigger
 
 laws-of-ux/
-  SKILL.md                  <- 30 UX laws + decision matrix
+  SKILL.md                      <- 30 laws + decision matrix + decision audit (standalone)
+
+design-qa/
+  SKILL.md                      <- 12 gates + scanner contract
+  reference/live-verification.md<- Gate 12 runbook (commands + probes)
+  scripts/design-scan.sh        <- fail-closed scanner (rg + jq, ast-grep optional)
+  rules/                        <- ast-grep structural rules
+  tests/                        <- scanner contract tests + fixtures
+
+scripts/verify.sh               <- repository verify (scanner tests + skill consistency)
 ```
 
 The skills layer by concern:
-- **design-craft** = how to build it (tokens, spacing, animation, components)
+- **design-craft** = how to build it (kernels, recipes, guardrails)
 - **laws-of-ux** = why users will hate it if you don't (cognitive load, attention, memory)
-- **design-qa** = did you actually follow the rules (11 gates, automated scanner)
+- **design-qa** = did you actually follow the rules (12 gates, scanner, live verification)
 
 Use all three together for maximum effect. Or pick the ones you need — they work independently.
 
@@ -146,14 +131,15 @@ Use all three together for maximum effect. Or pick the ones you need — they wo
 
 ## Validation
 
-Skills are validated using autoresearch — autonomous eval loops inspired by [Karpathy's methodology](https://x.com/karpathy). Binary pass/fail evals, one mutation at a time, keep what improves the score, discard the rest. No vibes. No "looks good." Pass or fail.
+The repository verify command is the current gate:
 
-| Skill | Baseline | Final | Method |
-|-------|----------|-------|--------|
-| design-craft | 72.2% | 100% | 6 binary evals, 3 runs per experiment |
-| laws-of-ux | 94.4% | 100% | 6 binary evals, 3 runs per experiment |
+```bash
+bash scripts/verify.sh
+```
 
-Additionally cross-referenced against 19 design skills from [ui-skills.com](https://ui-skills.com) to identify enforcement gaps, missing anti-patterns, and accessibility coverage.
+It runs the scanner's committed contract tests (exit codes, JSON validity, per-format detection, false-positive boundaries, allowlist behavior) plus skill-consistency checks (single-source numeric rules, resolvable pointers, standalone laws-of-ux).
+
+Historical note: earlier revisions were tuned with autoresearch — autonomous binary-eval loops (design-craft 72.2%→100%, laws-of-ux 94.4%→100% on 6 evals) and cross-referenced against 19 design skills from [ui-skills.com](https://ui-skills.com). Those scores validated the earlier revision, not this one; current changes are validated by the verify command and live multi-model build evals.
 
 ---
 

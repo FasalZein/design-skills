@@ -4,14 +4,16 @@
 
 Before choosing duration or easing, answer this first:
 
+Frequency adjusts magnitude — the more often a motion plays, the smaller it must be:
+
 | Trigger Frequency | Decision |
 |-------------------|----------|
-| 100+/day (keyboard shortcuts, command palette, toggle) | No animation. Ever. |
-| Tens of times/day (hover, list nav, tab switch) | Opacity-only or remove entirely |
+| 100+/day (keyboard shortcuts, command palette, toggle) | Instant — no animation |
+| Tens of times/day (hover, list nav, tab switch) | Opacity-only or none |
 | Occasional (modals, drawers, toasts) | Standard animation |
 | Rare / first-time (onboarding, celebrations) | Full delight |
 
-Hard rules: keyboard-initiated actions MUST NEVER animate. Every motion must serve a UX purpose (guide attention, show state change, reveal relationship) — never decorate. If the action triggers more than tens of times per day, skip the rest of this file.
+Keyboard-initiated actions respond instantly — users typing expect the speed of typing. Every motion serves a purpose: feedback, state change, or spatial relationship. If the action triggers more than tens of times per day, skip the rest of this file.
 
 ## Animation Library Selection
 
@@ -103,6 +105,7 @@ Bounce 0.1–0.3 for gestures/decorative only; `bounce: 0` for all standard UI. 
 - Tooltips: first hover in a group animates normally; subsequent adjacent tooltips open instantly (`transition-duration: 0ms`) while the user is still in the group.
 - Context menus: exit animation only, no entrance — users expect instant response at cursor.
 - Stagger: 30–50ms per item, max 5–8 items, decorative only — never block interaction during it.
+- Skeleton pulse is feedback and stays; attention pulse on CTAs/pricing is the guardrail's begging row. `animate-ping` live-status dots only with a text/ARIA equivalent and a reduced-motion path.
 - Hide by own size with percentage translates (`translateY(100%)`), not fixed pixel offsets.
 - Gate hover effects: `@media (hover: hover) and (pointer: fine)` to avoid sticky hover on touch devices.
 - Prefer `@starting-style` for CSS-only entry transitions where supported; fall back to a mounted-state/data-attribute pattern.
@@ -133,7 +136,7 @@ Prefer CSS `animation-timeline: view()` for scroll-driven effects; never drive a
 
 ## Reduced Motion
 
-`prefers-reduced-motion` means fewer and gentler, NOT zero — keep opacity/color fades that aid comprehension, remove transform, position, and clip-path movement. The nuclear reset is the floor, not the goal:
+`prefers-reduced-motion` means fewer and gentler, NOT zero — keep opacity/color fades that aid comprehension, remove transform, position, and clip-path movement. Any motion over 200ms must have a reduced-motion path. The nuclear reset is the floor, not the goal:
 
 ```css
 @media (prefers-reduced-motion: reduce) {
