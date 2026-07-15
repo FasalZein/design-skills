@@ -12,7 +12,7 @@ Three skills that layer together — craft, psychology, and quality gates.
 
 ### design-craft
 
-The implementation rulebook. Executable kernels for type, color, spacing, and interaction states live in the always-loaded SKILL.md — the decisions a strong designer would make, pre-made (exact tracking values, a deterministic name→hue palette derivation, the 4px ladder, the five interaction states). Eight hard anti-slop guardrails, each paired with what to build instead, plus an intent-and-repetition lens for context-sensitive treatments.
+The implementation rulebook. Executable kernels for type, color, spacing, and interaction states live in the always-loaded SKILL.md — the decisions a strong designer would make, pre-made (exact tracking values, a deterministic name→hue palette derivation, the 4px ladder, the five interaction states). Nine hard anti-slop guardrails, each paired with what to build instead, plus an intent-and-repetition lens for context-sensitive treatments.
 
 Branch depth loads on demand:
 
