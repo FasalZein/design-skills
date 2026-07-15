@@ -1,100 +1,113 @@
 ---
 name: design-qa
 description: Binary pass/fail quality gates for UI code — run before shipping any component, page, or feature. Use when the user asks to QA, audit, review, or harden UI, before merging UI work, or after any design implementation to verify it. Covers anti-slop, accessibility, consistency, interaction states, performance, responsive, and live in-browser verification.
-globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css", "**/*.scss"]
+globs: ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*.js", "**/*.css", "**/*.scss", "**/*.html", "**/*.vue", "**/*.svelte", "**/*.astro", "**/*.mdx"]
 ---
 
 # Design QA
 
 Structured quality gate for UI code. Run against any component, page, or feature before shipping. Every check is binary — pass or fail. Report ONLY failures. Silence = quality.
 
-## Fast Scan
+## Scanner
 
 ```bash
-bash "$PI_SKILL_DIR/scripts/design-scan.sh" [target-dir] --fix        # Full scan with fixes
-bash "$PI_SKILL_DIR/scripts/design-scan.sh" [target-dir] --no-ui      # Skip upstream primitives
-bash "$PI_SKILL_DIR/scripts/design-scan.sh" [target-dir] --json       # JSON for CI
-bash "$PI_SKILL_DIR/scripts/design-scan.sh" [target-dir] --critical-only
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" <target-dir>                  # human output
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" <target-dir> --json           # machine output (stdout = pure JSON)
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" <target-dir> --critical-only  # gate only Critical findings
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" <target-dir> --allowlist FILE # structured exceptions
+bash "$PI_SKILL_DIR/scripts/design-scan.sh" <target-dir> --allow-empty    # zero supported files is not an error
 ```
 
 If `$PI_SKILL_DIR` is unset, resolve the script relative to this SKILL.md's directory.
 
-Requires: ripgrep (`rg`). Optional: ast-grep (`sg`).
+**Dependencies:** `rg` and `jq` required in every mode. `ast-grep` optional (adds structural TSX checks).
 
-After the fast scan, run the manual gates below for judgment-based checks. Read the code, run each gate in order, report failures with line numbers and fixes. Finish with Gate 12 (live verification) whenever the app can be rendered — the rendered page outranks source-level passes.
+**Support tiers:** lexical checks cover `tsx jsx ts js css scss html vue svelte astro mdx`; structural checks are TSX-only (the shipped ast-grep rule set). Symlinked files are not followed.
+
+**Exit contract:**
+
+| Exit | Meaning |
+|---|---|
+| `0` | Supported files were scanned; no finding broke the active mode |
+| `1` | Scan completed; findings broke the active mode (any finding by default; Critical-only under `--critical-only`) |
+| `2` | Unreliable: bad arguments, missing dependency, missing target, zero supported files (without `--allow-empty`), tool failure, or invalid JSON |
+
+JSON schema: `status pass|fail`, `target`, `scannedFiles`, `support`, `total/critical/high/medium`, advisory `score`, `categories`, `issues[]` (each: severity, category, file, one-based line, content, fix). On scanner error with `--json`: `{"status":"error","errors":[…]}` and exit 2.
+
+**Allowlist format** (tab-separated, `#` comments): `CATEGORY<TAB>PATH_REGEX<TAB>REASON`. Category exact or `*`. Invalid rows exit 2.
+
+The scanner covers only mechanical facts. Scanner silence says nothing about the judgment checks below — run the gates after the scan, in order, and report failures with line numbers and fixes. Finish with Gate 12 whenever the app can be rendered — the rendered page outranks source-level passes.
 
 ---
 
 ## Gate 1: Anti-Slop (Critical)
 
+Mechanical rows are scanner-automated; judgment rows apply the intent-and-repetition test — the treatment communicates state, hierarchy, focus, information, or brand meaning, and is bounded to a named role.
+
 | Check | Pass Condition |
 |-------|---------------|
-| No slop gradients | Zero purple/violet/indigo → blue/pink/fuchsia gradient combos; zero two-stop dark neutral gradients (`from-slate-900 to-slate-800`) |
-| No gradient orbs | Zero decorative blurred gradient blobs (`blur-2xl/3xl` + gradient div) |
-| No gradient text | Zero `bg-clip-text text-transparent bg-gradient-*` on metrics/headings |
-| No glassmorphism | Zero decorative `backdrop-blur` (functional blur like overlays OK) |
-| No hero metric template | Not using big-number-in-card with small-label-below pattern |
-| No pricing template | Not shipping 3-tier + "Most Popular" badge + green checks verbatim |
-| No trust-strip theater | Zero "Trusted by N,000+" bars, logo marquees, or fake terminal/mac-window mockups |
-| No footer scaffold | Footer columns reflect real pages, not the Product/Company/Resources/Legal template |
-| No H1 pill badge | Zero "✨ New:" pill kickers above the H1 |
-| No pulse begging | `animate-pulse`/`animate-ping` only on skeletons, never pricing/CTAs |
-| No motion monotony | Not the identical fade-in-up + uniform 0.1s stagger on every section |
-| No template copy | Zero banned phrases: Effortlessly, Streamline, Revolutionize, Unlock, AI-powered (non-AI product), "It's not just X, it's Y", "Welcome to our platform", "Built with ❤️" |
-| Buttons are live | Every button/link has a real handler or destination — zero `href="#"`, empty onClick, non-persisting toggles |
-| No identical card grid | Cards in a grid have varied content/layout, not 3x identical template |
-| No glow effects | Zero `shadow-*-*/glow` or colored `box-shadow` spread |
-| No nested cards | Zero Card/panel inside other Card/panel |
-| No eyebrow scaffolding | Zero tiny uppercase tracked kickers repeated above every section; zero "01 / 02 / 03" section markers outside real sequences |
-| No side-stripe accents | Zero `border-left`/`border-right` >1px used as colored accents |
-| No ghost-cards | Zero elements pairing a 1px border with a soft box-shadow ≥16px blur |
-| No over-rounding | Zero `border-radius` ≥24px on cards, sections, or inputs |
-| No reflex cream bg | Body/section background is not a warm near-white picked "for warmth" (`--paper`/`--cream`/`--sand`-style tokens = flag) |
-| Font is intentional | Not using Inter/Roboto/Arial as a "just pick something" default |
-| No uncustomized stack | shadcn/Tailwind defaults customized — no verbatim default variant strings, radii, tokens |
-
-Weak tells flag only in combination (3+ together = fail): Lucide-only icons, default FAQ accordion, `max-w-7xl mx-auto` on every section, colored-span H1 emphasis.
+| No slop gradients (auto) | Zero purple/violet/indigo → blue/pink/fuchsia gradient combos; zero two-stop dark neutral gradients; zero gradient text on metrics/headings; zero blurred gradient orbs |
+| No dead controls (auto) | Every button/link has a real handler or destination — zero `href="#"`, empty onClick, non-persisting toggles |
+| Glass is functional | `backdrop-blur` only on overlays over meaningful content, with a readable fallback — never on static cards |
+| No fake proof | Zero invented counts ("Trusted by 10,000+"), logo marquees, placeholder identities ("John Doe", "Acme"), round metrics (99.99%), fake terminal/mac-window chrome |
+| No template composition | Not centered-hero + identical card grid; not 3-4 equal big-number metric cards; not 3-tier pricing + "Most Popular" pill shipped verbatim; footer mirrors real IA |
+| Stack is customized | shadcn/Tailwind tokens, radii, and variants customized to the product — `whitespace-nowrap` on buttons is required, the rest of a verbatim default variant string is the tell |
+| No template copy | Zero: Effortlessly, Streamline, Revolutionize, Unlock, AI-powered (non-AI product), "It's not just X, it's Y", "Welcome to our platform", "Built with ❤️" — in rendered copy; identifiers don't count |
+| Motion earns its place | Pulse/ping only as skeleton feedback or accessible live-status; reveals differ by content, not one fade-in-up everywhere |
+| No side-stripe accents (auto) | Zero colored `border-left` bars on cards/callouts/items — tint or dot instead, never stripe + tint; `blockquote` exempt |
+| Landing continuity | Marketing pages: zero full-width `border-top/bottom` rules between sections (scanner SECTION_BORDER, High — allowlist app-shell seams); ≤2 background changes across the page (one emphasis panel + footer); component-internal rules exempt |
+| Kickers are bounded | One brand kicker or micro-meta label passes; the same uppercase-tracked eyebrow repeated across 2+ sections fails; numbered markers only on real sequences |
+| Radius matches role | ≥24px on cards/sections/inputs fails outside a declared soft-organic/playful direction |
+| Warmth is a system | Warm neutrals pass as a coherent derived scale; a lone `--cream`/`--paper` body token fails |
+| Sparklines carry data | Real history + value + period + delta; decorative squiggles fail |
+| Illustration is owned | One consistent brand family in a named role; mixed stock/sketchy SVG fails |
+| Combination tells | 2+ together fail: nested cards, identical icon-heading cells, ghost-cards (1px border + ≥16px-blur shadow), per-section background hues |
 
 ## Gate 2: Typography
 
 | Check | How to Verify |
 |-------|--------------|
-| Project type scale only | Zero arbitrary font sizes: `text-[*px]`, `text-[*rem]`, `font-size:` |
-| Letter-spacing by size only | Negative tracking only on display text (text-3xl+, floor -0.04em); positive tracking only on small uppercase labels. `tracking-wide+` on body text = flag |
-| Numeric data: tabular-nums | All `<td>`, `<th>` with numbers, prices, counts, dates use `tabular-nums` |
-| Headings: text-balance | All `<h1>`-`<h6>` use `text-balance` or `text-pretty` |
-| Line length controlled | Body text has `max-w-prose` or equivalent (45-75ch) |
-| Max 3 font weights | More than 3 distinct `font-*` weights per view = flag |
-| Web fonts are woff2 | Owned font assets are `.woff2` (`.woff` legacy fallback only). `.ttf`/`.otf` served = flag |
-| No faked bold/italic | `font-synthesis: none` set; every used weight/style has a loaded file |
-| Mobile inputs ≥ 16px | Input text ≥ 16px on mobile viewports; zoom never disabled to compensate |
+| Project type scale only | Zero arbitrary font sizes: `text-[*px]`, `text-[*rem]`, `font-size:` outside the scale |
+| Tracking within bounds | Display/heading tracking between `-0.03em` and `0`; uppercase micro-labels at most `+0.05em`; body text `0`; zero `tracking-tighter` |
+| Font is loadable | Chosen font has a real source and license; `@font-face`/import resolves; stack ends in a generic family |
+| Numeric data: tabular-nums | All numbers that align or update — prices, counts, dates, table columns |
+| Headings: text-balance | `<h1>`–`<h6>` use `text-balance` or `text-pretty` |
+| Line length controlled | Body text capped at 45–75ch (`max-w-prose` or equivalent); CJK content ~40 glyphs with `lang` set |
+| Max 3 font weights | More than 3 distinct weights per view = flag |
+| Web fonts are woff2 | Owned font assets `.woff2`; `font-synthesis: none`; every used weight has a loaded file |
+| Mobile inputs ≥ 16px | Input text ≥16px on mobile; zoom never disabled to compensate |
 
 ## Gate 3: Color
 
 | Check | How to Verify |
 |-------|--------------|
-| No hardcoded colors | Zero hex (`#[0-9a-f]`), `rgb(`, `hsl(`, `oklch(` in JSX/TSX |
-| No pure black/white areas | `bg-black`, `bg-white`, `#000`, `#fff` on containers/pages = flag |
-| No gray on colored bg | `text-gray-*` or `text-muted-*` on colored backgrounds = flag |
-| Status colors semantic | green=success, red=error, amber=warning, blue=info. No inversions |
-| Contrast ≥ 4.5:1 | WCAG AA against actual rendered bg. APCA: \|Lc\| ≥ 75 body, ≥ 60 labels, ≥ 45 large. OKLCH: ΔL ≥ 0.4 body |
-| No inline oklch | Zero `bg-[oklch(...)]` in JSX. OKLCH belongs in CSS tokens only |
-| Max 2 accent colors | Count distinct accent/brand colors per view |
+| No hardcoded colors | Zero hex/`rgb(`/`hsl(`/`oklch(` in component markup; zero raw palette utilities (`bg-purple-500` — scanner NAMED_COLOR); OKLCH lives in `:root` tokens |
+| No pure black/white surfaces | `bg-black`, `bg-white`, `#000`, `#fff` on containers/pages = flag |
+| No gray on colored bg | `text-gray-*`/`text-muted-*` on colored backgrounds = flag |
+| Status colors semantic | green=success, red=error, amber=warning, blue=info — never inverted, never the brand accent |
+| Color never sole indicator | Every status pairs with icon, text, or pattern |
+| Contrast floors (WCAG 2.x) | ≥4.5:1 body, ≥3:1 large text, ≥3:1 required non-text UI (input borders, meaningful icons, focus rings) — against the actual rendered background, placeholders included. APCA is advisory only, never the pass condition |
+| Accents match declared strategy | Restrained/Committed: ≤2 accent colors per view. Full-palette and categorical data-viz: every hue maps to a named role — unnamed extras fail |
 
 ## Gate 4: Spacing
 
 | Check | How to Verify |
 |-------|--------------|
-| No magic numbers | Zero `p-[*]`, `m-[*]`, `gap-[*]` with non-standard values. Multiples of 4px only |
-| Semantic spacing hierarchy | Sections > groups > items spacing. Consistent within page |
-| No triple responsive padding | `p-2 md:p-4 lg:p-6 xl:p-8` = flag. One value per semantic context |
-| 4px grid alignment | All spacing values are multiples of 4px (0.25rem) |
+| 4px grid | All spacing multiples of 4px; zero `p-[*]`/`m-[*]`/`gap-[*]` magic values |
+| Hierarchy reads | Section gaps > group gaps > item gaps; consistent within the page |
+| Inset ≠ stack monotony | Repeated surfaces distinguish padding-inside from gap-between; not one value everywhere |
+| Density consistent | One density mode per surface; grouped controls share heights |
+| Block rhythm | Headings bind to what follows (space above > below); labels sit 4–8px from their inputs |
+| No triple responsive padding | `p-2 md:p-4 lg:p-6 xl:p-8` = flag; one value per semantic context |
+| No dead air | At 1440px: zero empty bands >64px (app/data) / >128px (marketing) within one surface; zero bands >256px anywhere; height from content, not `min-height` + centering |
+| Empty states top-anchored | Inside a data region the message sits where the first row would; region collapses to message height |
+| Section origin aligned | Heading and its section controls share a baseline; adjacent columns start at the same y |
 
 ## Gate 5: Component Reuse
 
 | Check | How to Verify |
 |-------|--------------|
-| Existing primitives used | Custom `<button>`, `<input>`, `<dialog>` when project equivalents exist = flag |
+| Existing primitives used | Custom `<button>`/`<input>`/`<dialog>` when project equivalents exist = flag |
 | No primitive mixing | Imports from multiple UI libraries in same file = flag |
 | CVA for variants | Inline ternary chains for 3+ style variants = flag |
 | data-slot attributes | Component roots missing `data-slot` = flag (if project convention) |
@@ -103,105 +116,97 @@ Weak tells flag only in combination (3+ together = fail): Lucide-only icons, def
 
 | Check | How to Verify |
 |-------|--------------|
-| Hover on all interactives | Every `<Button>`, clickable card, table row action has hover styles |
-| Focus visible | `:focus-visible` ring on buttons, inputs, links. NEVER `outline: none` without replacement |
-| Disabled state | `disabled:opacity-*` + `disabled:pointer-events-none`. Not just visual |
-| Loading states | Async actions show loading indicator. Buttons disable during submission |
-| Icon-only: aria-label | Every icon-only button has `aria-label` |
-| Destructive → AlertDialog | Delete/discard/overwrite uses AlertDialog, not Dialog or window.confirm |
-| Errors inline | Errors next to trigger, not only in toast/banner |
-| Focus restored on close | Dialog close restores focus to opener |
-| Initial focus on open | Dialogs set initial focus on first interactive or explicit target |
+| Five states present | Every interactive element: default, hover (`@media (hover: hover)`), focus-visible ring (never removed), active, disabled |
+| Async lifecycle | Every async action: pending disables re-activation + shows status (`aria-busy`); success/error visible where the action happened |
+| Icon-only: aria-label | Every icon-only control |
+| Destructive matches reversibility | Reversible → immediate + undo; irreversible/high-stakes → explicit confirmation naming object and scale |
+| Errors inline | Adjacent to the trigger, not only in a toast/banner |
+| Focus managed | Dialogs set initial focus and restore focus to opener on close |
 | aria-expanded | Accordion/collapsible triggers have `aria-expanded` + `aria-controls` |
-| aria-busy | Containers receiving async content use `aria-busy={true}` |
-| Hit areas don't collide | Expanded hit targets of adjacent interactive controls never overlap |
-| Paste not blocked | No `onPaste={e => e.preventDefault()}` |
+| Hit areas don't collide | Expanded targets of adjacent controls never overlap |
+| Paste not blocked | No `onPaste` prevention |
 
 ## Gate 7: Accessibility
 
 | Check | How to Verify |
 |-------|--------------|
-| Semantic HTML | `<button>` for actions, `<a>` for nav. No `<div onClick>` |
-| Heading hierarchy | h1→h2→h3, no skipping. One h1 per page |
-| Alt text on images | Every `<img>` has `alt`. Decorative: `alt=""` |
-| Form labels | Every input has `<label>` (via `htmlFor` or wrapping). Not just placeholder |
-| Keyboard nav | Logical tab order, no traps, no `tabIndex` > 0 |
-| ARIA live regions | Dynamic updates use `aria-live="polite"` or `role="status"` |
-| Color not sole indicator | Status never by color alone — pair with icon, text, or pattern |
-| Touch targets ≥ 44px | `min-h-11 min-w-11` or equivalent on mobile |
-| prefers-reduced-motion | All animations respect `prefers-reduced-motion: reduce` |
-| h-dvh not h-screen | Zero `h-screen`. Use `h-dvh` |
+| Semantic HTML | `<button>` for actions, `<a>` for nav; no `<div onClick>` |
+| Heading hierarchy | h1→h2→h3, no skipping, one h1 per page |
+| Alt text | Every `<img>` has `alt`; decorative `alt=""` |
+| Form labels | Every input has a visible `<label>`, not just placeholder |
+| Keyboard nav | Logical tab order, no traps, no `tabIndex > 0` |
+| ARIA live regions | Dynamic updates use `aria-live="polite"`/`role="status"` |
+| Touch targets | ≥44px mobile primary controls (24px WCAG AA absolute floor) |
+| prefers-reduced-motion | All motion >200ms has a reduced path |
+| h-dvh not h-screen | Zero `h-screen` |
 
-## Gate 8: Edge Cases
+## Gate 8: Product States & Edge Cases
 
 | Check | How to Verify |
 |-------|--------------|
-| Empty states designed | Every list/table/grid has empty state with message + CTA |
-| Long text handled | `truncate`, `line-clamp-*`, or `break-words` on names/titles/descriptions |
-| Flex/grid overflow | Flex children have `min-w-0`. Grid children have `min-w-0 min-h-0` |
-| Numbers formatted | Large numbers use `Intl.NumberFormat` |
-| Dates formatted | Dates use `Intl.DateTimeFormat` or relative format |
-| Skeletons match layout | Skeleton shapes mirror actual content, not generic rectangles |
-| Truncation recoverable | Material truncated text reachable in full — tooltip, expansion, or detail view |
-| Double-submit prevented | Form submit buttons disable during async |
-| Error recovery | Every error state has retry action or clear path forward |
+| Four-state contract | Every async data surface designs loading, populated, empty, error |
+| Empty states typed | First-use / cleared / no-results / error-caused get distinct copy; next-action CTA present when a real action exists |
+| Error recovery | Every error names what happened + how to recover; retry path present |
+| Conditional states | Permission-denied, offline, stale/partial designed where reachable |
+| Long text handled | `truncate`/`line-clamp-*`/`break-words` on names/titles; truncated material reachable in full |
+| Flex/grid overflow | `min-w-0` on flex children with text; `min-w-0 min-h-0` on grid children |
+| Formatting | `Intl.NumberFormat`/`Intl.DateTimeFormat`, never concatenation |
+| Skeletons match layout | Shapes mirror actual content and reserve its space |
+| Data extremes | Survives 0, 1, 1000+ items; 100+ char strings; emoji; RTL |
 
 ## Gate 9: Performance
 
 | Check | How to Verify |
 |-------|--------------|
 | No layout animations | Zero `animate-*`/`transition-*` on width/height/top/left/margin/padding |
-| No permanent will-change | `will-change` only within animation scope |
-| No animated blur | No `backdrop-blur` + `transition`/`animate` together |
-| Images lazy loaded | Below-fold: `loading="lazy"` |
-| No layout shift | Async content has reserved space |
-| Lists virtualized | 100+ items use virtual scrolling |
-| Inputs debounced | Search/filter: 200-300ms debounce |
-| Cleanup on unmount | useEffect cleanup cancels subscriptions, aborts fetch |
-| No mount animation on defaults | Default-state `AnimatePresence` uses `initial={false}` (deliberate first-load entrances exempt) |
-| No parent CSS-var animation | Parent custom properties not updated per-frame to drive child transforms |
-| Hidden-tab timers pause | Timed toasts/auto-dismiss pause while document is hidden |
-| Content visible without JS animation | No content whose visibility depends on a class-triggered transition firing (ships blank in hidden tabs/headless) |
-| No console.log | Zero `console.log/warn/error` not wrapped in dev check |
+| No permanent will-change | Only within animation scope |
+| No animated blur | No `backdrop-blur` + transition/animate together |
+| Images lazy + reserved | Below-fold `loading="lazy"`; async content has reserved space (zero shift) |
+| Lists virtualized | 100+ items |
+| Inputs debounced | Search/filter 200–300ms |
+| Cleanup on unmount | Effects cancel subscriptions, abort fetches |
+| No mount animation on defaults | Default-state `AnimatePresence initial={false}` (deliberate first-load entrances exempt) |
+| Content visible without JS animation | Visibility never depends on a class-triggered transition (ships blank in hidden tabs/headless) |
+| Hidden-tab timers pause | Timed toasts/auto-dismiss pause while document hidden |
+| No console.log | Zero non-dev-gated console output |
 
 ## Gate 10: Responsive
 
 | Check | How to Verify |
 |-------|--------------|
-| Mobile layout works | No horizontal scroll. Content reflows to single column |
-| Touch targets adequate | 44x44px minimum on mobile |
+| Mobile layout works | No horizontal scroll; content reflows |
 | No hidden core features | `hidden md:block` on essential functionality = flag |
-| Logical CSS properties | `margin-inline-start/end` for RTL support |
+| Logical CSS properties | `margin-inline-*`/`ps-*` for RTL support |
 | No fixed widths on text | `w-24`/`w-[200px]` on text containers = flag |
-| Zoom not disabled | No `user-scalable=no` or `maximum-scale=1` |
+| Zoom not disabled | No `user-scalable=no`/`maximum-scale=1` |
+| Safe areas | Fixed/sticky mobile elements pad with `env(safe-area-inset-*)` |
 
 ## Gate 11: Error Resilience
 
 | Check | How to Verify |
 |-------|--------------|
-| API errors by code | 401→login, 403→permission, 404→not found, 429→rate limit, 500→error |
-| Error boundaries | React error boundaries around major sections |
-| Double-submit prevented | Form submit disables during async |
-| Optimistic rollback | Failed optimistic updates revert state + show error |
+| API errors by code | 401→login, 403→permission, 404→not found, 429→rate limit, 500→error surface |
+| Error boundaries | Around major sections |
+| Optimistic rollback | Failed optimistic updates revert visibly + show error |
+| Offline/stale honest | Offline states say what still works; stale data is timestamped |
 
 ## Gate 12: Live Verification (agent-browser)
 
-Static gates read source; this gate checks the **rendered page**. Run whenever a dev server exists or can be started. Load the CLI workflow first: `agent-browser skills get core`. Then verify — every check binary:
+Static gates read source; this gate checks the **rendered page**.
 
-| Check | Pass Condition |
-|-------|---------------|
-| Page renders | Screenshot at 1440px and 375px — no blank sections, no overlapping text, no horizontal scroll at 375px |
-| Console clean | Zero errors and zero React/hydration warnings in the browser console on load and after primary interactions |
-| Interaction states real | Hover + focus a primary button and screenshot — visible state change for each; tab through the page — focus ring visible on every interactive element |
-| Headings render in order | Accessibility snapshot shows h1→h2→h3 with one h1 |
-| Rendered contrast | Sample body text + its actual rendered background from the screenshot — ≥ 4.5:1 |
-| Dark mode (if present) | Toggle and screenshot — no unreadable text, no pure-black bg, no invisible borders |
-| Long content survives | Inject/enter a 100+ char string in a title or input — no layout break, truncation has full-value access |
-| Empty state renders | Navigate to a list with no data — message + CTA visible, not a blank region |
-| Reduced motion respected | Emulate `prefers-reduced-motion: reduce` — positional animations gone, content still visible |
-| Mobile tap targets | At 375px, primary actions ≥ 44px and reachable without horizontal scroll |
+**Prerequisites:** a dev/preview command exists (or a URL is supplied) and `agent-browser` responds. Both present → the gate is mandatory. Either missing → record `Gate 12: N-A — <which prerequisite is missing and why>`. N-A is never a pass; a state that should exist but cannot be exposed is a failing state check.
 
-Attach screenshot paths to the QA report. A failure here outranks any static-gate pass — the rendered page is the product.
+**Viewports:** 375×812 and 1440×900 always; 768×1024 when the layout has a tablet breakpoint.
+
+**States:** loaded (both required viewports) — then empty, loading, error, long-content, interactive states at one representative viewport each; dark mode and reduced-motion when supported. Repeat a state at a second viewport only when responsive behavior could change its verdict.
+
+**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands above the runbook probe's fail tier at 1440px (judge-tier bands reviewed against Gate 4) · marketing: zero full-width section rules and ≤3 distinct section surfaces · reduced-motion emulation removes positional animation.
+
+**Screenshot review (judgment):** overlap, hierarchy, blank/thin sections, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against Gate 1.
+
+Exact commands, probe JavaScript, and evidence schema: **READ [reference/live-verification.md](reference/live-verification.md)** before running this gate.
+
+**Complete when** every required state × viewport has a screenshot + console/error capture recorded, **every machine probe is listed in the report with its measured result** (a probe not listed was not run — the gate is incomplete), all probes pass, and no Critical visual finding remains. Attach screenshot paths and repro steps for every finding. A failure here outranks any static-gate pass — the rendered page is the product.
 
 ---
 
@@ -220,13 +225,13 @@ Attach screenshot paths to the QA report. A failure here outranks any static-gat
 - **[Gate]: [Check]** — [File:Line] — [Issue and fix]
 ```
 
-**Severity:** Critical = accessibility violations, anti-slop, broken interaction states, live-verification failures (blank render, console errors, unreadable contrast). High = missing loading states, hardcoded colors, no empty states. Medium = missing text-balance, non-debounced inputs, missing tabular-nums.
+**Severity:** Critical = accessibility blockers, dead controls, Gate 1 hard guardrails, Gate 12 machine-probe failures, blank/broken render. High = hardcoded colors, missing required states or recovery, spacing/type system violations, missing loading/rollback. Medium = contextual craft issues and non-blocking polish.
 
 ## Quick-Check (6 items for fast PR reviews)
 
 1. No anti-slop patterns (Gate 1)
 2. No hardcoded colors (Gate 3)
 3. Focus visible on all interactives (Gate 6)
-4. Empty states exist (Gate 8)
+4. Four-state contract on async surfaces (Gate 8)
 5. No layout animations (Gate 9)
-6. Renders clean at 1440px + 375px with zero console errors (Gate 12)
+6. Renders clean at 1440px + 375px with zero console errors (Gate 12; N-A per its rule when no renderable target exists)

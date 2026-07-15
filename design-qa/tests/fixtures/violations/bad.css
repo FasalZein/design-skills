@@ -1,0 +1,8 @@
+.hero { height: 100vh; background: linear-gradient(#8b5cf6, #ec4899); }
+.title { letter-spacing: -0.05em; color: #333333; }
+.panel { transition: width 200ms ease, height 200ms; will-change: transform; }
+.meta { maximum-scale=1 }
+.mixed { color: #fff; background: var(--surface); }
+.event-card { border-left: 3px solid var(--accent); background: var(--surface-tint); }
+section { border-top: 1px solid var(--border); }
+.section-divider { border-bottom: 1px solid var(--border); }

@@ -1,0 +1,9 @@
+.title { letter-spacing: -0.1em; }
+.panel { height: 100vh; color: #222; }
+.logical-stripe { border-inline-start: 4px solid var(--warning); }
+.services-section {
+  border-block-start: 1px solid var(--border);
+}
+.rem-stripe { border-inline-start: .25rem solid var(--accent); }
+.longhand { border-left-width: 4px; border-left-color: red; border-left-style: solid; }
+.shadow-stripe { box-shadow: inset 3px 0 0 var(--accent); }

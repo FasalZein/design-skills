@@ -1,401 +1,262 @@
 #!/usr/bin/env bash
-# design-scan.sh — Ultra-fast design anti-pattern scanner
-# Zero dependencies beyond ripgrep (rg). Optional: ast-grep (sg), fd
-# Scans a full React/Tailwind project in <0.5 seconds
-#
-# Usage:
-#   bash design-scan.sh [target-dir] [options]
-#
-# Options:
-#   --json           Output JSON (for tooling/dashboards)
-#   --fix            Show fix suggestions per issue
-#   --critical-only  Only show critical issues
-#   --allowlist FILE  Path to allowlist file (one pattern per line to ignore)
-#   --no-ui          Skip scanning components/ui/ (they're upstream primitives)
+# design-scan — mechanical anti-slop / design-system scanner.
+# Exit: 0 = scanned & passed · 1 = findings broke the active mode · 2 = could not produce reliable evidence.
+# Contract details: ../SKILL.md "Scanner".
+set -u
 
-set -euo pipefail
+JSON=0; CRITICAL_ONLY=0; ALLOW_EMPTY=0; ALLOWLIST=""; TARGET=""
 
-TARGET="${1:-.}"
-JSON_MODE=false
-FIX_MODE=false
-CRITICAL_ONLY=false
-SKIP_UI=false
-ALLOWLIST=""
+# Pre-scan for --json so die() can emit JSON regardless of argument order
+for _a in "$@"; do [ "$_a" = "--json" ] && JSON=1 && break; done
 
-for arg in "$@"; do
-  case $arg in
-    --json) JSON_MODE=true ;;
-    --fix) FIX_MODE=true ;;
-    --critical-only) CRITICAL_ONLY=true ;;
-    --no-ui) SKIP_UI=true ;;
-    --allowlist=*) ALLOWLIST="${arg#*=}" ;;
-  esac
-done
-
-RED='\033[0;31m' YLW='\033[0;33m' GRN='\033[0;32m'
-CYN='\033[0;36m' DIM='\033[0;90m' BLD='\033[1m' NC='\033[0m'
-
-TMPDIR=$(mktemp -d)
-trap 'rm -rf "$TMPDIR"' EXIT
-
-# Common ripgrep flags — single source of truth
-RG_BASE="--line-number --with-filename --no-heading"
-RG_GLOBS="--glob=*.tsx --glob=*.jsx --glob=*.ts --glob=*.js --glob=*.css --glob=*.scss --glob=*.html --glob=*.vue --glob=*.svelte --glob=*.astro"
-RG_EXCLUDE="--glob=!node_modules/** --glob=!dist/** --glob=!build/** --glob=!.next/** --glob=!*.d.ts --glob=!*.test.* --glob=!*.spec.* --glob=!*.stories.*"
-if $SKIP_UI; then
-  RG_EXCLUDE="$RG_EXCLUDE --glob=!**/components/ui/**"
-fi
-
-# ============================================================
-# SCAN GROUPS — all run in parallel, single rg pass each
-# ripgrep compiles -e patterns into one automaton = ~same speed as 1 pattern
-# ============================================================
-
-# CRITICAL: AI Slop fingerprints
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'from-purple' -e 'from-violet' -e 'to-blue-\d' -e 'to-cyan-\d' \
-  -e 'shadow-glow' -e 'shadow-neon' \
-  "$TARGET" 2>/dev/null | sed 's/^/CRITICAL|AI_SLOP|/' > "$TMPDIR/01.txt" &
-
-# CRITICAL: Gradient text (bg-clip-text + text-transparent combo)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'bg-clip-text.*text-transparent' \
-  -e 'text-transparent.*bg-clip-text' \
-  "$TARGET" 2>/dev/null | sed 's/^/CRITICAL|GRADIENT_TEXT|/' > "$TMPDIR/02.txt" &
-
-# HIGH: Hardcoded colors in Tailwind classes
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e '(bg|text|border|ring|shadow|outline|fill|stroke)-\[#[0-9a-fA-F]' \
-  -e '(bg|text|border|ring)-\[rgb' \
-  -e '(bg|text|border|ring)-\[hsl' \
-  "$TARGET" 2>/dev/null | sed 's/^/HIGH|HARDCODED_COLOR|/' > "$TMPDIR/03.txt" &
-
-# HIGH: h-screen (iOS Safari broken)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e '\bh-screen\b' -e '\bmin-h-screen\b' \
-  "$TARGET" 2>/dev/null | sed 's/^/HIGH|H_SCREEN|/' > "$TMPDIR/04.txt" &
-
-# HIGH: Arbitrary spacing (px values in spacing utilities)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e '\b[pm][xytblres]?-\[\d+px\]' \
-  -e 'gap-\[\d+px\]' \
-  -e 'space-[xy]-\[\d+px\]' \
-  "$TARGET" 2>/dev/null | sed 's/^/HIGH|ARBITRARY_SPACING|/' > "$TMPDIR/05.txt" &
-
-# MEDIUM: Arbitrary font sizes — but allow text-[11px] (micro) and text-[10px] (sub-micro)
-# Flag anything else: text-[13px], text-[15px], text-[17px] etc.
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'text-\[\d+px\]' \
-  -e 'text-\[\d+\.?\d*rem\]' \
-  "$TARGET" 2>/dev/null | \
-  grep -v 'text-\[11px\]' | \
-  grep -v 'text-\[10px\]' | \
-  grep -v 'text-\[9px\]' | \
-  sed 's/^/MEDIUM|ARBITRARY_TYPE|/' > "$TMPDIR/06.txt" &
-
-# MEDIUM: Arbitrary sizing with px
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e '[wh]-\[\d+px\]' \
-  -e 'size-\[\d+px\]' \
-  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|ARBITRARY_SIZE|/' > "$TMPDIR/07.txt" &
-
-# MEDIUM: Z-index chaos (3+ digit arbitrary z-index)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'z-\[\d{3,}\]' \
-  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|Z_INDEX|/' > "$TMPDIR/08.txt" &
-
-# MEDIUM: Animation anti-patterns
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e '\banimate-bounce\b' \
-  -e '\btransition-all\b' \
-  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|ANIMATION|/' > "$TMPDIR/09.txt" &
-
-# CRITICAL: div/span with onClick (not keyboard accessible — WCAG 2.1.1)
-rg $RG_BASE --glob='*.tsx' --glob='*.jsx' $RG_EXCLUDE \
-  -e '<div[^>]*onClick' \
-  -e '<span[^>]*onClick' \
-  "$TARGET" 2>/dev/null | sed 's/^/CRITICAL|SEMANTICS|/' > "$TMPDIR/10.txt" &
-
-# CRITICAL: tabindex > 0 (disrupts natural tab order)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'tabIndex=\{?[1-9]' \
-  -e 'tabindex="[2-9]' \
-  "$TARGET" 2>/dev/null | sed 's/^/CRITICAL|TABINDEX|/' > "$TMPDIR/11.txt" &
-
-# CRITICAL: Zoom disabled in viewport meta (WCAG 1.4.4)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'user-scalable=no' \
-  -e 'maximum-scale=1' \
-  "$TARGET" 2>/dev/null | sed 's/^/CRITICAL|ZOOM_DISABLED|/' > "$TMPDIR/12.txt" &
-
-# HIGH: Paste blocked
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'onPaste.*preventDefault' \
-  "$TARGET" 2>/dev/null | sed 's/^/HIGH|PASTE_BLOCKED|/' > "$TMPDIR/13.txt" &
-
-# HIGH: Hardcoded oklch (closes gap in color scanner — inline oklch bypasses tokens)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e '(bg|text|border|ring)-\[oklch' \
-  "$TARGET" 2>/dev/null | sed 's/^/HIGH|HARDCODED_COLOR|/' > "$TMPDIR/14.txt" &
-
-# HIGH: focus:outline-none without focus-visible replacement (bare focus removal)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'focus:outline-none' \
-  "$TARGET" 2>/dev/null | \
-  grep -v 'focus-visible:' | \
-  sed 's/^/HIGH|FOCUS_REMOVED|/' > "$TMPDIR/15.txt" &
-
-# CRITICAL: Stripe backgrounds + sketchy SVG filters (decoration reflexes)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'repeating-linear-gradient' \
-  -e 'feTurbulence' -e 'feDisplacementMap' \
-  "$TARGET" 2>/dev/null | sed 's/^/CRITICAL|DECOR_REFLEX|/' > "$TMPDIR/16.txt" &
-
-# HIGH: Over-rounding (border-radius ≥24px on surfaces)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'rounded-\[(2[4-9]|[3-9][0-9])px\]' \
-  -e 'border-radius:\s*(2[4-9]|[3-9][0-9])px' \
-  -e '\brounded-(3xl|4xl)\b' \
-  "$TARGET" 2>/dev/null | sed 's/^/HIGH|OVER_ROUNDED|/' > "$TMPDIR/17.txt" &
-
-# MEDIUM: Eyebrow kickers (uppercase + wide tracking combo)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'uppercase[^"]*tracking-wide' \
-  -e 'tracking-wide[^"]*uppercase' \
-  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|EYEBROW|/' > "$TMPDIR/18.txt" &
-
-# MEDIUM: Cream-reflex token names + positive tracking on body text
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e '\-\-(paper|cream|sand|linen|parchment|bone|ivory|wheat|biscuit)' \
-  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|CREAM_TOKEN|/' > "$TMPDIR/19.txt" &
-
-# CRITICAL: Slop gradient family (violet→pink/fuchsia + two-stop dark neutral)
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'from-(purple|violet|indigo)-[0-9]+[^"'"'"']*to-(pink|fuchsia|rose)-[0-9]+' \
-  -e 'from-(slate|zinc|neutral|gray)-[89]00[^"'"'"']*to-(slate|zinc|neutral|gray)-[89]00' \
-  "$TARGET" 2>/dev/null | sed 's/^/CRITICAL|SLOP_GRADIENT|/' > "$TMPDIR/20.txt" &
-
-# MEDIUM: Gradient orbs / decorative pulse / marquee trust strips
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e '(gradient|from-[a-z]+-[0-9]+)[^"'"'"']*blur-(2xl|3xl)' \
-  -e 'blur-(2xl|3xl)[^"'"'"']*(gradient|from-[a-z]+-[0-9]+)' \
-  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|ORB_BLOB|/' > "$TMPDIR/21.txt" &
-
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'animate-(pulse|ping)' \
-  "$TARGET" 2>/dev/null | grep -vi 'skeleton\|loading' | sed 's/^/MEDIUM|PULSE_DECOR|/' > "$TMPDIR/22.txt" &
-
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'animate-marquee|keyframes +marquee' \
-  -e 'Trusted by [0-9]' \
-  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|TRUST_THEATER|/' > "$TMPDIR/23.txt" &
-
-# MEDIUM: AI copy tells
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE -i \
-  -e 'effortlessly|streamline|revolutioniz|unlock the power|welcome to our platform|take your [a-z]+ to the next level' \
-  -e "(it'?s|this is)n'?o?t? (just|only|simply) [^<]{3,60}, (it'?s|but)" \
-  -e '(built|made|crafted) with (❤|♥|love)' \
-  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|SLOP_COPY|/' > "$TMPDIR/24.txt" &
-
-# HIGH: Dead controls + unmodified shadcn fingerprint
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'href="#"' \
-  -e 'javascript:void' \
-  "$TARGET" 2>/dev/null | sed 's/^/HIGH|DEAD_CONTROL|/' > "$TMPDIR/25.txt" &
-
-rg $RG_BASE $RG_GLOBS $RG_EXCLUDE \
-  -e 'whitespace-nowrap rounded-md text-sm font-medium ring-offset-background' \
-  "$TARGET" 2>/dev/null | sed 's/^/MEDIUM|SHADCN_DEFAULT|/' > "$TMPDIR/26.txt" &
-
-# Wait for all parallel scans
-wait
-
-# ============================================================
-# MERGE + ALLOWLIST FILTER
-# ============================================================
-
-cat "$TMPDIR"/*.txt 2>/dev/null | sort > "$TMPDIR/raw.txt"
-
-# Apply allowlist if provided (grep -v each pattern)
-if [ -n "$ALLOWLIST" ] && [ -f "$ALLOWLIST" ]; then
-  grep -v -f "$ALLOWLIST" "$TMPDIR/raw.txt" > "$TMPDIR/all.txt" 2>/dev/null || cp "$TMPDIR/raw.txt" "$TMPDIR/all.txt"
-else
-  cp "$TMPDIR/raw.txt" "$TMPDIR/all.txt"
-fi
-
-# ============================================================
-# ast-grep structural scan (optional — if sg is installed)
-# ============================================================
-
-if command -v sg &>/dev/null; then
-  SGCONFIG="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd)/sgconfig.yml" || true
-  if [ -f "$SGCONFIG" ]; then
-    sg scan --config "$SGCONFIG" --json "$TARGET" 2>/dev/null | \
-      jq -r '.[] | "HIGH|STRUCTURAL|\(.file):\(.range.start.line):\(.message)"' 2>/dev/null | \
-      head -50 >> "$TMPDIR/all.txt" || true
+die() {
+  if [ "$JSON" -eq 1 ]; then
+    if command -v jq >/dev/null 2>&1; then
+      jq -n --arg e "$1" '{status:"error",errors:[$e]}'
+    else
+      msg=${1//\\/\\\\}; msg=${msg//\"/\\\"}
+      printf '{"status":"error","errors":["%s"]}\n' "$msg"
+    fi
   fi
-fi
-
-# ============================================================
-# COUNT
-# ============================================================
-
-TOTAL=$(wc -l < "$TMPDIR/all.txt" | tr -d '[:space:]')
-CRITICAL=$(grep -c '^CRITICAL' "$TMPDIR/all.txt" 2>/dev/null | tr -d '[:space:]' || true)
-HIGH=$(grep -c '^HIGH' "$TMPDIR/all.txt" 2>/dev/null | tr -d '[:space:]' || true)
-MEDIUM=$(grep -c '^MEDIUM' "$TMPDIR/all.txt" 2>/dev/null | tr -d '[:space:]' || true)
-LOW=$(grep -c '^LOW' "$TMPDIR/all.txt" 2>/dev/null | tr -d '[:space:]' || true)
-: "${CRITICAL:=0}" "${HIGH:=0}" "${MEDIUM:=0}" "${LOW:=0}"
-
-# ============================================================
-# FIX SUGGESTIONS MAP
-# ============================================================
-
-fix_for() {
-  case "$1" in
-    AI_SLOP)           echo "Remove gradient. Use flat semantic color tokens." ;;
-    GRADIENT_TEXT)      echo "Remove bg-clip-text gradient. Use solid text color." ;;
-    HARDCODED_COLOR)    echo "Use semantic token: bg-primary, text-muted-foreground, border-border, etc." ;;
-    H_SCREEN)           echo "Replace h-screen with h-dvh (fixes iOS Safari viewport)." ;;
-    ARBITRARY_SPACING)  echo "Use spacing scale: gap-2 (8px), gap-4 (16px), or --space-* tokens." ;;
-    ARBITRARY_TYPE)     echo "Use type scale: text-xs (12), text-sm (14), text-base (16), text-xl (20)." ;;
-    ARBITRARY_SIZE)     echo "Use Tailwind sizing scale or CSS custom properties." ;;
-    Z_INDEX)            echo "Use fixed z-index: z-10, z-20, z-30, z-40, z-50." ;;
-    ANIMATION)          echo "Replace transition-all with transition-transform or transition-opacity." ;;
-    SEMANTICS)          echo "Use <button> for clickable actions. <div onClick> is not keyboard accessible." ;;
-    TABINDEX)           echo "Remove tabIndex > 0. Use tabIndex={0} or natural DOM order instead." ;;
-    ZOOM_DISABLED)      echo "Remove user-scalable=no / maximum-scale=1. Users must be able to zoom (WCAG 1.4.4)." ;;
-    PASTE_BLOCKED)      echo "Remove onPaste preventDefault. Never block paste in inputs." ;;
-    FOCUS_REMOVED)      echo "Add focus-visible:ring-2 alongside outline-none, or remove outline-none." ;;
-    DECOR_REFLEX)       echo "Remove stripe/turbulence decoration. Use neutral-scale surface variation or border treatments." ;;
-    OVER_ROUNDED)       echo "Cards top out at 12-16px radius (rounded-xl/2xl). Full-pill only for tags/buttons." ;;
-    EYEBROW)            echo "Drop the uppercase tracked kicker scaffold. Real headings and spacing do this job." ;;
-    CREAM_TOKEN)        echo "Cream/sand body bg is the AI warm-neutral reflex. Carry warmth via accent + typography instead." ;;
-    SLOP_GRADIENT)      echo "The AI gradient family. One flat surface from the neutral scale, or a committed brand color." ;;
-    ORB_BLOB)           echo "Remove decorative blurred gradient blobs. Use neutral surface variation for depth." ;;
-    PULSE_DECOR)        echo "animate-pulse/ping belongs to skeletons only. Emphasize the featured item with weight/contrast." ;;
-    TRUST_THEATER)      echo "Drop marquee/'Trusted by N+' strips. Real customers with permission, or nothing." ;;
-    SLOP_COPY)          echo "AI copy tell. Say what the product actually does, in specific verbs." ;;
-    DEAD_CONTROL)       echo "Wire a real handler/destination or remove the control. href='#' is a broken promise." ;;
-    SHADCN_DEFAULT)     echo "Unmodified shadcn variant string. Customize tokens, radii, and variants to the brand." ;;
-    STRUCTURAL)         echo "See ast-grep rule output for specific fix." ;;
-    *)                  echo "" ;;
-  esac
+  echo "design-scan error: $1" >&2
+  exit 2
 }
 
-# ============================================================
-# OUTPUT
-# ============================================================
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --json) ;; # already set in pre-scan
+    --critical-only) CRITICAL_ONLY=1 ;;
+    --allow-empty) ALLOW_EMPTY=1 ;;
+    --allowlist=*) ALLOWLIST="${1#--allowlist=}" ;;
+    --allowlist) shift; [ $# -gt 0 ] || die "--allowlist requires a file"; ALLOWLIST="$1" ;;
+    -h|--help) sed -n '2,4p' "$0"; exit 0 ;;
+    -*) die "unknown option: $1" ;;
+    *) [ -n "$TARGET" ] && die "multiple targets given: '$TARGET' and '$1'"; TARGET="$1" ;;
+  esac
+  shift
+done
 
-if $JSON_MODE; then
-  # Structured JSON for dashboards/tooling
-  echo '{'
-  echo '  "target": "'"$TARGET"'",'
-  echo '  "total": '$TOTAL','
-  echo '  "critical": '$CRITICAL','
-  echo '  "high": '$HIGH','
-  echo '  "medium": '$MEDIUM','
-  echo '  "low": '$LOW','
-
-  # Score: 100 minus weighted deductions, floor at 0
-  SCORE=$((100 - CRITICAL * 10 - HIGH * 3 - MEDIUM * 1))
-  [ "$SCORE" -lt 0 ] && SCORE=0
-  echo '  "score": '$SCORE','
-
-  # Category breakdown
-  echo '  "categories": {'
-  cut -d'|' -f2 "$TMPDIR/all.txt" | sort | uniq -c | sort -rn | \
-    awk 'BEGIN{f=0} {if(f)printf ",\n"; f=1; printf "    \"%s\": %d", $2, $1}' || true
-  echo ''
-  echo '  },'
-
-  echo '  "issues": ['
-  first=true
-  while IFS='|' read -r severity category rest; do
-    file=$(echo "$rest" | cut -d: -f1)
-    lineno=$(echo "$rest" | cut -d: -f2)
-    content=$(echo "$rest" | cut -d: -f3- | head -c 200 | sed 's/\\/\\\\/g; s/"/\\"/g')
-    $first || echo ","
-    first=false
-    printf '    {"severity":"%s","category":"%s","file":"%s","line":"%s","content":"%s","fix":"%s"}' \
-      "$severity" "$category" "$file" "$lineno" "$content" "$(fix_for "$category")"
-  done < "$TMPDIR/all.txt"
-  echo ''
-  echo '  ]'
-  echo '}'
-
-else
-  # Terminal output
-  echo ""
-  echo -e "${BLD}━━━ Design Scan ━━━${NC}"
-  echo -e "${DIM}Target: $TARGET${NC}"
-  echo ""
-
-  if [ "$TOTAL" -eq 0 ]; then
-    echo -e "${GRN}✓ Clean — no design anti-patterns found${NC}"
-    echo ""
-    exit 0
-  fi
-
-  # Score
-  SCORE=$((100 - CRITICAL * 10 - HIGH * 3 - MEDIUM * 1))
-  [ "$SCORE" -lt 0 ] && SCORE=0
-  if [ "$SCORE" -ge 75 ]; then SC="$GRN"
-  elif [ "$SCORE" -ge 50 ]; then SC="$YLW"
-  else SC="$RED"
-  fi
-
-  echo -e "  ${BLD}Score: ${SC}${SCORE}/100${NC}"
-  echo -e "  ${RED}Critical: $CRITICAL${NC}  ${YLW}High: $HIGH${NC}  ${DIM}Medium: $MEDIUM  Low: $LOW${NC}"
-  echo ""
-
-  # Category breakdown
-  echo -e "${BLD}  Categories:${NC}"
-  cut -d'|' -f2 "$TMPDIR/all.txt" | sort | uniq -c | sort -rn | while read count cat; do
-    echo -e "    ${CYN}$cat${NC} $count"
-  done
-  echo ""
-
-  # Issues by severity
-  for sev in CRITICAL HIGH MEDIUM LOW; do
-    if $CRITICAL_ONLY && [ "$sev" != "CRITICAL" ] && [ "$sev" != "HIGH" ]; then continue; fi
-
-    case $sev in
-      CRITICAL) color="$RED" ;;
-      HIGH) color="$YLW" ;;
-      *) color="$DIM" ;;
-    esac
-
-    COUNT_FOR_SEV=$(grep -c "^$sev" "$TMPDIR/all.txt" 2>/dev/null || true)
-    COUNT_FOR_SEV=$(echo "$COUNT_FOR_SEV" | tr -d '[:space:]')
-    : "${COUNT_FOR_SEV:=0}"
-    [ "$COUNT_FOR_SEV" -eq 0 ] 2>/dev/null && continue
-
-    local_shown=0
-    MAX_SHOW=20
-
-    grep "^$sev" "$TMPDIR/all.txt" | while IFS='|' read -r severity category rest; do
-      local_shown=$((local_shown + 1))
-      [ "$local_shown" -gt "$MAX_SHOW" ] && { echo -e "  ${DIM}... +$((COUNT_FOR_SEV - MAX_SHOW)) more $sev${NC}"; break; }
-
-      file=$(echo "$rest" | cut -d: -f1)
-      lineno=$(echo "$rest" | cut -d: -f2)
-      content=$(echo "$rest" | cut -d: -f3- | sed 's/^[[:space:]]*//' | head -c 100)
-
-      echo -e "  ${color}$sev${NC} ${CYN}$category${NC} $file:$lineno"
-      echo -e "    ${DIM}$content${NC}"
-      if $FIX_MODE; then
-        fix=$(fix_for "$category")
-        [ -n "$fix" ] && echo -e "    ${GRN}→ $fix${NC}"
-      fi
-    done
-    echo ""
-  done
-
-  # Footer
-  echo -e "${BLD}━━━${NC}"
-  if ! command -v sg &>/dev/null; then
-    echo -e "${DIM}  Tip: brew install ast-grep — enables structural checks (nested cards, missing aria)${NC}"
-  fi
-  echo ""
+command -v rg >/dev/null 2>&1 || die "ripgrep (rg) is required"
+command -v jq >/dev/null 2>&1 || die "jq is required"
+[ -n "$TARGET" ] || die "no target directory given"
+[ -e "$TARGET" ] || die "target does not exist: $TARGET"
+# Single-file target: scan the parent directory filtered to just that file
+if [ -f "$TARGET" ]; then
+  SINGLE_FILE=$(basename "$TARGET")
+  TARGET=$(cd "$(dirname "$TARGET")" && pwd)
+  GLOBS=(-g "$SINGLE_FILE")
 fi
+
+GLOBS=(-g '*.tsx' -g '*.jsx' -g '*.ts' -g '*.js' -g '*.css' -g '*.scss' -g '*.html' -g '*.vue' -g '*.svelte' -g '*.astro' -g '*.mdx'
+       -g '!node_modules' -g '!dist' -g '!build' -g '!.next')
+
+TMP=$(mktemp -d) || die "mktemp failed"
+trap 'rm -rf "$TMP"' EXIT
+
+# NUL-delimited count via temp file: bash $() strips NUL bytes, and newline-delimited
+# counting miscounts newline-containing filenames. Symlinks are not followed (policy).
+rg --files -0 "${GLOBS[@]}" "$TARGET" > "$TMP/files0" 2>/dev/null; RC=$?
+[ "$RC" -ge 2 ] && die "rg --files failed (exit $RC)"
+SCANNED=$(tr -cd '\0' < "$TMP/files0" | wc -c | tr -d ' ')
+if [ "$SCANNED" -eq 0 ] && [ "$ALLOW_EMPTY" -eq 0 ]; then
+  die "no supported files under $TARGET (use --allow-empty to accept)"
+fi
+FINDINGS="$TMP/findings.jsonl"; : > "$FINDINGS"
+
+# run_check CATEGORY SEVERITY FIX EXCLUDE_RE [rg-args...]
+run_check() {
+  local cat="$1" sev="$2" fix="$3" excl="$4"; shift 4
+  local out rc
+  out=$(rg --json -a "${GLOBS[@]}" "$@" "$TARGET" 2>"$TMP/rg.err"); rc=$?
+  if [ "$rc" -ge 2 ]; then die "check $cat failed: $(head -1 "$TMP/rg.err")"; fi
+  [ "$rc" -eq 1 ] && return 0
+  # Literal (non-regex) prefix strip: target paths may contain regex metacharacters like [slug].
+  printf '%s' "$out" | jq -c --arg cat "$cat" --arg sev "$sev" --arg fix "$fix" --arg excl "$excl" --arg tgt "$TARGET" '
+    select(.type=="match")
+    | {category:$cat, severity:$sev, fix:$fix,
+       file:(.data.path.text | if startswith($tgt) then .[($tgt|length):] | ltrimstr("/") else . end),
+       line:.data.line_number,
+       content:(.data.lines.text | gsub("[\\n\\t]";" ") | .[0:200] | sub("^\\s+";""))}
+    | select(($excl == "") or ((.content | test($excl)) | not))
+  ' >> "$FINDINGS" 2>"$TMP/jq.err" || die "jq normalization failed for $cat"
+  [ -s "$TMP/jq.err" ] && die "jq normalization error for $cat: $(head -1 "$TMP/jq.err")"
+  return 0
+}
+
+# ---- Critical: Gate 1 hard guardrails + accessibility blockers (mechanical subset) ----
+# Multiline gaps use [^"'<>] so a match never crosses an attribute or element boundary
+# (from-purple on one element + to-pink on another is NOT one gradient).
+run_check SLOP_GRADIENT critical \
+  "The AI gradient family. One flat committed surface, real media, or a tonal treatment from your own scale." "" \
+  -U \
+  -e 'from-(purple|violet|indigo)-[0-9]+[^"'\''<>]{0,160}to-(pink|fuchsia|rose|blue|cyan)-[0-9]+' \
+  -e 'from-(slate|zinc|neutral|gray)-[89]00[^"'\''<>]{0,160}to-(slate|zinc|neutral|gray)-[89]00'
+
+run_check GRADIENT_TEXT critical \
+  "Solid color; emphasis via weight/size." "" \
+  -U \
+  -e 'bg-clip-text[^"'\''<>]{0,160}text-transparent' -e 'text-transparent[^"'\''<>]{0,160}bg-clip-text'
+
+run_check GRADIENT_ORB critical \
+  "Remove decorative blurred gradient blobs; use neutral surface variation for depth." "" \
+  -U \
+  -e 'blur-(2xl|3xl)[^"'\''<>]{0,160}(bg-gradient-to|from-[a-z]+-[0-9]{3})' \
+  -e '(bg-gradient-to|from-[a-z]+-[0-9]{3})[^"'\''<>]{0,160}blur-(2xl|3xl)'
+
+run_check DEAD_CONTROL critical \
+  "Wire a real handler/destination or remove the control." "" \
+  -e 'href="#?"' -e "href='#?'" -e 'javascript:void' \
+  -e 'on[A-Z][a-zA-Z]*=\{\s*\(\s*\)\s*=>\s*\{\s*\}\s*\}'
+
+run_check DIV_ONCLICK critical \
+  "Use <button> for actions, <a> for navigation." "" \
+  -U \
+  -e '<(div|span)[^>]{0,300}\bonClick' -e '<(div|span)[^>]{0,300}\bonclick=' \
+  -e '<(div|span)[^>]{0,300}@click' -e '<(div|span)[^>]{0,300}\bon:click'
+
+run_check SIDE_STRIPE critical \
+  "The signature LLM tell. Tinted surface OR a leading dot/chip - one cue; category color goes in a filled dot/label, never an edge bar. Timeline rails/blockquotes: allowlist." \
+  'blockquote|\.quote|timeline|rail|connector' \
+  -e 'border-(left|inline-start):\s*([2-9](px)?|[0-9]*\.[0-9]+r?em|[1-9][0-9]*r?em|[0-9]+\.[0-9]+px)\s+solid\s+(var\(|#|oklch\(|rgba?\(|hsla?\()' \
+  -e 'border(Left|InlineStart)\s*:\s*["'\''`]' \
+  -e 'border-(left|inline-start)-width\s*:\s*[2-9]' \
+  -e 'box-shadow\s*:\s*inset\s+[2-9]px\s+0' \
+  -e '\bborder-s-[1-9][^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent)' \
+  -e 'border-l-[1-9][^"'\''<>]{0,80}border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)' \
+  -e 'border-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|accent|warning|success|destructive|info)(-[0-9]+)?[^"'\''<>]{0,80}border-l-[1-9]'
+
+run_check SECTION_BORDER high \
+  "Marketing scope: landing pages are one continuous canvas - boundaries from spacing/density, not rules. App-shell seams are legal: allowlist them." "" \
+  -U \
+  -e '<(section|footer)[^>]{0,200}\bborder-[tby]\b' \
+  -e '(^|[,{ ])(section|footer)\s*(,[^{]*)?\{[^}]*border-(top|bottom|block(-(start|end))?)\s*:\s*[0-9]' \
+  -e '\.[a-z-]*section[a-z-]*[^{]*\{[^}]*border-(top|bottom|block(-(start|end))?)\s*:\s*[0-9]'
+
+run_check TABINDEX_POSITIVE critical \
+  "Fix DOM order instead; tabIndex > 0 breaks natural tab flow." "" \
+  -e 'tabIndex=\{?[1-9]' -e 'tabindex="[1-9]'
+
+run_check ZOOM_DISABLED critical \
+  "Never disable zoom; fix mobile input font-size (>=16px) instead." "" \
+  -e 'user-scalable\s*=\s*no' -e 'maximum-scale\s*=\s*1(\.0*)?(["'\'',> ]|$)'
+
+run_check PASTE_BLOCKED critical \
+  "Never block paste in inputs." "" \
+  -e 'onPaste=\{[^}]{0,60}preventDefault' -e "addEventListener\\(['\"]paste['\"].{0,80}preventDefault"
+
+# ---- High: system violations ----
+run_check H_SCREEN high \
+  "Use h-dvh (dynamic viewport) — h-screen breaks on iOS Safari." "" \
+  -e '[^-a-z](min-)?h-screen\b' -e '^(min-)?h-screen\b' -e 'height:\s*100vh'
+
+run_check HARDCODED_COLOR high \
+  "Move to a semantic token in :root; components use var(--token) / token classes only." \
+  '--[a-zA-Z0-9-]+\s*:\s*[^;}]*(#[0-9a-fA-F]|rgba?\(|hsla?\(|oklch\()' \
+  -e '\b(bg|text|border|from|to|via|fill|stroke|ring|shadow|outline)-\[(#|rgb|hsl|oklch)' \
+  -e '(color|background(-color)?|border(-color)?|fill|stroke|box-shadow|outline)\s*:\s*[^;]*(#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|oklch\()'
+
+run_check NAMED_COLOR high \
+  "Components use semantic tokens only (bg-primary, text-muted-foreground) - raw palette utilities bypass the design system." "" \
+  -e '["'\''[:space:]:](bg|text|border|ring|fill|stroke|divide|outline|decoration|caret)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-[0-9]{2,3}\b'
+
+run_check ARBITRARY_VALUE high \
+  "Use the spacing/type scale (4px grid); arbitrary px values break the system." "" \
+  -e '\b[pm][trblxy]?-\[[0-9]' -e '\bgap-\[[0-9]' -e '\bspace-[xy]-\[[0-9]' \
+  -e '\btext-\[[0-9]+(\.[0-9]+)?(px|rem)' -e '\b[wh]-\[[0-9]+(\.[0-9]+)?px' -e '\bz-\[[0-9]{3}'
+
+run_check TRACKING_TIGHTER high \
+  "Tracking floor is -0.03em; below 30px use 0. Exact ladder: design-craft type kernel." "" \
+  -e '\btracking-tighter\b' -e 'letter-spacing:\s*-(0\.0(3[1-9]|[4-9])|0\.[1-9]|[1-9])'
+
+run_check LAYOUT_ANIM high \
+  "Animate opacity/transform only; layout properties jank. Use FLIP or grid-rows for size changes." "" \
+  -e 'transition(-property)?\s*:\s*[^;]*\b(width|height|top|left|margin|padding)\b' \
+  -e '\btransition-\[(width|height|top|left|margin|padding)'
+
+# ---- Medium: polish ----
+run_check TRANSITION_ALL medium \
+  "Specify exact properties: transition-colors / transition-transform / transition-opacity." "" \
+  -e '\btransition-all\b' -e 'transition:\s*all\b'
+
+run_check CONSOLE_LOG medium \
+  "Remove or gate behind a dev-environment check." \
+  'import\.meta\.env|process\.env|NODE_ENV' \
+  -e 'console\.(log|warn)\('
+
+# ---- Optional structural checks (ast-grep) ----
+SG_BIN=""
+for c in ast-grep sg; do
+  if command -v "$c" >/dev/null 2>&1 && "$c" --version 2>/dev/null | grep -qi 'ast-grep'; then SG_BIN="$c"; break; fi
+done
+if [ -n "$SG_BIN" ] && [ -d "$(dirname "$0")/../rules" ]; then
+  SG_OUT=$("$SG_BIN" scan --config "$(dirname "$0")/../sgconfig.yml" --json "$TARGET" 2>"$TMP/sg.err") \
+    || die "ast-grep scan failed: $(head -1 "$TMP/sg.err")"
+  # Structural rules map onto the same canonical categories as their lexical peers so dedup merges them.
+  printf '%s' "$SG_OUT" | jq -c --arg tgt "$TARGET" '
+    .[]? | {category:(if .ruleId == "div-with-onclick" then "DIV_ONCLICK"
+                      else ("SG_" + (.ruleId | ascii_upcase | gsub("-";"_"))) end),
+      severity:"critical",
+      fix:(.message // "structural rule"),
+      file:(.file | if startswith($tgt) then .[($tgt|length):] | ltrimstr("/") else . end),
+      line:((.range.start.line // 0) + 1),
+      content:((.text // "") | gsub("[\\n\\t]";" ") | .[0:200])}
+  ' >> "$FINDINGS" || die "ast-grep output is not valid JSON"
+fi
+
+# ---- Dedup ----
+jq -cs 'unique_by(.category, .file, .line) | .[]' "$FINDINGS" > "$TMP/dedup.jsonl" || die "dedup failed"
+mv "$TMP/dedup.jsonl" "$FINDINGS"
+
+# ---- Allowlist ----
+if [ -n "$ALLOWLIST" ]; then
+  [ -f "$ALLOWLIST" ] || die "allowlist file not found: $ALLOWLIST"
+  RULES="$TMP/allow.json"; : > "$RULES"
+  lineno=0
+  while IFS= read -r row || [ -n "$row" ]; do
+    lineno=$((lineno+1))
+    case "$row" in ''|'#'*) continue ;; esac
+    cat_=$(printf '%s' "$row" | awk -F'\t' '{print $1}')
+    re_=$(printf '%s' "$row" | awk -F'\t' '{print $2}')
+    reason_=$(printf '%s' "$row" | awk -F'\t' '{print $3}')
+    { [ -n "$cat_" ] && [ -n "$re_" ] && [ -n "$reason_" ]; } || die "allowlist line $lineno: need CATEGORY<TAB>PATH_REGEX<TAB>REASON"
+    jq -ne --arg re "$re_" '("x" | test($re)) or true' >/dev/null 2>&1 || die "allowlist line $lineno: invalid regex: $re_"
+    jq -nc --arg cat "$cat_" --arg re "$re_" '{cat:$cat,re:$re}' >> "$RULES"
+  done < "$ALLOWLIST"
+  jq -cs --slurpfile rules "$RULES" '
+    map(select(. as $f
+      | ([ $rules[] | . as $r | select(($r.cat == "*" or $r.cat == $f.category) and ($f.file | test($r.re))) ] | length) == 0)) | .[]
+  ' "$FINDINGS" > "$TMP/filtered.jsonl" 2>/dev/null || die "allowlist contains an invalid regex"
+  mv "$TMP/filtered.jsonl" "$FINDINGS"
+fi
+
+# ---- Report ----
+DOC=$(jq -s --arg target "$TARGET" --argjson scanned "$SCANNED" --argjson crit_only "$CRITICAL_ONLY" '
+  ( if $crit_only == 1 then map(select(.severity == "critical")) else . end ) as $issues
+  | ($issues | map(select(.severity=="critical")) | length) as $c
+  | ($issues | map(select(.severity=="high")) | length) as $h
+  | ($issues | map(select(.severity=="medium")) | length) as $m
+  | { status: (if ($issues|length) > 0 then "fail" else "pass" end),
+      target: $target, scannedFiles: $scanned,
+      support: {lexical:["tsx","jsx","ts","js","css","scss","html","vue","svelte","astro","mdx"], structural:"ast-grep optional (TSX-only)"},
+      total: ($issues|length), critical: $c, high: $h, medium: $m,
+      score: ([0, (100 - 10*$c - 3*$h - $m)] | max),
+      categories: ($issues | group_by(.category) | map({key: .[0].category, value: length}) | from_entries),
+      issues: $issues }
+' "$FINDINGS") || die "report assembly failed"
+printf '%s' "$DOC" | jq -e . >/dev/null 2>&1 || die "generated JSON failed validation"
+
+if [ "$JSON" -eq 1 ]; then
+  printf '%s\n' "$DOC"
+else
+  printf '%s' "$DOC" | jq -r '
+    "design-scan: " + .target + " — " + (.scannedFiles|tostring) + " files, "
+      + (.total|tostring) + " findings (score " + (.score|tostring) + ", advisory)",
+    ( .issues | group_by(.severity) | sort_by(.[0].severity) | .[] |
+      "\n[" + (.[0].severity | ascii_upcase) + "]",
+      ( .[] | "  " + .category + "  " + .file + ":" + (.line|tostring) + "\n    " + .content + "\n    fix: " + .fix ) )
+  '
+fi
+
+TOTAL=$(printf '%s' "$DOC" | jq -r '.total')
+[ "$TOTAL" -gt 0 ] && exit 1
+exit 0

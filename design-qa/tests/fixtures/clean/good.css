@@ -1,0 +1,11 @@
+:root {
+  --primary: oklch(0.55 0.15 240);
+  --background: oklch(0.99 0.01 60);
+  --shadow-border: 0 0 0 1px oklch(0 0 0 / 0.06);
+}
+.card { background: var(--background); box-shadow: var(--shadow-border); transition: box-shadow 150ms ease-out; }
+.title { letter-spacing: -0.02em; }
+button:focus-visible { outline: 2px solid var(--primary); }
+blockquote { border-left: 3px solid var(--img-outline); }
+table td { border-bottom: 1px solid var(--img-outline); }
+.card-list li { border-top: 1px solid var(--img-outline); }
