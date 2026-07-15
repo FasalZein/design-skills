@@ -42,6 +42,8 @@ Four different empties, four different messages:
 
 CTA only when a real next action exists (kernel rule) — "No audit logs yet" needs no button. An illustration is optional garnish, never the message.
 
+**Position:** inside a data region (table, list, grid), the empty message sits where the first row would sit — top-anchored, one group unit of inset — and the region collapses to the message's height. Vertically centering three lines in the populated state's full reserved height reads as a broken page. Full-page empties (no shell content at all) may center.
+
 ## Error states
 
 Answer three questions, in the user's language: what happened, why (when known), how to recover. Preserve last-known-good data where useful ("Showing cached results from 2:14 PM").

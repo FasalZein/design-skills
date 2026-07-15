@@ -158,6 +158,7 @@ page: 32–64px — page-level margins
 | Radius | One base radius, derive the rest; concentric nesting: outer = inner + padding. Scale values and aesthetic exceptions: [reference/spacing.md](reference/spacing.md). |
 | Targets | Mobile web ≥44×44 CSS px (WCAG AA floor is 24px; Android-native prefers 48dp). Extend with pseudo-elements when the visible element is smaller. Adjacent hit areas never overlap. |
 | Tokens | Framework scale only — never `p-[13px]`, `gap-[7px]`. Acceptable arbitrary: `max-w-[65ch]`, `min-h-[*rem]`, grid templates. |
+| Height | Comes from content + the ladder, never from `min-height` + vertical centering (sole exception: a full-viewport hero where scale is the declared feature). Empty vertical bands between content blocks: ≤64px on app/data surfaces, ≤96px on marketing pages — anything larger is an unowned gap: pull the next block up or give the band content. |
 
 Density modes, block text rhythm, elevation ladder, shadows, safe areas, optical alignment: [reference/spacing.md](reference/spacing.md). Shell geometry, gutters, lockups: [reference/composition.md](reference/composition.md).
 
@@ -216,6 +217,8 @@ Specific verb + object on buttons. One term per concept (Delete/Remove → pick 
 | Everything competes | Multiple primary-weight elements | ONE dominant element, mute the rest |
 | Cramped | Uniform tight spacing | Increase section gaps, keep group spacing tight |
 | Empty despite content | Oversized gaps, thin type | Tighten item spacing, add weight to key elements |
+| Floaty content islands | `min-height` + centering, stacked margins, uniform huge section gaps | Height from content; snap every gap to the ladder; kill voids over the 64/96px band limit |
+| Ragged two-column section | Heading, controls, and aside start at different y | One section origin: heading row baseline-aligned, both columns start one group unit below it |
 | Clips on real content | Fixed heights | `min-h` + `overflow-y-auto` on scroll regions |
 | Dark mode washed out | Same chroma/weight as light | Reduce chroma ~10–20%, reduce weight where the font allows |
 | Numbers jump on update | Missing tabular-nums | `font-variant-numeric: tabular-nums` |

@@ -63,6 +63,12 @@ For a single inline lockup (icon + label + date on one row): one flex row, `item
 
 **Complete when:** every control's label states what it does (not "Enabled"); groups are scannable by title alone; save behavior (auto vs explicit) is consistent across the page.
 
+## 4b. Section header row
+
+Every titled region (Monitors, Incidents, Activity) uses one origin row: heading + optional one-line description on the left, the section's controls (filters, search, view toggle) on the right of the **same row**, baseline-aligned. Controls bind to the surface they act on — floating between two sections they belong to neither. Content (table, list, cards) starts one group unit (16–24px) below the taller side. Adjacent columns (list + aside) start at the same y — the section origin, not each element's preferred position.
+
+**Complete when:** heading and controls share a baseline; content top edges align across all columns of the section.
+
 ## 5. Feature sections
 
 Choose by content, not template:

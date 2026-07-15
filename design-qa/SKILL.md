@@ -97,6 +97,9 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Density consistent | One density mode per surface; grouped controls share heights |
 | Block rhythm | Headings bind to what follows (space above > below); labels sit 4–8px from their inputs |
 | No triple responsive padding | `p-2 md:p-4 lg:p-6 xl:p-8` = flag; one value per semantic context |
+| No dead air | Zero empty vertical bands >64px (app/data) / >96px (marketing) between content blocks at 1440px; height from content, not `min-height` + centering |
+| Empty states top-anchored | Inside a data region the message sits where the first row would; region collapses to message height |
+| Section origin aligned | Heading and its section controls share a baseline; adjacent columns start at the same y |
 
 ## Gate 5: Component Reuse
 
@@ -195,7 +198,7 @@ Static gates read source; this gate checks the **rendered page**.
 
 **States:** loaded (both required viewports) — then empty, loading, error, long-content, interactive states at one representative viewport each; dark mode and reduced-motion when supported. Repeat a state at a second viewport only when responsive behavior could change its verdict.
 
-**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · reduced-motion emulation removes positional animation · no blank sections.
+**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands (Gate 4 limits) at 1440px · reduced-motion emulation removes positional animation · no blank sections.
 
 **Screenshot review (judgment):** overlap, hierarchy, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against Gate 1.
 

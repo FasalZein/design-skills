@@ -41,7 +41,8 @@ Grouped controls share equal heights — a 40px input beside a 36px button reads
 
 ## Rhythm & hierarchy
 
-- Tight grouping: 8–12px between related siblings. Generous separation: 48–96px between distinct sections.
+- Tight grouping: 8–12px between related siblings. Section separation is surface-scoped: 32–48px on app/data surfaces, 64–96px on marketing pages. Beyond that the band limit applies (kernel height rule) — big air is a declared feature proven in render, never a default.
+- **Where dead air comes from:** `min-height` boxes centering short content, margins stacking on top of padding, and each block adding its own "safe" margin. Blocks own no outer margin — the parent owns all separation via `gap`; a box is as tall as its content plus ladder inset.
 - **Squint test:** blur your eyes at the layout — the primary element, the secondary, and the groupings must still be identifiable. If not, hierarchy has failed regardless of colors.
 - The strongest hierarchy combines 2–3 dimensions:
 

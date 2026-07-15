@@ -114,6 +114,28 @@ Target size (at 375px) — two buckets: below 24px fails outright (WCAG floor); 
 
 `fail` non-empty = probe failure. Every primary control appearing in `judge44` fails the review unless it is a genuinely secondary/inline control.
 
+Dead air (at 1440px) — merges every visible text/visual element into occupied bands, then reports empty bands between them. `fail` = above the Gate 4 limit (+ tolerance); `judge` = large but possibly a declared marketing feature:
+
+```js
+(() => { const scrollers=[...document.querySelectorAll('*')].filter(e=>e.scrollHeight>e.clientHeight+50);
+  const root=scrollers.sort((a,b)=>b.scrollHeight-a.scrollHeight)[0]||document.documentElement;
+  const leaves=[...root.querySelectorAll('*')].filter(e=>{ if(!e.offsetHeight||e.offsetHeight>600) return false;
+    return [...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())||e.matches('svg,img,canvas,button,input,select'); })
+    .map(e=>{const r=e.getBoundingClientRect();return {t:(e.textContent||e.tagName).trim().slice(0,20),top:r.top+root.scrollTop,bottom:r.bottom+root.scrollTop};})
+    .sort((a,b)=>a.top-b.top);
+  const bands=[]; let cur=null;
+  for(const l of leaves){ if(cur&&l.top<=cur.end+4){cur.end=Math.max(cur.end,l.bottom);cur.last=l.t;}
+    else{if(cur)bands.push(cur);cur={start:l.top,end:l.bottom,last:l.t};}}
+  if(cur)bands.push(cur);
+  const out={fail:[],judge:[]};
+  for(let i=1;i<bands.length;i++){const g=Math.round(bands[i].start-bands[i-1].end);
+    if(g>128) out.fail.push({gap:g,after:bands[i-1].last,before:bands[i].last});
+    else if(g>64) out.judge.push({gap:g,after:bands[i-1].last,before:bands[i].last});}
+  return out; })()
+```
+
+`fail` non-empty = probe failure (128px exceeds even the marketing band limit + tolerance). Each `judge` row: legal on a marketing page up to 96px, a bug on app/data surfaces above 64px — check against the declared archetype.
+
 Focus visibility: key-tab through the page and screenshot mid-cycle — every stop shows a visible ring.
 
 Layout shift: screenshot immediately after load and again after network idle; differing layouts = unreserved async space.
