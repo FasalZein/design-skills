@@ -41,7 +41,7 @@ Artifact inputs:
 
 ## Accepted dependencies
 
-| Dependency | Required receipt | Receipt path | Owner-approval evidence | Temporary stub owner | Deletion plan |
+| Dependency | Required receipt | Receipt path | Owner-approval evidence | Stub work owner | Deletion plan |
 |---|---|---|---|---|---|
 |  |  |  |  |  |  |
 

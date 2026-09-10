@@ -91,8 +91,6 @@ Each material choice contains:
 - recommendation with evidence
 - decision location
 
-Silence keeps the choice open.
-
 ## Contract completion
 
 The contract is complete when it names:
@@ -107,7 +105,7 @@ The contract is complete when it names:
 - supported startup and browser route
 - targeted and full verification commands
 - runtime capability status
-- integration owner
+- decision owner and integration owner
 - open owner choices
 
 A missing authoritative full verification command blocks completion.

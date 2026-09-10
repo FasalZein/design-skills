@@ -18,14 +18,14 @@ The entry file routes through seven gated phases: contract, research and sourcin
 
 Load it in Pi with `pi --skill ./build-design-library/SKILL.md`, then run `/skill:build-design-library`. Other skill runners must support the user-invocation flag or receive the file explicitly.
 
-**Companion skills.** The workflow resolves these by name from the runtime skill registry and loads each one before its first use. A missing skill is recorded as `missing` and its checks run by hand.
+**Companion skills and tools.** The workflow resolves these by name from the runtime skill registry and loads each one before its first use: a skill by reading its `SKILL.md`, the `agent-browser` tool with `agent-browser skills get core`. A missing capability is recorded as `missing` and its checks run by hand; a missing independent reviewer records every gate as `unreviewed`, and the run stops for the decision owner.
 
 | Skill name | Used for | Install |
 |---|---|---|
 | `research` | Phase 2 research streams: reference products, source libraries, domain rules. Background agents, primary sources, one cited report per stream. | [FasalZein/deep-research-skill](https://github.com/FasalZein/deep-research-skill) — `npx skills add FasalZein/deep-research-skill` |
 | `firecrawl` | Phase 2 reference-product capture: competitor pages as HTML export or full-page screenshot, PDFs, site maps. Also a dependency of `research`. | [edxeth/superlight-firecrawl-skill](https://github.com/edxeth/superlight-firecrawl-skill) — `npx skills add edxeth/superlight-firecrawl-skill` |
 | `exa`, `tinyfish` | Dependencies of `research` (semantic search, page fetch). | `npx skills add edxeth/superlight-exa-skill` and `npx skills add edxeth/superlight-tinyfish-skill` |
-| `agent-browser` | Phases 2, 6, 7: rendered proof of this product — measurements, interaction evidence, browser cells. | `npm i -g agent-browser && agent-browser install` |
+| `agent-browser` | Phases 4–7: rendered proof of this product from the vertical slice onward — measurements, interaction evidence, browser cells. Competitor pages go through `firecrawl`, never this tool. | `npm i -g agent-browser && agent-browser install` |
 
 `research`, `firecrawl`, `exa`, and `tinyfish` need API keys: `EXA_API_KEY`, `TINYFISH_API_KEY`, `FIRECRAWL_API_KEY`. `design-craft`, `laws-of-ux`, and `design-qa` ship in this repository.
 

@@ -13,7 +13,9 @@ Build and verify these shared foundations first:
 - source and license records
 - base responsive behavior
 
-One owner controls each shared foundation. Families consume accepted foundations instead of creating local replacements.
+One work owner controls each shared foundation. Families consume accepted foundations instead of creating local replacements.
+
+The foundation gate passes when every foundation above has its targeted checks green and its own independent receipt.
 
 ## Vertical slice gate
 
@@ -29,7 +31,7 @@ The slice proves:
 - keyboard and screen-reader behavior
 - style and asset loading
 - route and service behavior at the documented seam
-- direct browser observation
+- one browser cell with a [valid capture](verification.md#valid-capture)
 
 Correct shared faults before fanout.
 
@@ -59,7 +61,7 @@ A late sibling stays the sibling owner's work; the downstream family waits or us
 
 ## Family brief
 
-Each brief defines:
+Write each brief on [helper-brief.md](../templates/helper-brief.md). It defines:
 
 - scope and exclusions
 - pages and journeys
@@ -80,7 +82,7 @@ Workers report blockers and early artifacts when they appear.
 
 ## Ownership and integration
 
-Assign one owner to every component, exported symbol, shared file, generated file decision, process, and worktree.
+Assign one work owner to every component, exported symbol, shared file, generated file decision, process, and worktree.
 
 Family workers edit their owned files. The serial integration owner applies shared registrations and cross-family changes.
 
@@ -132,5 +134,3 @@ A family is complete when:
 - source and license duties are complete
 - the family report names all open work
 - the family's own independent receipt passes
-
-A worker `RESULT: DONE` or complete brief is a claim. The project-defined independent receipt decides acceptance.

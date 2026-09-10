@@ -7,7 +7,7 @@
 - Request:
 - Artifact directory:
 - Date:
-- Owner:
+- Decision owner:
 - Integration owner:
 
 ## Authority
@@ -74,10 +74,31 @@
 | Design craft |  | found/missing | Brownfield scan and UI build |  |
 | Interaction psychology |  | found/missing | Material interaction decisions |  |
 | Design QA |  | found/missing | Scanner, judgment, and live gates |  |
-| Browser measurement |  | found/missing | Rendered proof |  |
+| Browser measurement |  | found/missing | Rendered proof, Phases 4–7 |  |
 | External research |  | found/missing | Background research streams |  |
 | Reference-product capture |  | found/missing | Competitor HTML export, screenshots, PDFs |  |
-|  |  |  |  |  |
+| Repository scouting |  | found/missing | Owned-code and asset discovery |  |
+| Implementation |  | found/missing | Family and foundation workers |  |
+| Integration |  | found/missing | Serial shared-file reconciliation |  |
+| Complexity review |  | found/missing | Code-shape receipt |  |
+| Test hardening |  | found/missing | Coverage and mutation receipt |  |
+| Independent acceptance |  | found/missing | Receipts; `unreviewed` when missing |  |
+
+## Required modes and device classes
+
+| Mode or device class | Required | Authority |
+|---|---|---|
+| Light |  |  |
+| Dark |  |  |
+| Phone |  |  |
+| Tablet |  |  |
+| Desktop |  |  |
+
+## Source and license process
+
+- Dependency approval path:
+- License-path approval path:
+- Independent license reviewer:
 
 ## Safety and data rules
 
@@ -94,16 +115,19 @@
 |---|---|---|---|---|---|
 | D-1 |  |  |  | Open |  |
 
-## Completion contract
+## Contract completion
 
-- [ ] Approved scope maps to pages, states, and components.
-- [ ] Owner decisions are recorded.
-- [ ] Sources and licenses are checked.
-- [ ] Foundations and one vertical slice have accepted receipts.
-- [ ] Each family starts only after its upstream receipts exist.
-- [ ] Families pass targeted checks.
-- [ ] Gallery passes browser readback.
-- [ ] Real application journeys pass.
-- [ ] Full verification command passes on unchanged code.
-- [ ] Independent acceptance covers every approved matrix cell.
-- [ ] Cleanup and handoff are complete.
+Each item maps to [Contract completion](../references/contract.md#contract-completion).
+
+- [ ] Every authority path is listed.
+- [ ] Approved scope and exclusions are listed.
+- [ ] Users, roles, pages, journeys, and meaningful states are listed.
+- [ ] Shipped foundations and reusable assets are listed.
+- [ ] Implemented and proposed data routes are listed.
+- [ ] Required modes and device classes are listed.
+- [ ] Source and license process is recorded.
+- [ ] Supported startup and browser route is recorded.
+- [ ] Targeted and full verification commands are recorded.
+- [ ] Runtime capability status is recorded.
+- [ ] Decision owner and integration owner are named.
+- [ ] Open owner choices are listed.

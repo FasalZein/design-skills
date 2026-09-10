@@ -23,6 +23,20 @@ for f in "$ROOT"/*/SKILL.md "$ROOT"/*/reference/*.md; do
 done
 say "markdown links checked"
 
+# 3b. build-design-library: every relative link and #anchor across SKILL.md, references/, templates/ resolves
+slug() { tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9 -]//g; s/ /-/g'; }
+for f in "$ROOT"/build-design-library/SKILL.md "$ROOT"/build-design-library/references/*.md "$ROOT"/build-design-library/templates/*.md; do
+  dir=$(dirname "$f")
+  for ref in $(grep -oE '\]\([^)#[:space:]]*(#[A-Za-z0-9-]+)?\)' "$f" | sed 's/^](//; s/)$//' | grep -v '^http'); do
+    path=${ref%%#*}; anchor=${ref#*#}; [ "$anchor" = "$ref" ] && anchor=""
+    target="$dir/$path"; [ -z "$path" ] && target="$f"
+    [ -f "$target" ] || { bad "broken link in ${f#$ROOT/} -> $ref"; continue; }
+    [ -z "$anchor" ] && continue
+    grep -E '^#+ ' "$target" | sed -E 's/^#+ //' | slug | grep -qx "$anchor" || bad "missing anchor in ${f#$ROOT/} -> $ref"
+  done
+done
+say "build-design-library links and anchors checked"
+
 # 4. No harness-generated blocks committed
 grep -rl 'skill_context' "$ROOT"/*/SKILL.md >/dev/null 2>&1 && bad "skill_context block committed in a SKILL.md" || say "no skill_context blocks"
 

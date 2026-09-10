@@ -39,7 +39,7 @@ A temporary fallback or stub satisfies the [owner-approval rule](../references/d
 
 **Temporary fallback or stub:**
 
-**Fallback owner:**
+**Fallback work owner:**
 
 **Deletion plan:**
 
@@ -64,6 +64,6 @@ A temporary fallback or stub satisfies the [owner-approval rule](../references/d
 
 ## Open decisions that block fanout
 
-| ID | Blocking effect | Fallback or stub | Explicit owner approval evidence | Fallback owner | Deletion plan | Safe work that can continue |
+| ID | Blocking effect | Fallback or stub | Explicit owner approval evidence | Fallback work owner | Deletion plan | Safe work that can continue |
 |---|---|---|---|---|---|---|
 |  |  |  |  |  |  |  |

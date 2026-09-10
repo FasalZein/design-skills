@@ -7,9 +7,9 @@ Create one matrix row for each approved page and meaningful state.
 Resolve every row to:
 
 - exactly one family owner, or
-- one authorized and dated drop reason
+- one authorized and dated drop reason in the coverage record's authorized-drops table
 
-A page can use multiple families. Each component still has exactly one owner.
+A page can use multiple families. Each component still has exactly one work owner.
 
 A family heading does not count as component coverage. A duplicate family claim is a conflict.
 
@@ -31,7 +31,7 @@ Use this dependency order:
 8. page assemblies
 9. application routes
 
-A higher level uses behavior from its dependencies. It does not create a second owner for that behavior.
+A higher level uses behavior from its dependencies. It does not create a second work owner for that behavior.
 
 ## Build the visual identity
 
@@ -59,7 +59,7 @@ Record:
 - change cost
 - affected pages and checks
 
-A temporary fallback or stub exists only when explicit owner approval evidence names its owner and deletion plan. Otherwise, the affected work stops.
+A temporary fallback or stub exists only when the decision owner's explicit approval evidence names its work owner and deletion plan. Otherwise, the affected work stops.
 
 A generated illustration can be a named temporary fixture. It cannot claim owner approval or prove the real product asset.
 
@@ -89,7 +89,7 @@ Keep secrets, personal data, customer records, and restricted production values 
 
 Map raw service or vendor errors through approved product copy before they reach the interface.
 
-Render authoritative API limits and fees. Use owner-approved constants only when the decision record names them.
+Render authoritative API limits and fees. A constant is usable only when the decision record names it with the decision owner's approval.
 
 ## Prove coherence
 
@@ -109,7 +109,7 @@ A fixture-only check cannot prove a live route.
 The phase is complete when:
 
 - every matrix row has one family owner or one authorized drop
-- every component has exactly one owner
+- every component has exactly one work owner
 - the independent coverage-review receipt is `pass`
 - design-craft and laws-of-ux routing status is recorded
 - every material owner choice is resolved, safely deferred, or stopped

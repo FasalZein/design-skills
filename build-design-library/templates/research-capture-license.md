@@ -4,16 +4,16 @@
 
 - Stream:
 - Question:
-- Owner:
+- Work owner:
 - Date:
 - Search boundary:
 - Access limits:
 
 ## Reference product capture
 
-| Product | Public URL | Page or state | Desk capture | Phone capture | Interaction proof | Access limit | Evidence path |
-|---|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |  |
+| Product | Public URL and date | Page or state | HTML export | Desk screenshot | Phone screenshot | Interaction evidence (inferred) | Access limit | Evidence path |
+|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  |
 
 ## Source candidate record
 
@@ -43,9 +43,9 @@
 
 Use one action for each candidate.
 
-| Candidate | Action: reference-only/copy/adapt/install/build/exclude | Scope kept | Scope rejected | Reason | Approval |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
+| Candidate | Action: reference-only/copy/adapt/install/build/exclude | Scope kept | Scope rejected | Reason | Approval | Independent receipt: reviewer, path, result |
+|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |
 
 ## Material claims
 

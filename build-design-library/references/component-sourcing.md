@@ -97,8 +97,6 @@ Check these differences:
 - ideal network state versus loading, empty, stale, and error states
 - claimed accessibility versus measured rendered output
 
-A blank, failed, stale, or unrelated screenshot is not evidence.
-
 ## License path record
 
 Record the exact subtree for each copied file:
@@ -166,5 +164,6 @@ A source becomes an accepted dependency only when:
 - dependencies were accepted
 - the integration owner recorded ownership
 - targeted proof passed
+- an independent source-acceptance receipt records reviewer, artifact path, and `pass`
 
 Downstream family work starts on accepted sources or an approved stub only.

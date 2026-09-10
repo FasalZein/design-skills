@@ -2,7 +2,7 @@
 
 ## Divide the work
 
-Create nonoverlapping questions. Give each question one owner and one artifact path.
+Create nonoverlapping questions. Give each question one work owner and one artifact path.
 
 ### Reference products
 
@@ -12,7 +12,7 @@ Capture each public page as HTML export and screenshot through `firecrawl`. Reco
 
 - exact public URL and date
 - page, state, and viewport
-- visible interaction evidence
+- interaction evidence inferred from captured HTML or public documentation, marked `inferred`
 - mobile redirect or application limits
 - signed-in content that public access cannot reach
 - blocked automation or incomplete HTML
@@ -38,8 +38,6 @@ For each candidate, record:
 - interaction and accessibility evidence
 - copied-file, attribution, notice, and change duties
 - excluded sibling paths
-
-Installing a package needs dependency approval. Copying a file needs path-level license approval. These approvals are separate.
 
 Run a dry resolution when project tools support one. Read the complete file and dependency plan before a write.
 
@@ -100,4 +98,5 @@ Research is complete when:
 - each adaptation has measured inherited behavior
 - each capture limit stays visible
 - each material claim has an independent check
-- each question that changes scope, identity, cost, or risk reaches the owner
+- each accepted source has its independent source-acceptance receipt
+- each question that changes scope, identity, cost, or risk reaches the decision owner

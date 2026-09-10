@@ -58,33 +58,17 @@ Integration is complete when:
 
 ## Run live browser proof
 
-Use an isolated `agent-browser` session for each concurrent verifier.
+Use an isolated `agent-browser` session for each concurrent verifier. Derive the viewport, mode, and state matrix from project policy and owner decisions.
 
-Derive the viewport, mode, and state matrix from project policy and owner decisions.
-
-For every required cell:
-
-1. set the viewport before navigation
-2. navigate fresh
-3. create the state through the application or an approved fixture
-4. exercise the interaction
-5. capture console and page errors
-6. inspect failed requests
-7. measure overflow
-8. inspect landmarks and heading order
-9. inspect keyboard and focus behavior
-10. measure target size and contrast
-11. check reduced motion when applicable
-12. save the screenshot
-13. read the screenshot back
-
-A screenshot counts only when the file contains the intended rendered state and a reviewer reads it back.
-
-Blank, loading-only, failed, stale, wrong-section, wrong-mode, or unrelated images do not prove the cell.
-
-After a visual repair, repeat and read back the failed cell. A sibling image cannot replace a missing cell.
+Run every required cell through the per-cell loop, state setup, and machine probes in the `design-qa` live-verification reference: viewport before navigation, fresh navigation, state created through the application or an approved fixture, the interaction exercised, then errors, console, failed requests, overflow, landmarks and heading order, keyboard and focus, target size, contrast, and reduced motion. Record each probe result in the ledger's browser-cell row.
 
 Mount real application chrome when overlays, toasts, drawers, or fixed navigation can collide with the component.
+
+### Valid capture
+
+A cell is proven only when its screenshot file contains the intended rendered state, a reviewer reads the file back, and every required probe has a measured result.
+
+Blank, loading-only, failed, stale, wrong-section, wrong-mode, or unrelated images prove nothing. After a visual repair, repeat and read back the failed cell; a sibling image cannot replace it.
 
 ## Keep test evidence reliable
 
@@ -97,9 +81,7 @@ Keep these results open:
 - focused-only test runs
 - weakened or deleted assertions
 - timeouts under resource contention
-- mock-only checks for a required live path
-
-If contention causes a timeout, run the same unchanged code on an idle host. The gate stays red until a reliable result exists.
+- mock-only checks for a required live path (rerun rule: [Resource-aware concurrency](build.md#resource-aware-concurrency))
 
 For a bug correction, add the check that detects the bug.
 
@@ -117,9 +99,7 @@ Use the project review and landing process. Preserve these functions:
 
 If the project defines cleaner then hardener, require both receipts in that order.
 
-A worker report, gallery test, scanner pass, screenshot set, or implementer full-suite run does not replace the required independent receipt.
-
-Close external work items only when every acceptance line has evidence and the owner authorized the update. Read each update back.
+Close external work items only when every acceptance line has evidence and the decision owner authorized the update. Read each update back.
 
 ## Clean exact owned state
 
@@ -145,12 +125,11 @@ Record any known uncommitted loss as loss.
 Acceptance is complete when:
 
 - every approved matrix row has direct evidence
-- every required browser cell has a valid read-back screenshot
-- every required browser probe has a measured result
+- every required browser cell has a [valid capture](#valid-capture)
 - every real journey reaches its authoritative boundary
-- design-qa status is honest and complete
+- design-qa status is recorded as run, manual, or missing
 - targeted checks pass
-- independent review receipts pass
+- independent review receipts pass; an `unreviewed` receipt keeps this item open
 - the full authoritative project gate passes on unchanged code
 - every check reports its real state: green, red, or unrun
 - cleanup accounts for every task-owned process, route-registry entry, hostname or port, worktree, branch, and file

@@ -4,7 +4,7 @@
 
 - [ ] Inspect every family report, artifact, commit, and changed file.
 - [ ] Inspect branch ancestry before integration.
-- [ ] Check one owner per component, symbol, shared file, process, and worktree.
+- [ ] Check one work owner per component, symbol, shared file, process, and worktree.
 - [ ] Check every upstream acceptance receipt.
 - [ ] Reconcile conflicts by intent against the accepted contract.
 - [ ] Run duplicate-symbol checks.
@@ -27,11 +27,10 @@
 - [ ] Run design-qa judgment and live gates.
 - [ ] Run complexity review.
 - [ ] Run test hardening.
-- [ ] Run browser readback for every required cell.
-- [ ] Reject blank, failed, stale, wrong-state, and wrong-mode captures.
+- [ ] Confirm a [valid capture](../references/verification.md#valid-capture) for every required cell.
 - [ ] Run real application journeys.
 - [ ] Run the full project verification command on unchanged code.
-- [ ] Get independent product acceptance.
+- [ ] Get independent product acceptance, or record `unreviewed` and stop.
 - [ ] Reconcile every approved matrix row with evidence.
 
 ## Cleanup

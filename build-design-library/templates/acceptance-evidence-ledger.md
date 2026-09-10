@@ -2,21 +2,21 @@
 
 ## Acceptance rows
 
-| ID | Page or family | Behavior | State | Mode and device | Proof type | Command or journey | Evidence path | Owner | Result |
+| ID | Page or family | Behavior | State | Mode and device | Claim kind or receipt | Command or journey | Evidence path | Work owner | Result |
 |---|---|---|---|---|---|---|---|---|---|
-| A-1 |  |  |  |  | test/browser/live service/review |  |  |  | open |
+| A-1 |  |  |  |  | claim: test/browser/live service/walkthrough, or receipt |  |  |  | open |
 
 ## Source and license acceptance
 
-| Source | Action | Exact path and version | License checked | Notice recorded | Dependency checked | Result |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
+| Source | Action | Exact path and version | License checked | Notice recorded | Dependency checked | Independent receipt | Result |
+|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |
 
 ## Browser cells
 
-| Application or gallery | Route | Mode | Viewport or device class | State | Repro step | Interaction | Console | Requests | Overflow | Keyboard | Contrast | Screenshot | Readback reviewer | Valid capture | Result |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Application or gallery | Route | Mode | Viewport or device class | State | Repro step | Interaction | Page errors | Console | Requests | Overflow | Landmarks and headings | Keyboard | Focus | Target size | Contrast | Reduced motion | Screenshot | Readback reviewer | Valid capture | Result |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 
 ## Real journeys
 
@@ -51,7 +51,7 @@
 - Failed rows:
 - Blocked rows:
 - Rows without direct evidence:
-- Missing or invalid screenshot cells:
+- Cells without a valid capture:
 - Resource-related reruns:
 - Full project gate receipt:
 - Independent acceptance verdict:
