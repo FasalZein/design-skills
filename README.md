@@ -8,7 +8,26 @@ These skills fix that.
 
 ## What's in the box
 
-Three skills that layer together — craft, psychology, and quality gates.
+Four skills: a user-invoked library workflow, plus craft, psychology, and quality gates.
+
+### build-design-library
+
+A user-invoked workflow for creating a complete product design library. It covers reference research, source and license checks, owner decisions, shared scenario data, dependency-ordered builds, real application integration, and independent proof.
+
+The entry file routes through seven gated phases: contract, research and sourcing, coverage and owner decisions, foundations and a vertical slice, component families, gallery and application integration, acceptance and handoff. Each phase points to one reference file and the templates it fills. It uses `design-craft`, `laws-of-ux`, and `design-qa` where their checks apply. It supports new and existing products without prescribing a framework or domain.
+
+Load it in Pi with `pi --skill ./build-design-library/SKILL.md`, then run `/skill:build-design-library`. Other skill runners must support the user-invocation flag or receive the file explicitly.
+
+**Companion skills.** The workflow resolves these by name from the runtime skill registry and loads each one before its first use. A missing skill is recorded as `missing` and its checks run by hand.
+
+| Skill name | Used for | Install |
+|---|---|---|
+| `research` | Phase 2 research streams: reference products, source libraries, domain rules. Background agents, primary sources, one cited report per stream. | [FasalZein/deep-research-skill](https://github.com/FasalZein/deep-research-skill) — `npx skills add FasalZein/deep-research-skill` |
+| `firecrawl` | Phase 2 reference-product capture: competitor pages as HTML export or full-page screenshot, PDFs, site maps. Also a dependency of `research`. | [edxeth/superlight-firecrawl-skill](https://github.com/edxeth/superlight-firecrawl-skill) — `npx skills add edxeth/superlight-firecrawl-skill` |
+| `exa`, `tinyfish` | Dependencies of `research` (semantic search, page fetch). | `npx skills add edxeth/superlight-exa-skill` and `npx skills add edxeth/superlight-tinyfish-skill` |
+| `agent-browser` | Phases 2, 6, 7: rendered proof of this product — measurements, interaction evidence, browser cells. | `npm i -g agent-browser && agent-browser install` |
+
+`research`, `firecrawl`, `exa`, and `tinyfish` need API keys: `EXA_API_KEY`, `TINYFISH_API_KEY`, `FIRECRAWL_API_KEY`. `design-craft`, `laws-of-ux`, and `design-qa` ship in this repository.
 
 ### design-craft
 
