@@ -1,6 +1,7 @@
 ---
 name: design-craft
 description: Anti-slop UI craft rules that break out of the AI-generated median. Use when building or restyling any UI — pages, components, dashboards, forms, landing pages — when existing UI looks generic or machine-made, or when another skill needs rules for typography, color, spacing, layout, composition, motion, product states, or interaction.
+globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.html", "**/*.css", "**/*.scss"]
 disable-model-invocation: true
 ---
 
