@@ -125,7 +125,7 @@ This is the statistical median of every Tailwind tutorial in the training data. 
 
 ```
 design-craft/
-  SKILL.md                      <- kernels + guardrails + decision gate + self-check (auto-loaded)
+  SKILL.md                      <- kernels + guardrails + decision gate + self-check (explicit load)
   reference/                    <- 8 branch files, loaded by trigger
 
 laws-of-ux/
@@ -147,6 +147,11 @@ The skills layer by concern:
 - **design-qa** = did you actually follow the rules (12 gates, scanner, live verification)
 
 Use all three together for maximum effect. Or pick the ones you need — they work independently.
+
+These three skills are explicit-only (`disable-model-invocation: true`). Load them once at the
+start of design work with `/skill:design-craft`, `/skill:laws-of-ux`, and `/skill:design-qa`. They
+do not use file globs because repeated full-skill injection can exhaust context in tool-heavy UI
+sessions.
 
 ---
 

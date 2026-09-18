@@ -1,7 +1,7 @@
 ---
 name: laws-of-ux
 description: User-psychology rules for UX decisions — cognitive load, attention, memory, mental models, motor cost, perception. Use when choosing nav structure, form length, decision flows, error recovery, onboarding, progress indicators, or microcopy, or when a flow feels confusing, overwhelming, or hard to complete. Complements design-craft (craft) with the WHY (psychology).
-globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.html"]
+disable-model-invocation: true
 ---
 
 # Laws of UX

@@ -1,7 +1,7 @@
 ---
 name: design-qa
 description: Binary pass/fail quality gates for UI code — run before shipping any component, page, or feature. Use when the user asks to QA, audit, review, or harden UI, before merging UI work, or after any design implementation to verify it. Covers anti-slop, accessibility, consistency, interaction states, performance, responsive, and live in-browser verification.
-globs: ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*.js", "**/*.css", "**/*.scss", "**/*.html", "**/*.vue", "**/*.svelte", "**/*.astro", "**/*.mdx"]
+disable-model-invocation: true
 ---
 
 # Design QA
