@@ -1,6 +1,6 @@
 # Color — OKLCH Depth, Gamut, Contrast, Dark Mode
 
-OKLCH is perceptually uniform: equal L steps read as equal brightness, and L, C, H are independent coordinates — changing one does not shift the others. The maximum *displayable* chroma still varies with L and H (that's the sRGB/P3 gamut, not the color model). The derivation procedure — name→hue formula, 12-stop lightness spine, companion neutral, semantic token mapping, WCAG floors — lives in the SKILL.md color kernel; this file owns the depth behind it.
+OKLCH is perceptually uniform: equal L steps read as equal brightness, and L, C, H are independent coordinates — changing one does not shift the others. The maximum *displayable* chroma still varies with L and H (that's the sRGB/P3 gamut, not the color model). The derivation procedure — name→hue formula, 12-stop lightness spine, companion neutral, semantic token mapping, WCAG floors — lives in the color kernel in [app-ui.md](app-ui.md); this file owns the depth behind it.
 
 ## Syntax & formatting
 
@@ -25,7 +25,7 @@ The per-stop chroma values and strategy multipliers live in the kernel. Depth: h
 
 ## Warm neutrals (branch)
 
-A deliberately warm interface derives its neutral scale at a warm hue (H 40–90°) with C 0.01–0.03 — a coherent temperature-bearing scale where every surface, border, and text stop shares the temperature. That is a palette decision and passes. What fails the intent-and-repetition lens is the reflex: one `--cream`/`--paper` token dropped on `body` while everything else stays cold gray. Warmth is a system or it is slop.
+A deliberately warm interface derives its neutral scale at a warm hue (H 40–90°) with C 0.01–0.03 — a coherent temperature-bearing scale where every surface, border, and text stop shares the temperature. That is a palette decision and passes. What fails the intent-and-repetition lens is the reflex: one `--cream` or `--paper` token dropped on `body` while everything else stays cold gray. Warmth is a system or it is slop.
 
 ## Gamut safety
 

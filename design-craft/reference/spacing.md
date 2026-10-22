@@ -2,7 +2,7 @@
 
 Optical alignment, hit areas, safe areas, and image outlines: better-ui and better-accessibility (exact values).
 
-Space is the most underused design tool. When an interface feels "off" despite good colors and fonts, the root cause is usually spatial: monotone spacing, weak hierarchy, or mismatched radii. The base ladder and grouping rules live in the SKILL.md spacing kernel; this file owns the depth.
+Space is the most underused design tool. When an interface feels "off" despite good colors and fonts, the root cause is usually spatial: monotone spacing, weak hierarchy, or mismatched radii. The base ladder and grouping rules live in the spacing kernel in [app-ui.md](app-ui.md); this file owns the depth.
 
 ## Working the 4px grid
 

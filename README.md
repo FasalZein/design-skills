@@ -31,12 +31,13 @@ Load it in Pi with `pi --skill ./build-design-library/SKILL.md`, then run `/skil
 
 ### design-craft
 
-The app-UI rulebook. SKILL.md grades the existing token layer as stock or owned, runs a nine-item decision gate, and keeps the kernels no other skill carries (a deterministic name→hue palette derivation, the 4px ladder with dead-air limits, the sizing contract). Nine hard anti-slop guardrails, each paired with what to build instead. Topics that better-typography, better-layout, better-writing, better-ui, emil-design-eng, and design-taste-frontend cover are pointers to those skills; public pages follow design-taste-frontend's house rules.
+The router for UI design work. SKILL.md walks six phases: intake, direction, build, refine, verify, report. Each phase names the skill it loads. The app-UI rulebook lives in `reference/app-ui.md`: it grades the existing token layer as stock or owned, runs a nine-item decision gate, and keeps the kernels no other skill carries (a deterministic name→hue palette derivation, the 4px ladder with dead-air limits, the sizing contract). Nine hard anti-slop guardrails, each paired with what to build instead. Topics that better-typography, better-layout, better-writing, better-ui, emil-design-eng, and design-taste-frontend cover are pointers to those skills; public pages follow design-taste-frontend's house rules.
 
 Branch depth loads on demand:
 
 | Reference | What it covers |
 |-----------|---------------|
+| `app-ui.md` | Hard guardrails, Project Context Scan, Design Decision Gate, type, color and spacing kernels, symptom → correction, conflict priority |
 | `color.md` | Gamut mapping, P3, chroma strategy, warm neutrals, contrast method, dark mode |
 | `typography.md` | Fallback metrics, CJK |
 | `spacing.md` | Inset/stack, density modes, block rhythm, radius, elevation, the spacing pass |
@@ -124,7 +125,8 @@ This is the statistical median of every Tailwind tutorial in the training data. 
 
 ```
 design-craft/
-  SKILL.md                      <- guardrails + token grade + decision gate + kernels (explicit load)
+  SKILL.md                      <- phase router: intake, direction, build, refine, verify, report (explicit load)
+  reference/app-ui.md           <- guardrails + token grade + decision gate + kernels
   reference/                    <- 7 branch files, opened by topic
 
 laws-of-ux/
@@ -141,7 +143,7 @@ scripts/verify.sh               <- repository verify (scanner tests + skill cons
 ```
 
 The skills layer by concern:
-- **design-craft** = how to build it (kernels, recipes, guardrails)
+- **design-craft** = how to build it (phase router; kernels, recipes, guardrails in `reference/app-ui.md`)
 - **laws-of-ux** = why users will hate it if you don't (cognitive load, attention, memory)
 - **design-qa** = did you actually follow the rules (12 gates, scanner, live verification)
 

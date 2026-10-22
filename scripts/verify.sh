@@ -65,17 +65,26 @@ done
 say "viewport constants consistent"
 
 # 8c. Dead-air band numbers agree across kernel, Gate 4, and the Gate 12 probe
-grep -q '≤64px app/data, ≤128px marketing' "$ROOT/design-craft/SKILL.md" || bad "kernel band limits changed — update Gate 4 + probe together"
+grep -q '≤64px app/data, ≤128px marketing' "$ROOT/design-craft/reference/app-ui.md" || bad "kernel band limits changed — update Gate 4 + probe together"
 grep -q '>64px (app/data) / >128px (marketing)' "$ROOT/design-qa/SKILL.md" || bad "Gate 4 band limits drifted from kernel (64/128)"
 grep -q 'marketing ? 256 : 128' "$ROOT/design-qa/reference/live-verification.md" || bad "probe FAIL tier drifted (expect 256/128)"
 grep -q 'marketing ? 128 : 64' "$ROOT/design-qa/reference/live-verification.md" || bad "probe JUDGE tier drifted (expect 128/64)"
 grep -rn '64/96px' "$ROOT"/*/SKILL.md "$ROOT"/*/reference/*.md >/dev/null 2>&1 && bad "stale 64/96px band value resurfaced" || say "dead-air numbers consistent"
 
-# 9. design-craft kernels present (color formula + spine inline, tracking table inline)
-grep -q '137' "$ROOT/design-craft/SKILL.md" || bad "color hue formula missing from kernel"
-grep -q '0.99, 0.96, 0.90' "$ROOT/design-craft/SKILL.md" || bad "lightness spine missing from kernel"
-grep -q -- '-0.02em' "$ROOT/design-craft/SKILL.md" || bad "tracking table missing from kernel"
-say "kernels inline"
+# 9. design-craft kernels present in the app-UI rules file (color formula + spine, tracking table)
+APP_UI="$ROOT/design-craft/reference/app-ui.md"
+grep -q '137' "$APP_UI" || bad "color hue formula missing from kernel"
+grep -q '0.99, 0.96, 0.90' "$APP_UI" || bad "lightness spine missing from kernel"
+grep -q -- '-0.02em' "$APP_UI" || bad "tracking table missing from kernel"
+grep -q '](reference/app-ui.md)' "$ROOT/design-craft/SKILL.md" || bad "design-craft router does not point to reference/app-ui.md"
+say "kernels in design-craft/reference/app-ui.md"
+
+# 10. No backticked slash tokens in design-craft. pi-better-skills injects every skill a loaded body
+# names as a backticked /name or /skill:name token, transitively. Name skills as plain words.
+# Pattern mirrors pi-better-skills SKILL_REF_PATTERN (src/skill-refs.ts).
+SLASH_TOKENS=$(grep -nE '`/(skill:)?[A-Za-z0-9][A-Za-z0-9._-]*`' "$ROOT/design-craft/SKILL.md" "$ROOT"/design-craft/reference/*.md)
+if [ -n "$SLASH_TOKENS" ]; then bad "backticked slash token in design-craft (injects skills transitively):"; echo "$SLASH_TOKENS"
+else say "no backticked slash tokens in design-craft"; fi
 
 echo "----"
 if [ "$FAIL" -eq 0 ]; then echo "verify: GREEN"; exit 0; else echo "verify: $FAIL failure(s)"; exit 1; fi

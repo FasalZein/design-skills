@@ -11,7 +11,7 @@ Pick the simplest tool that handles the job. Use one library per concern.
 | Hover, focus, toggle, color change | **CSS transitions** | GPU-composited, interruptible, zero JS. Default for all interactive states. |
 | Staged sequences (page load, hero entrance) | **CSS @keyframes** | No JS dependency, runs off main thread under load. |
 | Enter/exit, layout animation, shared element | **motion/react** (formerly framer-motion) | `AnimatePresence` handles exit; `layoutId` handles shared element morphs. |
-| Scroll-driven reveals, parallax | **CSS `animation-timeline: scroll()`** or **IntersectionObserver** | CSS-only where supported; IO as fallback. Never `scrollTop`/`scrollY` listeners. |
+| Scroll-driven reveals, parallax | **CSS `animation-timeline: scroll()`** or **IntersectionObserver** | CSS-only where supported; IO as fallback. Never `scrollTop` or `scrollY` listeners. |
 | Complex timeline sequences, pinned scroll sections | **GSAP + ScrollTrigger** | When CSS scroll timelines can't express the choreography. Pin, scrub, and sequence. |
 | Drag, dismiss, gesture with momentum | **motion/react springs** | Springs maintain velocity on interrupt; CSS transitions restart from zero. |
 | Programmatic one-shot (JS-controlled timing) | **Web Animations API (WAAPI)** | JS control + CSS performance. No library needed. |

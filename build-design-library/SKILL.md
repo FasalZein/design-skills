@@ -25,7 +25,7 @@ Resolve each capability by name from the current runtime skill registry. Before 
 
 | Trigger | Skill or tool | Required use |
 |---|---|---|
-| Before visual decisions or UI builds | `design-craft` | Run its Project Context Scan. Owned shipped tokens stay authoritative; a stock grade is an owner design decision. Load each reference whose topic the work touches. |
+| Before visual decisions or UI builds | `design-craft` | Run the Project Context Scan in its `reference/app-ui.md`. Owned shipped tokens stay authoritative; a stock grade is an owner design decision. Load each reference whose topic the work touches. |
 | Navigation, forms, decision flows, feedback, errors, onboarding, progress, or microcopy | `laws-of-ux` | Name its governing rule for each material interaction decision. |
 | Any external research stream: reference products, source libraries, domain rules (Phase 2) | `research` | Run each stream as a background agent against primary sources. One cited Markdown file per stream, at the artifact path the brief names. |
 | Reference-product capture: competitor pages as HTML export or full-page screenshot, PDFs, site maps (Phase 2) | `firecrawl` | `scrape <url> html` and `scrape <url> screenshot` on public pages only. Record URL, date, and access limits with each capture. Competitor interaction behavior is inferred from capture or documentation, never measured. |

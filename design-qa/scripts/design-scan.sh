@@ -178,7 +178,7 @@ run_check ARBITRARY_VALUE high \
   -e '\btext-\[[0-9]+(\.[0-9]+)?(px|rem)' -e '\b[wh]-\[[0-9]+(\.[0-9]+)?px' -e '\bz-\[[0-9]{3}'
 
 run_check TRACKING_TIGHTER high \
-  "Tracking floor is -0.03em. Headings >=24px: -0.01em to -0.02em; body 0 (design-craft Type)." "" \
+  "Tracking floor is -0.03em. Headings >=24px: -0.01em to -0.02em; body 0 (design-craft reference/app-ui.md, Type)." "" \
   -e '\btracking-tighter\b' -e 'letter-spacing:\s*-(0\.0(3[1-9]|[4-9])|0\.[1-9]|[1-9])'
 
 run_check LAYOUT_ANIM high \
@@ -213,7 +213,7 @@ if [ "${#STOCK_FILES[@]}" -gt 0 ]; then
   if [ "$rc" -eq 0 ]; then
     printf '%s' "$out" > "$TMP/rg.json"
     add_findings STOCK_TOKEN medium \
-      "Stock shadcn token layer (chroma-0 neutrals + default radius). Grade the tokens stock and change neutral hue, radius and type in the token layer before composing pages: design-craft Project Context Scan." "" < "$TMP/rg.json"
+      "Stock shadcn token layer (chroma-0 neutrals + default radius). Grade the tokens stock and change neutral hue, radius and type in the token layer before composing pages: design-craft reference/app-ui.md, Project Context Scan." "" < "$TMP/rg.json"
   fi
 fi
 
