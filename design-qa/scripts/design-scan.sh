@@ -40,22 +40,28 @@ command -v rg >/dev/null 2>&1 || die "ripgrep (rg) is required"
 command -v jq >/dev/null 2>&1 || die "jq is required"
 [ -n "$TARGET" ] || die "no target directory given"
 [ -e "$TARGET" ] || die "target does not exist: $TARGET"
-# Single-file target: scan the parent directory filtered to just that file
-if [ -f "$TARGET" ]; then
-  SINGLE_FILE=$(basename "$TARGET")
-  TARGET=$(cd "$(dirname "$TARGET")" && pwd)
-  GLOBS=(-g "$SINGLE_FILE")
-fi
-
 GLOBS=(-g '*.tsx' -g '*.jsx' -g '*.ts' -g '*.js' -g '*.css' -g '*.scss' -g '*.html' -g '*.vue' -g '*.svelte' -g '*.astro' -g '*.mdx'
        -g '!node_modules' -g '!dist' -g '!build' -g '!.next')
 
 TMP=$(mktemp -d) || die "mktemp failed"
 trap 'rm -rf "$TMP"' EXIT
 
+# SCAN_PATH is what rg and ast-grep read; TARGET is the folder that report paths are relative to.
+# Single-file target: pass the file itself. rg searches an explicit file path even when no glob
+# matches it, so an unsupported extension maps to an empty folder (zero supported files).
+SCAN_PATH="$TARGET"
+if [ -f "$TARGET" ]; then
+  SINGLE_FILE=$(basename "$TARGET")
+  TARGET=$(cd "$(dirname "$TARGET")" && pwd)
+  case "$SINGLE_FILE" in
+    *.tsx|*.jsx|*.ts|*.js|*.css|*.scss|*.html|*.vue|*.svelte|*.astro|*.mdx) SCAN_PATH="$TARGET/$SINGLE_FILE" ;;
+    *) mkdir "$TMP/empty"; SCAN_PATH="$TMP/empty" ;;
+  esac
+fi
+
 # NUL-delimited count via temp file: bash $() strips NUL bytes, and newline-delimited
 # counting miscounts newline-containing filenames. Symlinks are not followed (policy).
-rg --files -0 "${GLOBS[@]}" "$TARGET" > "$TMP/files0" 2>/dev/null; RC=$?
+rg --files -0 "${GLOBS[@]}" "$SCAN_PATH" > "$TMP/files0" 2>/dev/null; RC=$?
 [ "$RC" -ge 2 ] && die "rg --files failed (exit $RC)"
 SCANNED=$(tr -cd '\0' < "$TMP/files0" | wc -c | tr -d ' ')
 if [ "$SCANNED" -eq 0 ] && [ "$ALLOW_EMPTY" -eq 0 ]; then
@@ -67,11 +73,18 @@ FINDINGS="$TMP/findings.jsonl"; : > "$FINDINGS"
 run_check() {
   local cat="$1" sev="$2" fix="$3" excl="$4"; shift 4
   local out rc
-  out=$(rg --json -a "${GLOBS[@]}" "$@" "$TARGET" 2>"$TMP/rg.err"); rc=$?
+  out=$(rg --json -a "${GLOBS[@]}" "$@" "$SCAN_PATH" 2>"$TMP/rg.err"); rc=$?
   if [ "$rc" -ge 2 ]; then die "check $cat failed: $(head -1 "$TMP/rg.err")"; fi
   [ "$rc" -eq 1 ] && return 0
+  printf '%s' "$out" > "$TMP/rg.json"
+  add_findings "$cat" "$sev" "$fix" "$excl" < "$TMP/rg.json"
+}
+
+# add_findings CATEGORY SEVERITY FIX EXCLUDE_RE < rg --json output
+add_findings() {
+  local cat="$1" sev="$2" fix="$3" excl="$4"
   # Literal (non-regex) prefix strip: target paths may contain regex metacharacters like [slug].
-  printf '%s' "$out" | jq -c --arg cat "$cat" --arg sev "$sev" --arg fix "$fix" --arg excl "$excl" --arg tgt "$TARGET" '
+  jq -c --arg cat "$cat" --arg sev "$sev" --arg fix "$fix" --arg excl "$excl" --arg tgt "$TARGET" '
     select(.type=="match")
     | {category:$cat, severity:$sev, fix:$fix,
        file:(.data.path.text | if startswith($tgt) then .[($tgt|length):] | ltrimstr("/") else . end),
@@ -183,13 +196,34 @@ run_check CONSOLE_LOG medium \
   'import\.meta\.env|process\.env|NODE_ENV' \
   -e 'console\.(log|warn)\('
 
+# ---- Medium: stock token layer ----
+# A CSS file whose token layer is still the shadcn neutral default: a chroma-0 core neutral
+# (--foreground, --primary or --muted-foreground as oklch(L 0 0) or "0 0% L%") AND --radius
+# 0.5rem (v3) or 0.625rem (v4). Both must hold, so owned neutrals with a stock radius pass.
+# Reported on the --radius line. Owned tokens are tinted (chroma > 0) or use another radius.
+STOCK_NEUTRAL='--(foreground|primary|muted-foreground)\s*:\s*(oklch\(\s*[0-9.]+%?\s+0\s+0\s*\)|0\s+0%\s+[0-9.]+%)'
+STOCK_RADIUS='--radius\s*:\s*0?\.(5|625)rem\b'
+STOCK_FILES=()
+while IFS= read -r -d '' f; do
+  case "$f" in *.css|*.scss) STOCK_FILES+=("$f") ;; esac
+done < <(rg -l -0 -a "${GLOBS[@]}" -e "$STOCK_NEUTRAL" "$SCAN_PATH" 2>/dev/null)
+if [ "${#STOCK_FILES[@]}" -gt 0 ]; then
+  out=$(rg --json -a -e "$STOCK_RADIUS" "${STOCK_FILES[@]}" 2>"$TMP/rg.err"); rc=$?
+  [ "$rc" -ge 2 ] && die "check STOCK_TOKEN failed: $(head -1 "$TMP/rg.err")"
+  if [ "$rc" -eq 0 ]; then
+    printf '%s' "$out" > "$TMP/rg.json"
+    add_findings STOCK_TOKEN medium \
+      "Stock shadcn token layer (chroma-0 neutrals + default radius). Grade the tokens stock and change neutral hue, radius and type in the token layer before composing pages: design-craft Project Context Scan." "" < "$TMP/rg.json"
+  fi
+fi
+
 # ---- Optional structural checks (ast-grep) ----
 SG_BIN=""
 for c in ast-grep sg; do
   if command -v "$c" >/dev/null 2>&1 && "$c" --version 2>/dev/null | grep -qi 'ast-grep'; then SG_BIN="$c"; break; fi
 done
 if [ -n "$SG_BIN" ] && [ -d "$(dirname "$0")/../rules" ]; then
-  SG_OUT=$("$SG_BIN" scan --config "$(dirname "$0")/../sgconfig.yml" --json "$TARGET" 2>"$TMP/sg.err") \
+  SG_OUT=$("$SG_BIN" scan --config "$(dirname "$0")/../sgconfig.yml" --json "$SCAN_PATH" 2>"$TMP/sg.err") \
     || die "ast-grep scan failed: $(head -1 "$TMP/sg.err")"
   # Structural rules map onto the same canonical categories as their lexical peers so dedup merges them.
   printf '%s' "$SG_OUT" | jq -c --arg tgt "$TARGET" '

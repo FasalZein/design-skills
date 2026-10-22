@@ -36,6 +36,29 @@ if [ "$RC" -eq 1 ] && printf '%s' "$OUT" | jq -e '.total>=1 and (.issues[0].file
   ok; else ko "[slug] target path (exit $RC): $(printf '%s' "$OUT" | jq -c '{total,issues}' 2>/dev/null)"; fi
 rm -rf "$(dirname "$SLUG")"
 
+# --- single-file target scans only that file, not its siblings ---
+OUT=$(bash "$SCAN" "$FIX/violations/bad.css" --json 2>/dev/null); RC=$?
+if [ "$RC" -eq 1 ] && printf '%s' "$OUT" | jq -e '.scannedFiles==1 and .total>=1 and ([.issues[].file] | unique == ["bad.css"])' >/dev/null 2>&1; then
+  ok; else ko "single-file target (exit $RC): $(printf '%s' "$OUT" | jq -c '{scannedFiles,total,files:([.issues[].file]|unique)}' 2>/dev/null)"; fi
+OUT=$(bash "$SCAN" "$FIX/clean/Good.tsx" --json 2>/dev/null); RC=$?
+{ [ "$RC" -eq 0 ] && printf '%s' "$OUT" | jq -e '.scannedFiles==1 and .total==0' >/dev/null 2>&1; } \
+  && ok || ko "single clean file (exit $RC): $(printf '%s' "$OUT" | jq -c '{scannedFiles,total}' 2>/dev/null)"
+
+t "single unsupported file exits 2"    2 bash "$SCAN" "$FIX/../run-tests.sh"
+
+# --- stock token layer: red on shadcn defaults, green on owned tokens ---
+D=$(mktemp -d)
+printf ':root {\n  --foreground: 0 0%% 3.9%%;\n  --primary: 0 0%% 9%%;\n  --radius: 0.5rem;\n}\n' > "$D/v3.css"
+N=$(bash "$SCAN" "$D/v3.css" --json 2>/dev/null | jq '[.issues[] | select(.category=="STOCK_TOKEN" and .line==4)] | length')
+[ "$N" = "1" ] && ok || ko "STOCK_TOKEN missed shadcn v3 HSL defaults (got $N)"
+printf ':root {\n  --foreground: oklch(0.21 0.02 255);\n  --radius: 0.625rem;\n}\n' > "$D/tinted.css"
+N=$(bash "$SCAN" "$D/tinted.css" --json 2>/dev/null | jq '.categories.STOCK_TOKEN // 0')
+[ "$N" = "0" ] && ok || ko "STOCK_TOKEN flagged tinted neutrals with a stock radius (got $N)"
+printf ':root {\n  --primary: oklch(0.205 0 0);\n  --radius: 0.375rem;\n}\n' > "$D/radius.css"
+N=$(bash "$SCAN" "$D/radius.css" --json 2>/dev/null | jq '.categories.STOCK_TOKEN // 0')
+[ "$N" = "0" ] && ok || ko "STOCK_TOKEN flagged an owned radius with grey neutrals (got $N)"
+rm -rf "$D"
+
 # --- JSON validity + schema, including hostile paths ---
 OUT=$(bash "$SCAN" "$FIX/violations" --json 2>/dev/null)
 printf '%s' "$OUT" | jq -e '.status=="fail" and .scannedFiles>0 and (.issues|length)==.total' >/dev/null 2>&1 \
@@ -53,7 +76,7 @@ rm -rf "$(dirname "$HOSTILE")"
 CATS=$(bash "$SCAN" "$FIX/violations" --json 2>/dev/null | jq -r '.categories | keys | join(" ")')
 for want in SLOP_GRADIENT GRADIENT_TEXT GRADIENT_ORB DEAD_CONTROL DIV_ONCLICK TABINDEX_POSITIVE SIDE_STRIPE SECTION_BORDER NAMED_COLOR \
             ZOOM_DISABLED PASTE_BLOCKED H_SCREEN HARDCODED_COLOR ARBITRARY_VALUE TRACKING_TIGHTER \
-            LAYOUT_ANIM TRANSITION_ALL CONSOLE_LOG; do
+            LAYOUT_ANIM TRANSITION_ALL CONSOLE_LOG STOCK_TOKEN; do
   case " $CATS " in *" $want "*) ok ;; *) ko "category $want not detected" ;; esac
 done
 
@@ -83,9 +106,10 @@ probe LAYOUT_ANIM     Bad2.tsx    # transition-[height]
 probe CONSOLE_LOG     bad.ts
 probe PASTE_BLOCKED   bad.js
 probe DEAD_CONTROL    bad.mdx
+probe STOCK_TOKEN     stock-tokens.css # shadcn v4 neutral oklch + 0.625rem
 
 # --- per-format coverage: every violation fixture file yields >=1 finding ---
-for f in Bad.tsx Bad2.tsx bad.jsx bad.ts bad.js bad.css bad.scss bad.html bad2.html bad.vue bad.svelte bad.astro bad.mdx; do
+for f in Bad.tsx Bad2.tsx bad.jsx bad.ts bad.js bad.css bad.scss bad.html bad2.html bad.vue bad.svelte bad.astro bad.mdx stock-tokens.css; do
   N=$(printf '%s' "$J" | jq --arg f "$f" '[.issues[] | select(.file==$f)] | length')
   [ "${N:-0}" -ge 1 ] && ok || ko "no findings in $f"
 done
