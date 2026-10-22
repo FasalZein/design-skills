@@ -58,7 +58,7 @@ Integration is complete when:
 
 ## Run live browser proof
 
-Use an isolated `agent-browser` session for each concurrent verifier. Derive the viewport, mode, and state matrix from project policy and owner decisions.
+Use an isolated `agent-browser-chrome` session for each concurrent verifier; plain `agent-browser` runs Lightpanda and renders no pixels. Derive the viewport, mode, and state matrix from project policy and owner decisions.
 
 Run every required cell through the per-cell loop, state setup, and machine probes in the `design-qa` live-verification reference: viewport before navigation, fresh navigation, state created through the application or an approved fixture, the interaction exercised, then errors, console, failed requests, overflow, landmarks and heading order, keyboard and focus, target size, contrast, and reduced motion. Record each probe result in the ledger's browser-cell row.
 

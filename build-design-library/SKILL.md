@@ -30,7 +30,7 @@ Resolve each capability by name from the current runtime skill registry. Before 
 | Any external research stream: reference products, source libraries, domain rules (Phase 2) | `research` | Run each stream as a background agent against primary sources. One cited Markdown file per stream, at the artifact path the brief names. |
 | Reference-product capture: competitor pages as HTML export or full-page screenshot, PDFs, site maps (Phase 2) | `firecrawl` | `scrape <url> html` and `scrape <url> screenshot` on public pages only. Record URL, date, and access limits with each capture. Competitor interaction behavior is inferred from capture or documentation, never measured. |
 | Before product acceptance (Phase 7) | `design-qa` | Run its scanner, then its judgment gates, then its live-verification reference. Scanner exit `0` proves only its mechanical scope. |
-| Rendered proof of this product, from the vertical slice onward (Phases 4–7) | `agent-browser` | Measure this product's rendered surface through isolated sessions and fresh navigation. |
+| Rendered proof of this product, from the vertical slice onward (Phases 4–7) | `agent-browser-chrome` (plain `agent-browser` runs Lightpanda and renders no pixels) | Measure this product's rendered surface through isolated sessions and fresh navigation. |
 
 A missing capability keeps status `missing` in the contract's capability table. Apply the project's own checks by hand and report them as manual.
 
