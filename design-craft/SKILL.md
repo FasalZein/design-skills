@@ -68,12 +68,13 @@ Done when the pass is applied, or you record "no pass needed" with the reason.
 
 ## 4 Verify
 1. Mechanical checks. Load design-qa and run its scanner; exit 2 means QA is incomplete. Run impeccable detect: `<impeccable skill dir>/scripts/impeccable detect --json <changed files>`, and on the running URL with `--viewport 390x844` and `--viewport 1440x900`. Public pages: also design-taste-frontend's lint and inspect scripts (its section "7. Gate").
-2. States. A component with data, account or feature states -> state-machine page; every state becomes a `?__state=` URL. Worst-case data -> break (all scenarios on one page) or break-ui (long names, empty, overflow).
-3. Gate 12 per design-qa's live-verification runbook, in a browser that renders pixels for every command. In pi, set `AB="agent-browser-chrome --session <app>-qa"`; plain agent-browser renders no pixels. Shoot every state at every viewport. Motion code -> review-animations.
-4. Read every screenshot against DIRECTION: the alignment of each lockup (icon and text, label and value, date blocks), spacing rhythm, hierarchy, and every visible sentence. Delete each sentence that restates what the UI shows. Fix, then re-shoot.
-5. Harnesses (state-machine, break, variant): an unattended builder (design-builder in pi) removes them before it reports, unless the brief keeps them. An attended designer (the design agent in pi) removes them on the user's word.
+2. States. A component with data, account or feature states -> state-machine page; every state becomes a `?__state=` URL.
+3. Worst-case data. Every component you built or changed that renders data (names, emails, counts, lists, tables, cards, badges, timestamps) gets a break-ui pass: its worst-case, empty, one and huge fixtures behind its toggle, checked at the real container width, 320px and 200% zoom. An unattended builder (design-builder in pi) runs it in its `<component> + fix` form: apply every fix outside "Decisions for you", then list those decisions in the report. An attended designer reports the breaks and waits for the user. All scenarios on one page for a single look -> break.
+4. Gate 12 per design-qa's live-verification runbook, in a browser that renders pixels for every command. In pi, set `AB="agent-browser-chrome --session <app>-qa"`; plain agent-browser renders no pixels. Shoot every state at every viewport. Motion code -> review-animations.
+5. Read every screenshot against DIRECTION: the alignment of each lockup (icon and text, label and value, date blocks), spacing rhythm, hierarchy, and every visible sentence. Delete each sentence that restates what the UI shows. Fix, then re-shoot.
+6. Harnesses (state-machine, break, variant): an unattended builder (design-builder in pi) removes them before it reports, unless the brief keeps them; the break-ui worst-case fixture stays as the component's regression data. An attended designer (the design agent in pi) removes them on the user's word.
 
-Done when the scanner exits 0, each detect finding is fixed or justified in the report, and every state-by-viewport screenshot was read after the last fix. The repair-attempt limit in your inherited rules is the ceiling.
+Done when the scanner exits 0, each detect finding is fixed or justified in the report, every data component had its break-ui pass, and every state-by-viewport screenshot was read after the last fix. The repair-attempt limit in your inherited rules is the ceiling.
 
 ## 5 Report lines
 ```
