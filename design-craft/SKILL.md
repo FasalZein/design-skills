@@ -28,8 +28,8 @@ Done when you can name the direction source, the token grade, the tokens and com
 
 ## 1 Direction
 Take the first branch that fits:
-- **Approved direction exists** (DESIGN.md, the brief, or the brief scopes a slice of an approved system): adopt it. DIRECTION: its source.
-- **User present** (an attended session, such as the design agent in its pi pane): run grill-design. It drives grilling with prototype rounds. Seed and extend it:
+- **Approved direction exists** (DESIGN.md, the brief, or the brief scopes a slice of an approved system): adopt it. DIRECTION: its source. When the user is present and the brief leaves one piece's look open, run grill-design for that piece only, starting at its level of the design tree.
+- **User present** (an attended session, such as the design agent in its pi pane): run grill-design before any file edit; it is the entry point for every open look or flow. It drives grilling with prototype rounds (the prototype skill's UI branch). Seed and extend it:
   1. Overall look: deal directions with design-taste-frontend's draw (its section "3. Draw the direction"). Page: `--options 5`. App screen: `--app --kind <kind>`, plus `--keep palette,type` when the brand fixes colors or fonts. Build each dealt direction as one prototype behind one picker: inside the app when it runs, otherwise one standalone HTML file under your artifact directory, opened with `open <file>`.
   2. Zoom in, one level per verdict: component groups -> variant (one axis per round). One component's states -> state-machine. Flow questions -> laws-of-ux. A critique of the leading option -> impeccable critique. A site the user names as a reference -> explain-interface.
   3. Every verdict is the user's: ask it as a structured question (ask_user in pi). The step is done when the user approves the overall look and each group they raised.
