@@ -47,10 +47,10 @@ Conformance is the measured WCAG 2.x ratio (kernel floors: 4.5:1 / 3:1 / 3:1 non
 
 ## Dark mode
 
-Derive, don't hand-pick: invert the semantic lightness mapping (neutral-950 → background, neutral-50 → foreground) rather than choosing an unrelated dark palette. Then:
+Derive from the same scales, don't hand-pick an unrelated dark palette: re-pick each semantic role from the scale for the dark scene (a deep stop for the background, a light stop for the foreground, lighter stops for closer surfaces) and check every pair. A mechanical inversion of the light theme is not the method. Then:
 
 - Reduce chroma per the kernel (~10–20%) — saturated accents vibrate on dark. Verify the reduced accents still meet the floors; re-measure, don't assume.
 - Depth from lighter surfaces, not shadows — the elevation ladder inverts to tint.
 - Reduce font weight (350) only when the loaded font actually provides it — a synthesized 350 is worse than 400.
-- Never pure black background; never pure white text.
+- Default ground and text sit one stop in from the ends (stop-950/stop-50). Pure black or pure white needs the direction source to name it.
 - Swap the semantic token layer, not components — if dark mode requires editing a component, the token layer failed.

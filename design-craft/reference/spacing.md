@@ -1,4 +1,6 @@
-# Spacing & Surfaces — Density, Rhythm, Radius, Elevation, Safe Areas
+# Spacing & Surfaces — Density, Rhythm, Radius, Elevation
+
+Optical alignment, hit areas, safe areas, and image outlines: better-ui and better-accessibility (exact values).
 
 Space is the most underused design tool. When an interface feels "off" despite good colors and fonts, the root cause is usually spatial: monotone spacing, weak hierarchy, or mismatched radii. The base ladder and grouping rules live in the SKILL.md spacing kernel; this file owns the depth.
 
@@ -29,7 +31,7 @@ Density is a system decision, not per-component taste. Pick one mode per surface
 | Comfortable (default) | 40px | 16–24px | Product UI |
 | Spacious | 48px | 24–32px | Marketing, onboarding, touch-first |
 
-Grouped controls share equal heights — a 40px input beside a 36px button reads as broken. Offer a persisted density toggle only in genuinely data-heavy tools (table density values: [data-dense.md](data-dense.md)).
+Grouped controls share equal heights — a 40px input beside a 36px button reads as broken. Offer a persisted density toggle only in genuinely data-heavy tools (table density values: design-taste-frontend `references/app-screens.md`).
 
 ## Block text rhythm
 
@@ -114,54 +116,6 @@ Hover: raise each alpha ~0.02 and transition `box-shadow` only (150ms ease-out).
 
 - Backdrop blur is an overlay treatment: sheets, menus, bars over scrolling content — surfaces where showing what's beneath carries meaning. Always pair with a readable fallback (`@supports not (backdrop-filter: blur())` → opaque) and respect `prefers-reduced-transparency`. Glass on static cards is decoration, not information.
 - Texture (grain, weave, pattern) is legal as a brand system: one texture, bounded to named roles (hero panel, brand band), subtle enough to survive the squint test. Reflexive full-page grain or animated noise fails the intent-and-repetition lens.
-
-## Optical alignment
-
-Geometric centering often looks wrong; adjust optically — but only when you can see it's off, never speculatively.
-
-- Button with trailing icon: icon-side padding = text-side padding − 2px (`pl-4 pr-3.5`).
-- Play triangles: shift ~2px toward the point. Arrows: shift toward their direction.
-- Text at `margin-left: 0` looks indented because of letterform whitespace; `-0.05em` negative margin aligns the glyph edge.
-- Icon–text rows: center the icon on the text's cap height (roughly `top: 0.1em` adjustment), not the full line box — line-box centering sits icons visibly low next to a single line of text.
-- Asymmetric icons (stars, carets): best fixed in the SVG viewBox itself so components need no compensation.
-
-## Hit areas
-
-Target sizes live in the SKILL.md spacing kernel. Extend small visuals with a pseudo-element:
-
-```css
-.icon-button { position: relative; width: 24px; height: 24px; }
-.icon-button::before { content: ''; position: absolute; inset: -10px; }
-```
-
-Collision rule: if the extended area would overlap another interactive element, shrink it to the largest non-overlapping size. Two controls never share hit-area pixels.
-
-## Safe areas
-
-Fixed and sticky elements on mobile must respect device insets:
-
-```html
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-```
-
-```css
-.bottom-bar { padding-bottom: calc(env(safe-area-inset-bottom) + 12px); }
-.top-bar    { padding-top: calc(env(safe-area-inset-top) + 8px); }
-```
-
-`env()` without `viewport-fit=cover` returns 0 — both halves are required.
-
-## Image outlines
-
-1px inset outline creates consistent depth without affecting layout (token in `:root` — the no-inline-oklch rule applies to outlines too):
-
-```css
-:root { --img-outline: oklch(0 0 0 / 0.1); }
-.dark  { --img-outline: oklch(1 0 0 / 0.1); }
-img { outline: 1px solid var(--img-outline); outline-offset: -1px; }
-```
-
-Pure black/white only (`outline-black/10 dark:outline-white/10`) — a tinted neutral (slate/zinc) picks up the surface color and reads as dirt on the image edge. `outline` over `border` so the image keeps its intended size.
 
 ## The spacing pass (method)
 
