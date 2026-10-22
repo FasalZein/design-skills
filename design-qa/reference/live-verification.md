@@ -5,9 +5,12 @@ Pass conditions, state/viewport matrices, N-A rules, and the completion criterio
 ## Setup
 
 ```bash
-agent-browser skills get core        # load the CLI workflow reference
-AB="agent-browser --session <app>-qa" # ISOLATED session — parallel agents share the default
-                                      # instance and will hijack your tabs mid-verification
+agent-browser-chrome skills get core        # load the CLI workflow reference
+AB="agent-browser-chrome --session <app>-qa" # ISOLATED session — parallel agents share the default
+                                             # instance and will hijack your tabs mid-verification
+# agent-browser-chrome = agent-browser with AGENT_BROWSER_ENGINE=chrome (pixels for screenshots and
+# canvas contrast). Plain agent-browser runs Lightpanda here and renders no pixels. Keep one engine
+# for every command of the session.
 # resolve the target: project dev/preview command (package.json scripts) or supplied URL
 # static single-file builds: file:///absolute/path/index.html works directly
 ```
@@ -49,7 +52,7 @@ $AB eval "document.documentElement.classList.add('dark')"   # or the project's t
 $AB set media --reduced-motion reduce
 ```
 
-Verify the emulation took: `$AB eval "matchMedia('(prefers-reduced-motion: reduce)').matches"`. When it reports `false` (known agent-browser gap), the fallback ladder is:
+Verify the emulation took: `$AB eval "matchMedia('(prefers-reduced-motion: reduce)').matches"`. When it reports `false` (known agent-browser-chrome gap), the fallback ladder is:
 
 1. Confirm a `@media (prefers-reduced-motion: reduce)` block exists in the source (read the CSS file directly — `document.styleSheets` throws `SecurityError` on `file://` external sheets).
 2. Inject the equivalent rules via `eval` and verify their CSS effect (animations/transitions neutralized).

@@ -178,7 +178,7 @@ run_check ARBITRARY_VALUE high \
   -e '\btext-\[[0-9]+(\.[0-9]+)?(px|rem)' -e '\b[wh]-\[[0-9]+(\.[0-9]+)?px' -e '\bz-\[[0-9]{3}'
 
 run_check TRACKING_TIGHTER high \
-  "Tracking floor is -0.03em; below 30px use 0. Exact ladder: design-craft type kernel." "" \
+  "Tracking floor is -0.03em. Headings >=24px: -0.01em to -0.02em; body 0 (design-craft Type)." "" \
   -e '\btracking-tighter\b' -e 'letter-spacing:\s*-(0\.0(3[1-9]|[4-9])|0\.[1-9]|[1-9])'
 
 run_check LAYOUT_ANIM high \

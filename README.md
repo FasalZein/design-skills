@@ -18,33 +18,32 @@ The entry file routes through seven gated phases: contract, research and sourcin
 
 Load it in Pi with `pi --skill ./build-design-library/SKILL.md`, then run `/skill:build-design-library`. Other skill runners must support the user-invocation flag or receive the file explicitly.
 
-**Companion skills and tools.** The workflow resolves these by name from the runtime skill registry and loads each one before its first use: a skill by reading its `SKILL.md`, the `agent-browser` tool with `agent-browser skills get core`. A missing capability is recorded as `missing` and its checks run by hand; a missing independent reviewer records every gate as `unreviewed`, and the run stops for the decision owner.
+**Companion skills and tools.** The workflow resolves these by name from the runtime skill registry and loads each one before its first use: a skill by reading its `SKILL.md`, the `agent-browser-chrome` tool with `agent-browser-chrome skills get core`. A missing capability is recorded as `missing` and its checks run by hand; a missing independent reviewer records every gate as `unreviewed`, and the run stops for the decision owner.
 
 | Skill name | Used for | Install |
 |---|---|---|
 | `research` | Phase 2 research streams: reference products, source libraries, domain rules. Background agents, primary sources, one cited report per stream. | [FasalZein/deep-research-skill](https://github.com/FasalZein/deep-research-skill) — `npx skills add FasalZein/deep-research-skill` |
 | `firecrawl` | Phase 2 reference-product capture: competitor pages as HTML export or full-page screenshot, PDFs, site maps. Also a dependency of `research`. | [edxeth/superlight-firecrawl-skill](https://github.com/edxeth/superlight-firecrawl-skill) — `npx skills add edxeth/superlight-firecrawl-skill` |
 | `exa`, `tinyfish` | Dependencies of `research` (semantic search, page fetch). | `npx skills add edxeth/superlight-exa-skill` and `npx skills add edxeth/superlight-tinyfish-skill` |
-| `agent-browser` | Phases 4–7: rendered proof of this product from the vertical slice onward — measurements, interaction evidence, browser cells. Competitor pages go through `firecrawl`, never this tool. | `npm i -g agent-browser && agent-browser install` |
+| `agent-browser-chrome` (agent-browser with `AGENT_BROWSER_ENGINE=chrome`; plain agent-browser on Lightpanda renders no pixels) | Phases 4–7: rendered proof of this product from the vertical slice onward — measurements, interaction evidence, browser cells. Competitor pages go through `firecrawl`, never this tool. | `npm i -g agent-browser && agent-browser install` |
 
 `research`, `firecrawl`, `exa`, and `tinyfish` need API keys: `EXA_API_KEY`, `TINYFISH_API_KEY`, `FIRECRAWL_API_KEY`. `design-craft`, `laws-of-ux`, and `design-qa` ship in this repository.
 
 ### design-craft
 
-The implementation rulebook. Executable kernels for type, color, spacing, and interaction states live in the always-loaded SKILL.md — the decisions a strong designer would make, pre-made (exact tracking values, a deterministic name→hue palette derivation, the 4px ladder, the five interaction states). Nine hard anti-slop guardrails, each paired with what to build instead, plus an intent-and-repetition lens for context-sensitive treatments.
+The app-UI rulebook. SKILL.md grades the existing token layer as stock or owned, runs a nine-item decision gate, and keeps the kernels no other skill carries (a deterministic name→hue palette derivation, the 4px ladder with dead-air limits, the sizing contract). Nine hard anti-slop guardrails, each paired with what to build instead. Topics that better-typography, better-layout, better-writing, better-ui, emil-design-eng, and design-taste-frontend cover are pointers to those skills; public pages follow design-taste-frontend's house rules.
 
 Branch depth loads on demand:
 
 | Reference | What it covers |
 |-----------|---------------|
 | `color.md` | Gamut mapping, P3, chroma strategy, warm neutrals, contrast method, dark mode |
-| `typography.md` | Font sourcing/loading, fallback metrics, variable fonts, wrapping, CJK |
-| `spacing.md` | Inset/stack, density modes, block rhythm, radius, elevation, safe areas, optical alignment |
-| `composition.md` | App shells, sidebars, gutters, metadata/date lockups, settings, features, pricing, proof, footers |
+| `typography.md` | Fallback metrics, CJK |
+| `spacing.md` | Inset/stack, density modes, block rhythm, radius, elevation, the spacing pass |
+| `composition.md` | App shells, sidebars, gutters, metadata/date lockups, settings, section header rows |
 | `product-states.md` | Loading tiers, empty/error copy, validation timing, destructive actions, optimistic updates |
-| `motion.md` | Frequency gate, duration ladder, easing, springs, gestures, reduced motion |
-| `data-dense.md` | Tables, KPIs, chart selection, chart accessibility, dashboards |
-| `visual-assets.md` | Icon systems, imagery pipeline, illustration roles, emoji |
+| `motion.md` | Animation library choice, reveals |
+| `data-dense.md` | Chart states, chart accessibility |
 
 ### laws-of-ux
 
@@ -52,7 +51,7 @@ Branch depth loads on demand:
 
 ### design-qa
 
-12-gate pre-ship checklist plus a fail-closed scanner. Gates 1–11 check source; Gate 12 verifies the **rendered page** live via agent-browser (screenshots at 375/1440px, console errors, focus cycle, measured contrast, target sizes) with a command-level runbook in `reference/live-verification.md`. Binary pass/fail — no ambiguity, no "looks good to me."
+12-gate pre-ship checklist plus a fail-closed scanner. Gates 1–11 check source; Gate 12 verifies the **rendered page** live via agent-browser-chrome (screenshots at 375/1440px, console errors, focus cycle, measured contrast, target sizes) with a command-level runbook in `reference/live-verification.md`. Mechanical rows pass or fail; judgment rows state their test. The scanner also flags a stock shadcn token layer (`STOCK_TOKEN`).
 
 ---
 
@@ -125,8 +124,8 @@ This is the statistical median of every Tailwind tutorial in the training data. 
 
 ```
 design-craft/
-  SKILL.md                      <- kernels + guardrails + decision gate + self-check (explicit load)
-  reference/                    <- 8 branch files, loaded by trigger
+  SKILL.md                      <- guardrails + token grade + decision gate + kernels (explicit load)
+  reference/                    <- 7 branch files, opened by topic
 
 laws-of-ux/
   SKILL.md                      <- 30 laws + decision matrix + decision audit (standalone)

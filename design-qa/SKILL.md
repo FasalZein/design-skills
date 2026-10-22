@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # Design QA
 
-Structured quality gate for UI code. Run against any component, page, or feature before shipping. Every check is binary — pass or fail. Report ONLY failures. Silence = quality.
+Structured quality gate for UI code. Run against any component, page, or feature before shipping. Mechanical rows pass or fail; judgment rows apply the test stated in the row. Gates 1–11: report failures only. Gate 12: list every machine probe with its measured result, pass or fail.
 
 ## Scanner
 
@@ -43,7 +43,7 @@ The scanner covers only mechanical facts. Scanner silence says nothing about the
 
 ## Gate 1: Anti-Slop (Critical)
 
-Mechanical rows are scanner-automated; judgment rows apply the intent-and-repetition test — the treatment communicates state, hierarchy, focus, information, or brand meaning, and is bounded to a named role.
+Mechanical rows are scanner-automated; judgment rows apply the intent-and-repetition test — the treatment communicates state, hierarchy, focus, information, or brand meaning, and is bounded to a named role. On public pages built under design-taste-frontend's house rules, those rules decide shadows, eyebrows, monospace, thin rules, and section backgrounds; the matching rows here (Landing continuity, Kickers are bounded) yield to them.
 
 | Check | Pass Condition |
 |-------|---------------|
@@ -52,7 +52,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Glass is functional | `backdrop-blur` only on overlays over meaningful content, with a readable fallback — never on static cards |
 | No fake proof | Zero invented counts ("Trusted by 10,000+"), logo marquees, placeholder identities ("John Doe", "Acme"), round metrics (99.99%), fake terminal/mac-window chrome |
 | No template composition | Not centered-hero + identical card grid; not 3-4 equal big-number metric cards; not 3-tier pricing + "Most Popular" pill shipped verbatim; footer mirrors real IA |
-| Stack is customized | shadcn/Tailwind tokens, radii, and variants customized to the product — `whitespace-nowrap` on buttons is required, the rest of a verbatim default variant string is the tell |
+| Stack is owned (auto) | Zero scanner STOCK_TOKEN findings: no CSS token layer pairs chroma-0 core neutrals (`--foreground`/`--primary`/`--muted-foreground` as `oklch(L 0 0)` or `0 0% L%`) with `--radius` 0.5rem/0.625rem. Judgment part: Inter or Geist as the only face has a stated reason in the decision line; primitives carry product variants, not only the library's verbatim variant strings |
 | No template copy | Zero: Effortlessly, Streamline, Revolutionize, Unlock, AI-powered (non-AI product), "It's not just X, it's Y", "Welcome to our platform", "Built with ❤️" — in rendered copy; identifiers don't count |
 | Motion earns its place | Pulse/ping only as skeleton feedback or accessible live-status; reveals differ by content, not one fade-in-up everywhere |
 | No side-stripe accents (auto) | Zero colored `border-left` bars on cards/callouts/items — tint or dot instead, never stripe + tint; `blockquote` exempt |
@@ -75,7 +75,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Headings: text-balance | `<h1>`–`<h6>` use `text-balance` or `text-pretty` |
 | Line length controlled | Body text capped at 45–75ch (`max-w-prose` or equivalent); CJK content ~40 glyphs with `lang` set |
 | Max 3 font weights | More than 3 distinct weights per view = flag |
-| Web fonts are woff2 | Owned font assets `.woff2`; `font-synthesis: none`; every used weight has a loaded file |
+| Web fonts are woff2 | Owned font assets `.woff2`; every used weight has a loaded file; unwanted synthesis is off by longhand (`font-synthesis-weight: none`), not `font-synthesis: none` on body text |
 | Mobile inputs ≥ 16px | Input text ≥16px on mobile; zoom never disabled to compensate |
 
 ## Gate 3: Color
@@ -191,11 +191,11 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Optimistic rollback | Failed optimistic updates revert visibly + show error |
 | Offline/stale honest | Offline states say what still works; stale data is timestamped |
 
-## Gate 12: Live Verification (agent-browser)
+## Gate 12: Live Verification (agent-browser-chrome)
 
 Static gates read source; this gate checks the **rendered page**.
 
-**Prerequisites:** a dev/preview command exists (or a URL is supplied) and `agent-browser` responds. Both present → the gate is mandatory. Either missing → record `Gate 12: N-A — <which prerequisite is missing and why>`. N-A is never a pass; a state that should exist but cannot be exposed is a failing state check.
+**Prerequisites:** a dev/preview command exists (or a URL is supplied) and `agent-browser-chrome` responds. The gate needs an engine that renders pixels: `agent-browser-chrome` is the local wrapper that sets `AGENT_BROWSER_ENGINE=chrome`; plain `agent-browser` runs Lightpanda here and takes no screenshots. Elsewhere, run `agent-browser` with `AGENT_BROWSER_ENGINE=chrome` on every command of the session. Both present → the gate is mandatory. Either missing → record `Gate 12: N-A — <which prerequisite is missing and why>`. N-A is never a pass; a state that should exist but cannot be exposed is a failing state check.
 
 **Viewports:** 375×812 and 1440×900 always; 768×1024 when the layout has a tablet breakpoint.
 
