@@ -12,7 +12,7 @@ Work the phases in order. Load a phase's skills when the phase starts: read the 
 The app-UI craft rules (Hard Guardrails, Project Context Scan, Design Decision Gate, References, Type, Color Kernel, Spacing Kernel, Symptom → Correction, Conflict Priority) live in [reference/app-ui.md](reference/app-ui.md).
 
 ## Skill map
-Read each SKILL.md with the read tool at the path below. A skill appears at its first phase; later phases name it only. Paths inside a skill (reference/, scripts/) are relative to its SKILL.md folder; use them as absolute paths. A skill that is not in the map: use the skill registry (in pi, the path that <available_skills> lists), or record it as missing.
+Read each SKILL.md whole (no offset or limit) with the read tool at the path below. A skill appears at its first phase; later phases name it only. Paths inside a skill (reference/, scripts/) are relative to its SKILL.md folder; use them as absolute paths. A skill that is not in the map: use the skill registry (in pi, the path that <available_skills> lists), or record it as missing.
 
 | Phase | Skill | SKILL.md |
 |---|---|---|
