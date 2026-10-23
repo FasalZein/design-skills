@@ -18,7 +18,7 @@ The entry file routes through seven gated phases: contract, research and sourcin
 
 Load it in Pi with `pi --skill ./build-design-library/SKILL.md`, then run `/skill:build-design-library`. Other skill runners must support the user-invocation flag or receive the file explicitly.
 
-**Companion skills and tools.** The workflow resolves these by name from the runtime skill registry and loads each one before its first use: a skill by reading its `SKILL.md`, the `agent-browser-chrome` tool with `agent-browser-chrome skills get core`. A missing capability is recorded as `missing` and its checks run by hand; a missing independent reviewer records every gate as `unreviewed`, and the run stops for the decision owner.
+**Companion skills and tools.** The workflow finds each skill's `SKILL.md` path in the Skill map in design-craft/SKILL.md (the runtime skill registry for a skill outside the map) and loads each one before its first use: a skill by reading its `SKILL.md`, the `agent-browser-chrome` tool with `agent-browser-chrome skills get core`. A missing capability is recorded as `missing` and its checks run by hand; a missing independent reviewer records every gate as `unreviewed`, and the run stops for the decision owner.
 
 | Skill name | Used for | Install |
 |---|---|---|
