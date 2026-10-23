@@ -86,5 +86,11 @@ SLASH_TOKENS=$(grep -nE '`/(skill:)?[A-Za-z0-9][A-Za-z0-9._-]*`' "$ROOT/design-c
 if [ -n "$SLASH_TOKENS" ]; then bad "backticked slash token in design-craft (injects skills transitively):"; echo "$SLASH_TOKENS"
 else say "no backticked slash tokens in design-craft"; fi
 
+# 11. Every SKILL.md path in the design-craft Skill map exists on this machine (installed skills).
+MAP_PATHS=$(awk '/^## Skill map/{f=1;next} f&&/^## /{exit} f' "$ROOT/design-craft/SKILL.md" | grep -oE '~/[^ |]+/SKILL\.md')
+[ -n "$MAP_PATHS" ] || bad "design-craft Skill map has no SKILL.md paths"
+for p in $MAP_PATHS; do [ -f "$HOME/${p#\~/}" ] || bad "Skill map path missing: $p"; done
+say "skill map paths checked ($(echo "$MAP_PATHS" | wc -l | tr -d ' '))"
+
 echo "----"
 if [ "$FAIL" -eq 0 ]; then echo "verify: GREEN"; exit 0; else echo "verify: $FAIL failure(s)"; exit 1; fi

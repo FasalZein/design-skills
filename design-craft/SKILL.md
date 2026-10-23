@@ -7,9 +7,52 @@ disable-model-invocation: true
 
 # Design workflow
 
-Work the phases in order. Load a phase's skills when the phase starts: open the skill's SKILL.md from the skill registry (in pi, `read` the path that <available_skills> lists). A skill from an earlier phase stays done; reload it only for a new question.
+Work the phases in order. Load a phase's skills when the phase starts: read the skill's SKILL.md at its path in the Skill map below. A skill from an earlier phase stays done; reload it only for a new question.
 
 The app-UI craft rules (Hard Guardrails, Project Context Scan, Design Decision Gate, References, Type, Color Kernel, Spacing Kernel, Symptom → Correction, Conflict Priority) live in [reference/app-ui.md](reference/app-ui.md).
+
+## Skill map
+Read each SKILL.md whole (no offset or limit) with the read tool at the path below. A skill appears at its first phase; later phases name it only. Paths inside a skill (reference/, scripts/) are relative to its SKILL.md folder; use them as absolute paths. A skill that is not in the map: use the skill registry (in pi, the path that <available_skills> lists), or record it as missing.
+
+| Phase | Skill | SKILL.md |
+|---|---|---|
+| 0 Intake | design-md | ~/.agents/skills/design-md/SKILL.md |
+| | shadcn | ~/.agents/skills/shadcn/SKILL.md |
+| | coss | ~/.agents/skills/coss/SKILL.md |
+| | coss-particles | ~/.agents/skills/coss-particles/SKILL.md |
+| | agent-browser | ~/.agents/skills/agent-browser/SKILL.md |
+| 1 Direction | design-taste-frontend | ~/.agents/skills/design-taste-frontend/SKILL.md |
+| | grill-design | ~/.agents/skills/grill-design/SKILL.md |
+| | prototype | ~/.agents/skills/prototype/SKILL.md |
+| | variant | ~/.agents/skills/variant/SKILL.md |
+| | state-machine | ~/.agents/skills/state-machine/SKILL.md |
+| | laws-of-ux | ~/.agents/skills/laws-of-ux/SKILL.md |
+| | impeccable | ~/.pi/agent/skills/impeccable/SKILL.md |
+| | explain-interface | ~/.agents/skills/explain-interface/SKILL.md |
+| 2 Build | better-layout | ~/.agents/skills/better-layout/SKILL.md |
+| | better-typography | ~/.agents/skills/better-typography/SKILL.md |
+| | better-colors | ~/.agents/skills/better-colors/SKILL.md |
+| | better-ui | ~/.agents/skills/better-ui/SKILL.md |
+| | better-accessibility | ~/.agents/skills/better-accessibility/SKILL.md |
+| | better-writing | ~/.agents/skills/better-writing/SKILL.md |
+| | copywriting | ~/.agents/skills/copywriting/SKILL.md |
+| | animate | ~/.agents/skills/animate/SKILL.md |
+| | apple-design | ~/.agents/skills/apple-design/SKILL.md |
+| | emil-design-eng | ~/.agents/skills/emil-design-eng/SKILL.md |
+| | make-interfaces-feel-better | ~/.agents/skills/make-interfaces-feel-better/SKILL.md |
+| | animation-vocabulary | ~/.agents/skills/animation-vocabulary/SKILL.md |
+| | ask-sonner | ~/.agents/skills/ask-sonner/SKILL.md |
+| | mobile-native | ~/.agents/skills/mobile-native/SKILL.md |
+| | also: laws-of-ux, variant | |
+| 3 Refine | find-animation-opportunities | ~/.agents/skills/find-animation-opportunities/SKILL.md |
+| | improve-animations | ~/.agents/skills/improve-animations/SKILL.md |
+| | better-interface | ~/.agents/skills/better-interface/SKILL.md |
+| | also: impeccable | |
+| 4 Verify | design-qa | ~/.agents/skills/design-qa/SKILL.md |
+| | break-ui | ~/.agents/skills/break-ui/SKILL.md |
+| | break | ~/.agents/skills/break/SKILL.md |
+| | review-animations | ~/.agents/skills/review-animations/SKILL.md |
+| | also: impeccable, design-taste-frontend, state-machine, agent-browser | |
 
 ## Rules for every phase
 - **Direction before the first edit.** Phase 1 ends with a DIRECTION line. No file changes before it.
