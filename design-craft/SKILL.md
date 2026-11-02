@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # Design workflow
 
-A design run has two stages. **Design grilling** turns the open decisions of the work into an approved DESIGN.md, with the owner, in rounds of prototypes. The **bottom-up build** then builds the decided parts: primitives, then components, then screens. Each part passes Verify before a higher level uses it. Every run starts with Sort and ends with the Report.
+**Design grilling** turns the open decisions into an approved DESIGN.md, with the owner, in rounds of prototypes. The **bottom-up build** then builds the decided parts, primitives first; each part passes Verify before a higher level uses it. Every run starts with Sort and ends with the Report.
 
 ## Sort the work
 
@@ -65,10 +65,10 @@ A context-sensitive treatment (warm neutrals, texture, large radii, uppercase mi
 
 ## Design grilling (attended)
 
-The owner decides; you find the facts and build the prototypes. Headless runs skip this stage: an open decision follows "Open parts" in the build.
+The owner decides; you find the facts and build the prototypes. Headless runs take step 1 alone, reading the facts themselves, then go to the build; an open decision there follows "Open parts".
 
 1. **Gather facts.** Read the brief and every file it names; DESIGN.md anywhere in the repo (`rg --files -g DESIGN.md`), docs/design/ and UX or UI specs; the token layer and the component layer; the two nearest sibling screens and the gallery route, if one exists. Send each fact you cannot read to a child: scout for the existing code, researcher for reference products, competitors and domain data. Done when the draft lists the sources read and each child's question, and no project file has changed.
-2. **Map the design tree.** The root is the scope level. Below it, each level down to primitives: product, screens and flows, component groups, components, primitives. A decision is closed when DESIGN.md, an approved token or an existing component settles it; note that source. Go down only through levels that hold an open decision. Your job file adds the decisions its surface needs. Done when every decision in the draft's tree reads `open` or `closed: <source>`.
+2. **Map the design tree.** The root is the scope level; below it come the lower levels of Sort step 2. A decision is closed when DESIGN.md, an approved token or an existing component settles it; note that source. Go down only through levels that hold an open decision. Your job file adds the decisions its surface needs. Done when every decision in the draft's tree reads `open` or `closed: <source>`.
 3. **Ask a round.** The **frontier** is every open decision whose parent decisions are closed. Fire the routes of the frontier's levels; for an open overall look, the Product look route deals the options and supplies the house rules. Build, check and ask the round with [direction.md](direction.md). A question that waits on a running child waits; ask the rest now. Done when the owner has answered every question of the round.
 4. **Record each verdict** in DESIGN.md as the owner makes it, with the template in direction.md, then recompute the frontier. Repeat from step 3 until the frontier is empty. A small section can finish in one round; a whole page usually takes the page, its sections, its open components, and a primitives sheet when it adds tokens. Done when every decision in the tree is closed.
 5. **Approve.** Ask the owner to approve DESIGN.md as written. Done when the owner approved it and DIRECTION in the draft names its path.
@@ -77,10 +77,10 @@ The owner decides; you find the facts and build the prototypes. Headless runs sk
 
 1. **Order the parts.** List the parts DESIGN.md (or the brief) names, by level: primitives, then components, then screens. A part is **decided** when every decision it needs is closed, else **open**. Done when the draft lists each part with its level, decided or open, and the parts it uses.
 2. **Send or take.** The design agent sends each decided part whose lower-level parts passed Verify to a design-builder, with the DESIGN.md path and the part's name; independent parts go in parallel. A design-builder builds the parts in its brief. Done when every decided part is sent or built, and every open part is in OPEN or a DECISION NEEDED block.
-3. **Build a part.** Load the fired routes of the part's level and the Any rows. Implement within DESIGN.md, the job file and the floor; reuse the project's tokens and components. Before renaming a component or prop, find every use with `rg -n -w`. Run the typecheck (the project script, or `tsc --noEmit`). Done when the typecheck passes and every fired route in LOADED is read or `(missing)`.
+3. **Build a part.** Load the fired routes of the part's level and the Any rows. Implement within DESIGN.md, the job file and the floor, with the project's tokens and components. Before renaming a component or prop, find every use with `rg -n -w`. Run the typecheck (the project script, or `tsc --noEmit`). Done when the typecheck passes and every fired route in LOADED is read or `(missing)`.
 4. **Verify the part** (next section). Done when the part passed Verify; only then does a higher level use it.
 
-**Open parts.** A builder never decides an open part, and there is no self-picked direction. Build the decided parts, then stop on the open part with this block in the report. The parent asks the owner and the design agent records the verdict in DESIGN.md.
+**Open parts.** A builder never decides an open part, and there is no self-picked direction. Build the decided parts, then stop on the open part with this block in the report; the parent asks the owner.
 
 ```
 DECISION NEEDED
@@ -117,7 +117,7 @@ Done when every field holds a value and no process you started is still running.
 
 ## Routing table
 
-One route per question. Notes name the sections to read; an empty Notes cell means the whole SKILL.md. A route marked optional loads only when the skill is installed. Install commands: [skills.md](skills.md).
+Notes name the sections to read; an empty cell means the whole SKILL.md. An optional route loads only when its skill is installed. Install commands: [skills.md](skills.md).
 
 | Level | Question or trigger | Skill | Notes |
 |---|---|---|---|
