@@ -23,6 +23,16 @@ for f in "$ROOT"/*/SKILL.md "$ROOT"/*/reference/*.md; do
 done
 say "markdown links checked"
 
+# 3a. design-craft: every relative markdown link in every design-craft file resolves (jobs/, ../, siblings)
+DC_FILES=$(find "$ROOT/design-craft" -name '*.md' | sort)
+for f in $DC_FILES; do
+  dir=$(dirname "$f")
+  for ref in $(grep -oE '\]\([^)#[:space:]]+\.md(#[A-Za-z0-9-]+)?\)' "$f" | sed 's/^](//; s/)$//' | grep -v '^http'); do
+    [ -f "$dir/${ref%%#*}" ] || bad "broken link in ${f#$ROOT/} -> $ref"
+  done
+done
+say "design-craft links checked ($(echo "$DC_FILES" | wc -l | tr -d ' ') files)"
+
 # 3b. build-design-library: every relative link and #anchor across SKILL.md, references/, templates/ resolves
 slug() { tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9 -]//g; s/ /-/g'; }
 for f in "$ROOT"/build-design-library/SKILL.md "$ROOT"/build-design-library/references/*.md "$ROOT"/build-design-library/templates/*.md; do
@@ -40,8 +50,13 @@ say "build-design-library links and anchors checked"
 # 4. No harness-generated blocks committed
 grep -rl 'skill_context' "$ROOT"/*/SKILL.md >/dev/null 2>&1 && bad "skill_context block committed in a SKILL.md" || say "no skill_context blocks"
 
-# 5. Single tracking authority: floor is -0.03em, no competing -0.04em floor
-grep -rn -- '-0\.04em' "$ROOT"/*/SKILL.md "$ROOT"/*/reference/*.md >/dev/null 2>&1 && bad "competing -0.04em tracking floor found" || say "tracking floor single-sourced"
+# 5. Single tracking authority: floor is -0.03em, no competing -0.04em floor.
+# design-craft states the floor in exactly one file (SKILL.md), and design-qa enforces the same value.
+grep -rn -- '-0\.04em' "$ROOT"/*/SKILL.md "$ROOT"/*/reference/*.md $DC_FILES >/dev/null 2>&1 && bad "competing -0.04em tracking floor found" || say "tracking floor single-sourced"
+TRACK_FILES=$(grep -l -- 'Tracking floor -0.03em' $DC_FILES)
+[ "$TRACK_FILES" = "$ROOT/design-craft/SKILL.md" ] || bad "design-craft tracking floor must live in SKILL.md only (found: ${TRACK_FILES:-none})"
+[ "$(grep -l -- '-0\.03em' $DC_FILES | wc -l | tr -d ' ')" = 1 ] || bad "-0.03em appears in more than one design-craft file"
+grep -q -- '-0.03em' "$ROOT/design-qa/SKILL.md" || bad "design-qa no longer enforces the -0.03em floor design-craft states"
 
 # 6. Removed decisions stay removed
 grep -rn 'JetBrains Sans' "$ROOT" --include='*.md' >/dev/null 2>&1 && bad "JetBrains Sans reference resurfaced" || say "font availability rule holds"
@@ -65,32 +80,51 @@ done
 say "viewport constants consistent"
 
 # 8c. Dead-air band numbers agree across kernel, Gate 4, and the Gate 12 probe
-grep -q '≤64px app/data, ≤128px marketing' "$ROOT/design-craft/reference/app-ui.md" || bad "kernel band limits changed — update Gate 4 + probe together"
+BAND_FILES=$(grep -l '≤64px app/data, ≤128px marketing' $DC_FILES)
+[ "$BAND_FILES" = "$ROOT/design-craft/SKILL.md" ] || bad "design-craft band limits must live in SKILL.md only (found: ${BAND_FILES:-none}); update Gate 4 + probe together"
 grep -q '>64px (app/data) / >128px (marketing)' "$ROOT/design-qa/SKILL.md" || bad "Gate 4 band limits drifted from kernel (64/128)"
 grep -q 'marketing ? 256 : 128' "$ROOT/design-qa/reference/live-verification.md" || bad "probe FAIL tier drifted (expect 256/128)"
 grep -q 'marketing ? 128 : 64' "$ROOT/design-qa/reference/live-verification.md" || bad "probe JUDGE tier drifted (expect 128/64)"
-grep -rn '64/96px' "$ROOT"/*/SKILL.md "$ROOT"/*/reference/*.md >/dev/null 2>&1 && bad "stale 64/96px band value resurfaced" || say "dead-air numbers consistent"
+grep -rn '64/96px' "$ROOT"/*/SKILL.md "$ROOT"/*/reference/*.md $DC_FILES >/dev/null 2>&1 && bad "stale 64/96px band value resurfaced" || say "dead-air numbers consistent"
 
-# 9. design-craft kernels present in the app-UI rules file (color formula + spine, tracking table)
-APP_UI="$ROOT/design-craft/reference/app-ui.md"
-grep -q '137' "$APP_UI" || bad "color hue formula missing from kernel"
-grep -q '0.99, 0.96, 0.90' "$APP_UI" || bad "lightness spine missing from kernel"
-grep -q -- '-0.02em' "$APP_UI" || bad "tracking table missing from kernel"
-grep -q '](reference/app-ui.md)' "$ROOT/design-craft/SKILL.md" || bad "design-craft router does not point to reference/app-ui.md"
-say "kernels in design-craft/reference/app-ui.md"
+# 9. design-craft floor lives in the injected SKILL.md; reference/ is gone (spec Acceptance 1)
+DC="$ROOT/design-craft/SKILL.md"
+for rule in 'Let the UI explain itself' 'Wrap before truncating' 'One card system per screen' 'Height from content' 'Tracking floor -0.03em' '| Reflex | Build instead |'; do
+  grep -qF -- "$rule" "$DC" || bad "craft floor rule missing from design-craft/SKILL.md: $rule"
+done
+[ -e "$ROOT/design-craft/reference" ] && bad "design-craft/reference/ still exists" || say "craft floor in SKILL.md; reference/ gone"
 
 # 10. No backticked slash tokens in design-craft. pi-better-skills injects every skill a loaded body
 # names as a backticked /name or /skill:name token, transitively. Name skills as plain words.
 # Pattern mirrors pi-better-skills SKILL_REF_PATTERN (src/skill-refs.ts).
-SLASH_TOKENS=$(grep -nE '`/(skill:)?[A-Za-z0-9][A-Za-z0-9._-]*`' "$ROOT/design-craft/SKILL.md" "$ROOT"/design-craft/reference/*.md)
+SLASH_TOKENS=$(grep -nE '`/(skill:)?[A-Za-z0-9][A-Za-z0-9._-]*`' $DC_FILES)
 if [ -n "$SLASH_TOKENS" ]; then bad "backticked slash token in design-craft (injects skills transitively):"; echo "$SLASH_TOKENS"
 else say "no backticked slash tokens in design-craft"; fi
 
-# 11. Every SKILL.md path in the design-craft Skill map exists on this machine (installed skills).
-MAP_PATHS=$(awk '/^## Skill map/{f=1;next} f&&/^## /{exit} f' "$ROOT/design-craft/SKILL.md" | grep -oE '~/[^ |]+/SKILL\.md')
-[ -n "$MAP_PATHS" ] || bad "design-craft Skill map has no SKILL.md paths"
-for p in $MAP_PATHS; do [ -f "$HOME/${p#\~/}" ] || bad "Skill map path missing: $p"; done
-say "skill map paths checked ($(echo "$MAP_PATHS" | wc -l | tr -d ' '))"
+# 11. Every routed skill resolves under a D3 root on this machine, or its route is marked (optional).
+# Child agents are not skills. Every routed skill also has a row in skills.md (install table).
+ROUTES=$(awk '/^## Routing table/{f=1;next} f&&/^## /{exit} f' "$DC" | grep '^| ' | grep -v '^| Level ' | cut -d'|' -f4 | sed 's/^ *//; s/ *$//' | grep -v '(child agent)')
+[ -n "$ROUTES" ] || bad "design-craft Routing table has no skills"
+ROUTED=""; N=0
+while IFS= read -r cell; do
+  name=${cell%% *}; ROUTED="$ROUTED $name"; N=$((N+1))
+  found=""; for root in "$HOME/.pi/agent/skills" "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.codex/skills"; do
+    [ -f "$root/$name/SKILL.md" ] && { found=1; break; }; done
+  case "$cell" in *"(optional)"*) ;; *) [ -n "$found" ] || bad "routed skill not installed under a D3 root: $name";; esac
+  grep -q "^| $name |" "$ROOT/design-craft/skills.md" || bad "routed skill missing from design-craft/skills.md: $name"
+done <<EOF
+$ROUTES
+EOF
+say "routed skills checked ($N)"
+
+# 12. The router names skills only in its Routing table and job pointers (the rows that link jobs/);
+# direction.md names none. Common English words that are also skill names are not checked.
+PROSE=$( { awk '/^## Routing table/{exit} {print}' "$DC" | grep -v '](jobs/'; cat "$ROOT/design-craft/direction.md"; } )
+for name in $ROUTED; do
+  case "$name" in prototype|variant|break|animate) continue;; esac
+  echo "$PROSE" | grep -qE -- "(^|[^A-Za-z0-9-])$name([^A-Za-z0-9-]|\$)" && bad "design-craft names $name outside the Routing table and job pointers"
+done
+say "skill names stay in the Routing table and job pointers"
 
 echo "----"
 if [ "$FAIL" -eq 0 ]; then echo "verify: GREEN"; exit 0; else echo "verify: $FAIL failure(s)"; exit 1; fi
