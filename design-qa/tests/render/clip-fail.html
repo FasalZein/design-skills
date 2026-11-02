@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>clip fail</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .narrow { width: 80px; }</style></head><body>
+<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
+<h1 class="truncate" style="width:200px" data-expect="fail">A systematic engine designed to monetize volatility</h1>
+<div class="card"><span class="truncate narrow" style="display:block" title="$12.0M – $18.0M" data-expect="fail">$12.0M – $18.0M</span>
+  <div class="narrow" style="overflow:hidden; white-space:nowrap" data-expect="fail">Milestone cut hard</div>
+  <div class="truncate narrow" data-expect="fail">Islamic Investors Fund</div>
+  <div class="narrow" style="white-space:nowrap" data-expect="fail">Spills out of the box</div></div>
+</body></html>

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>align pass</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  svg { width: 16px; height: 16px; flex: none; } .center { align-items: center; } .base { align-items: baseline; }</style></head><body>
+<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
+<div class="card">
+  <div class="row center"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="8"/></svg><span>Activity row with a centred icon</span></div>
+  <div class="row base"><span style="font-size:12px">AUM</span><span style="font-size:24px">$12.0M</span></div>
+  <div class="row center"><span>Label</span><span>Value</span></div>
+  <div><p style="margin:0">Stack child one</p><p style="margin:0">Stack child two</p><button type="button">Stack child three</button></div></div>
+</body></html>

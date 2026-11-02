@@ -51,11 +51,23 @@ grep -n 'MUST use .AlertDialog' "$ROOT/design-qa/SKILL.md" >/dev/null 2>&1 && ba
 grep -nE '(design-craft|design-qa)/|reference/[a-z-]+\.md' "$ROOT/laws-of-ux/SKILL.md" >/dev/null 2>&1 && bad "laws-of-ux points into another skill's files" || say "laws-of-ux is self-contained"
 
 # 8. Gate count consistency: derive from design-qa, compare against every README claim
-GATES=$(grep -oE '^## Gate [0-9]+' "$ROOT/design-qa/SKILL.md" | awk '{print $3}' | sort -n | tail -1)
+GATES=$(grep -oE '^### Gate [0-9]+' "$ROOT/design-qa/SKILL.md" | awk '{print $3}' | sort -n | tail -1)
 [ -n "$GATES" ] || bad "could not derive gate count from design-qa/SKILL.md"
 CLAIMS=$(grep -oE '[0-9]+(-gate| gates)' "$ROOT/README.md" | grep -oE '^[0-9]+' | sort -u)
 for c in $CLAIMS; do [ "$c" = "$GATES" ] || bad "README claims $c gates; design-qa defines $GATES"; done
 say "gate count consistent ($GATES gates)"
+
+# 8a. design-qa Verify blocks: design-craft routes to these two headings by name
+for h in '## Static checks' '## Live checks'; do
+  grep -qx "$h" "$ROOT/design-qa/SKILL.md" || bad "design-qa/SKILL.md lacks heading '$h'"
+done
+# Every render probe in the runbook has a passing and a failing fixture for tests/run-live-tests.sh
+PROBES=$(grep -oE '^<!-- probe:[a-z-]+ -->$' "$ROOT/design-qa/reference/live-verification.md" | sed -E 's/<!-- probe:([a-z-]+) -->/\1/')
+[ -n "$PROBES" ] || bad "no render probes found in live-verification.md"
+for p in $PROBES; do for tier in pass fail; do
+  [ -f "$ROOT/design-qa/tests/render/$p-$tier.html" ] || bad "render probe $p lacks fixture tests/render/$p-$tier.html"
+done; done
+say "design-qa verify blocks and probe fixtures present ($(echo $PROBES | wc -w | tr -d ' ') probes)"
 
 # 8b. Gate 12 viewport constants match between SKILL and runbook
 for vp in '375' '1440'; do

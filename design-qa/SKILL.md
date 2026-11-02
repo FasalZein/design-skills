@@ -9,7 +9,13 @@ disable-model-invocation: true
 
 Structured quality gate for UI code. Run against any component, page, or feature before shipping. Mechanical rows pass or fail; judgment rows apply the test stated in the row. Gates 1–11: report failures only. Gate 12: list every machine probe with its measured result, pass or fail.
 
-## Scanner
+Verify has two blocks. **Static checks** run on every job and need no browser: the scanner, then Gates 1–11 in order. **Live checks** run when a browser is allowed: before-and-after screenshots and Gate 12. When no browser is allowed, record `live: not allowed — <brief line>` in the report.
+
+## Static checks
+
+**Complete when** the scanner exit code is recorded and Gates 1–11 are walked in order, with every failure listed by file, line, and fix.
+
+### Scanner
 
 ```bash
 bash "$PI_SKILL_DIR/scripts/design-scan.sh" <target-dir>                  # human output
@@ -37,11 +43,25 @@ JSON schema: `status pass|fail`, `target`, `scannedFiles`, `support`, `total/cri
 
 **Allowlist format** (tab-separated, `#` comments): `CATEGORY<TAB>PATH_REGEX<TAB>REASON`. Category exact or `*`. Invalid rows exit 2.
 
-The scanner covers only mechanical facts. Scanner silence says nothing about the judgment checks below — run the gates after the scan, in order, and report failures with line numbers and fixes. Finish with Gate 12 whenever the app can be rendered — the rendered page outranks source-level passes.
+The scanner covers only mechanical facts. Scanner silence says nothing about the judgment checks below — run the gates after the scan, in order, and report failures with line numbers and fixes. Finish with the live checks whenever a browser is allowed and the app can be rendered — the rendered page outranks source-level passes.
+
+### Stageshow stages
+
+A stage is a faux product UI built with the stageshow skill: its copied `kit/` folder and its demo folder. Inside a stage, stageshow's rules win: window chrome, placeholder bars, literal colors, illustrative data. Stageshow's `film.mjs` gate checks the stage.
+
+- Scan with an allowlist row for each stage folder. `PATH_REGEX` matches the file path relative to the scan target:
+
+  ```
+  *	(^|/)kit/	stageshow stage: film.mjs gate owns it
+  *	(^|/)<demo-folder>/	stageshow stage: film.mjs gate owns it
+  ```
+
+- The allowlist removes scanner findings inside a stage. Of the judgment rows, Gates 1, 3, 5, and 8 skip stage files; the other gates still apply.
+- Gate 12 checks the host page that shows the stage. The stage's own pixels belong to `film.mjs`.
 
 ---
 
-## Gate 1: Anti-Slop (Critical)
+### Gate 1: Anti-Slop (Critical)
 
 Mechanical rows are scanner-automated; judgment rows apply the intent-and-repetition test — the treatment communicates state, hierarchy, focus, information, or brand meaning, and is bounded to a named role. On public pages built under design-taste-frontend's house rules, those rules decide shadows, eyebrows, monospace, thin rules, and section backgrounds; the matching rows here (Landing continuity, Kickers are bounded) yield to them.
 
@@ -64,7 +84,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Illustration is owned | One consistent brand family in a named role; mixed stock/sketchy SVG fails |
 | Combination tells | 2+ together fail: nested cards, identical icon-heading cells, ghost-cards (1px border + ≥16px-blur shadow), per-section background hues |
 
-## Gate 2: Typography
+### Gate 2: Typography
 
 | Check | How to Verify |
 |-------|--------------|
@@ -78,7 +98,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Web fonts are woff2 | Owned font assets `.woff2`; every used weight has a loaded file; unwanted synthesis is off by longhand (`font-synthesis-weight: none`), not `font-synthesis: none` on body text |
 | Mobile inputs ≥ 16px | Input text ≥16px on mobile; zoom never disabled to compensate |
 
-## Gate 3: Color
+### Gate 3: Color
 
 | Check | How to Verify |
 |-------|--------------|
@@ -90,7 +110,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Contrast floors (WCAG 2.x) | ≥4.5:1 body, ≥3:1 large text, ≥3:1 required non-text UI (input borders, meaningful icons, focus rings) — against the actual rendered background, placeholders included. APCA is advisory only, never the pass condition |
 | Accents match declared strategy | Restrained/Committed: ≤2 accent colors per view. Full-palette and categorical data-viz: every hue maps to a named role — unnamed extras fail |
 
-## Gate 4: Spacing
+### Gate 4: Spacing
 
 | Check | How to Verify |
 |-------|--------------|
@@ -104,7 +124,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Empty states top-anchored | Inside a data region the message sits where the first row would; region collapses to message height |
 | Section origin aligned | Heading and its section controls share a baseline; adjacent columns start at the same y |
 
-## Gate 5: Component Reuse
+### Gate 5: Component Reuse
 
 | Check | How to Verify |
 |-------|--------------|
@@ -113,7 +133,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | CVA for variants | Inline ternary chains for 3+ style variants = flag |
 | data-slot attributes | Component roots missing `data-slot` = flag (if project convention) |
 
-## Gate 6: Interaction States
+### Gate 6: Interaction States
 
 | Check | How to Verify |
 |-------|--------------|
@@ -127,7 +147,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Hit areas don't collide | Expanded targets of adjacent controls never overlap |
 | Paste not blocked | No `onPaste` prevention |
 
-## Gate 7: Accessibility
+### Gate 7: Accessibility
 
 | Check | How to Verify |
 |-------|--------------|
@@ -141,7 +161,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | prefers-reduced-motion | All motion >200ms has a reduced path |
 | h-dvh not h-screen | Zero `h-screen` |
 
-## Gate 8: Product States & Edge Cases
+### Gate 8: Product States & Edge Cases
 
 | Check | How to Verify |
 |-------|--------------|
@@ -149,13 +169,13 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Empty states typed | First-use / cleared / no-results / error-caused get distinct copy; next-action CTA present when a real action exists |
 | Error recovery | Every error names what happened + how to recover; retry path present |
 | Conditional states | Permission-denied, offline, stale/partial designed where reachable |
-| Long text handled | `truncate`/`line-clamp-*`/`break-words` on names/titles; truncated material reachable in full |
+| Long text handled | Wrap first (Gate 12 clip and wrap probes measure this row). Titles, money, and metric labels wrap (`break-words`, `text-balance`) or stay whole (`whitespace-nowrap` with room to fit). Truncate (`truncate`/`line-clamp-*`) only in a cell whose width the design fixes (table column, list row, chip), and make the full value reachable (`title`, tooltip, or detail view) |
 | Flex/grid overflow | `min-w-0` on flex children with text; `min-w-0 min-h-0` on grid children |
 | Formatting | `Intl.NumberFormat`/`Intl.DateTimeFormat`, never concatenation |
 | Skeletons match layout | Shapes mirror actual content and reserve its space |
 | Data extremes | Survives 0, 1, 1000+ items; 100+ char strings; emoji; RTL |
 
-## Gate 9: Performance
+### Gate 9: Performance
 
 | Check | How to Verify |
 |-------|--------------|
@@ -171,7 +191,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Hidden-tab timers pause | Timed toasts/auto-dismiss pause while document hidden |
 | No console.log | Zero non-dev-gated console output |
 
-## Gate 10: Responsive
+### Gate 10: Responsive
 
 | Check | How to Verify |
 |-------|--------------|
@@ -182,7 +202,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Zoom not disabled | No `user-scalable=no`/`maximum-scale=1` |
 | Safe areas | Fixed/sticky mobile elements pad with `env(safe-area-inset-*)` |
 
-## Gate 11: Error Resilience
+### Gate 11: Error Resilience
 
 | Check | How to Verify |
 |-------|--------------|
@@ -191,7 +211,22 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 | Optimistic rollback | Failed optimistic updates revert visibly + show error |
 | Offline/stale honest | Offline states say what still works; stale data is timestamped |
 
-## Gate 12: Live Verification (agent-browser-chrome)
+## Live checks
+
+Run when a browser is allowed. Before the first browser step, read the browser-checks skill and set `$AB` to a named session as in the runbook Setup ([reference/live-verification.md](reference/live-verification.md)).
+
+**Complete when** the before-and-after comparison is recorded and Gate 12 is complete by its own rule.
+
+### Before and after
+
+Untouched screens regress silently: a card background, a border, a removed tile. Catch it with two captures in one evidence folder.
+
+1. **At intake**, before the first edit: screenshot the screen you will change and its untouched siblings (the nearest screens that share its components) at 1440×900 and 375×812, into `before/`. Done when every named screen has both shots.
+2. **At Verify**: shoot the same screens at the same viewports into `after/`, then compare each untouched sibling: `$AB diff screenshot --baseline before/<screen>-<viewport>.png --threshold 0 --output diff/<screen>-<viewport>.png`. Threshold 0 is required: the default (0.1) reports a white-to-#eee background change as a match. Live data (clocks, prices) differs by design: name each such region from the diff image. Done when every pair has a recorded result.
+
+A difference on an untouched sibling is a Critical finding until the brief explains it. A difference on the changed screen is the change itself: review it in Gate 12. When the intake capture was not possible, record `before-and-after: N-A — <reason>`.
+
+### Gate 12: Live Verification (agent-browser-chrome)
 
 Static gates read source; this gate checks the **rendered page**.
 
@@ -201,9 +236,9 @@ Static gates read source; this gate checks the **rendered page**.
 
 **States:** loaded (both required viewports) — then empty, loading, error, long-content, interactive states at one representative viewport each; dark mode and reduced-motion when supported. Repeat a state at a second viewport only when responsive behavior could change its verdict.
 
-**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands above the runbook probe's fail tier at 1440px (judge-tier bands reviewed against Gate 4) · marketing: zero full-width section rules and ≤3 distinct section surfaces · reduced-motion emulation removes positional animation.
+**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands above the runbook probe's fail tier at 1440px (judge-tier bands reviewed against Gate 4) · marketing: zero full-width section rules and ≤3 distinct section surfaces · reduced-motion emulation removes positional animation · render probes: no clipped or spilled text, no wrapped control labels or money, no overlapping boxes, lockups aligned (each FAIL row fails; each JUDGE row gets a verdict against the screenshot).
 
-**Screenshot review (judgment):** overlap, hierarchy, blank/thin sections, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against Gate 1.
+**Screenshot review (judgment):** hierarchy, blank/thin sections, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against Gate 1 — and every render-probe JUDGE row.
 
 Exact commands, probe JavaScript, and evidence schema: **READ [reference/live-verification.md](reference/live-verification.md)** before running this gate.
 

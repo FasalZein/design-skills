@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>wrap fail</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style></head><body>
+<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
+<div class="card">
+  <button type="button" style="width:90px" data-expect="fail">Book on WhatsApp</button>
+  <div style="width:70px" data-expect="fail">$12.0M – $18.0M</div>
+  <div style="width:60px; overflow-wrap:anywhere" data-expect="fail">Subscriptions</div>
+  <label style="display:block; width:60px">Session type</label></div>
+</body></html>

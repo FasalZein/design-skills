@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>overlap pass</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  h2 { line-height: 1; } .avatar { position: relative; width: 40px; height: 40px; background: #ddd; } .badge { position: absolute; top: 4px; left: 4px; font-size: 12px; background: #fff; }</style></head><body>
+<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
+<div class="card"><h2>Tight leading <em>inline runs</em> share one line box and <strong>wrap</strong> over lines</h2>
+  <div class="row"><button type="button">Save</button><button type="button">Cancel</button></div>
+  <p>Paragraph under the buttons.</p></div>
+</body></html>

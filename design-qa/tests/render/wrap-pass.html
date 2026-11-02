@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>wrap pass</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style></head><body>
+<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
+<div class="card"><h2>The heading is allowed to wrap onto a second line because headings wrap first</h2>
+  <p>Prose wraps freely, even when it mentions a price such as $12.0M in the middle of a long sentence.</p>
+  <div class="row"><button type="button">Book on WhatsApp</button><a href="/pricing" style="display:inline-block">Pricing</a></div>
+  <span style="white-space:nowrap">$12.0M – $18.0M</span></div>
+</body></html>
