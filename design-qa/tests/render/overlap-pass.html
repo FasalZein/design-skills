@@ -12,4 +12,9 @@
   <p>Paragraph under the buttons.</p></div>
 <!-- Real-page regressions: a large heading with line-height 1 directly above a paragraph (glyph boxes overlap, line boxes do not) -->
 <h1 style="font-size:88px; line-height:1; margin:0">Financial infrastructure</h1><p style="margin:0">Accept payments, offer financial services.</p>
+<!-- Containment skip: an icon pulled under its own parent's text is the parent's anatomy, not two sibling boxes -->
+<p style="margin:0">Revenue<img alt="" style="width:20px; height:20px; margin-left:-30px; vertical-align:middle" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='%23bbb'/%3E%3C/svg%3E"></p>
+<!-- Real-page regression (linear.app at 375): a row inside a tall clipped box, which sits in a shorter clipped box. The outer box hides the row, so it cannot overlap the paragraph above -->
+<p style="margin:0">Paragraph above the clipped chat</p>
+<div style="height:40px; overflow:hidden"><div style="height:200px; overflow:hidden; margin-top:-30px"><p style="margin:0">Hidden chat row</p></div></div>
 </body></html>

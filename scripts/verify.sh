@@ -61,9 +61,13 @@ say "gate count consistent ($GATES gates)"
 for h in '## Static checks' '## Live checks'; do
   grep -qx "$h" "$ROOT/design-qa/SKILL.md" || bad "design-qa/SKILL.md lacks heading '$h'"
 done
-# Every render probe in the runbook has a passing and a failing fixture for tests/run-live-tests.sh
-PROBES=$(grep -oE '^<!-- probe:[a-z-]+ -->$' "$ROOT/design-qa/reference/live-verification.md" | sed -E 's/<!-- probe:([a-z-]+) -->/\1/')
-[ -n "$PROBES" ] || bad "no render probes found in live-verification.md"
+# Every render probe file (first line names it a render probe) has a passing and a failing fixture
+PROBES=$(for f in "$ROOT"/design-qa/scripts/probes/*.js; do head -1 "$f" | grep -q 'render probe' && basename "$f" .js; done)
+[ -n "$PROBES" ] || bad "no render probes found in design-qa/scripts/probes"
+for f in "$ROOT"/design-qa/scripts/probes/*.js; do
+  name=$(basename "$f" .js); grep -qE "/$name\.js|\*\*$name\.js\*\*|for p in .*\b$name\b" "$ROOT/design-qa/reference/live-verification.md" \
+    || bad "probe file $name.js is not referenced in live-verification.md"
+done
 for p in $PROBES; do for tier in pass fail; do
   [ -f "$ROOT/design-qa/tests/render/$p-$tier.html" ] || bad "render probe $p lacks fixture tests/render/$p-$tier.html"
 done; done
