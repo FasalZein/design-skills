@@ -11,7 +11,7 @@ design-taste-frontend owns this surface's look and house rules. Read one section
 | "Page or app screen", "House rules", "Laws of the craft" | While you gather facts |
 | "3. Draw the direction" | The overall look is open: it deals the round's options (`--options 5`; `--keep palette,type` when the brand fixes colors or fonts) |
 | "6. Build it, still" | Build |
-| "7. Gate" | Verify, beside the Verify routes |
+| "7. Gate" | Verify, beside the Verify rows |
 
 ## Decisions
 

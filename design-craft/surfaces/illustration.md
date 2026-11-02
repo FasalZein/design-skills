@@ -34,6 +34,6 @@ Find these while you gather facts and write them into the report draft before th
 ## Verify
 
 - The stage: `film.mjs --gate` ends with "rehearsal passed".
-- The host page: the Verify routes and agent-browser-chrome screenshots, with the allowlist rows applied.
+- The host page: the Verify rows and agent-browser-chrome screenshots, with the allowlist rows applied.
 
 Done when the gate line, the host checks and REHEARSAL.md are in the report.

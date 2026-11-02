@@ -8,7 +8,7 @@ Run it while you gather facts. Tokens are material, not a direction. Find the to
 
 - **Owned**: the values belong to this product: tinted neutrals, a deliberate radius, a chosen face. Reuse them. Derive only the missing roles, in harmony with the existing hues.
 - **Stock**: library defaults or values copied from another app: shadcn's chroma-0 neutrals (`oklch(L 0 0)` or `0 0% L%` on `--foreground`, `--primary`, `--muted-foreground`), `--radius` 0.5rem or 0.625rem, Inter or Geist as the only face. Stock tokens are never a direction. The token changes are a primitive-level decision in the design tree; once decided, change neutral hue, radius and type in the token layer before composing, and keep component code on semantic tokens.
-- **None**: greenfield. The palette is a primitive-level decision; the Primitive palette route (better-colors) answers it.
+- **None**: greenfield. The palette is a primitive-level decision; the Primitive palette pass (better-colors) answers it.
 
 The design-qa scanner reports a stock token layer as `STOCK_TOKEN`.
 

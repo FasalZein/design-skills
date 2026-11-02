@@ -23,7 +23,7 @@ for f in "$ROOT"/*/SKILL.md "$ROOT"/*/reference/*.md; do
 done
 say "markdown links checked"
 
-# 3a. design-craft: every relative markdown link in every design-craft file resolves (jobs/, ../, siblings)
+# 3a. design-craft: every relative markdown link in every design-craft file resolves (surfaces/, ../, siblings)
 DC_FILES=$(find "$ROOT/design-craft" -name '*.md' | sort)
 for f in $DC_FILES; do
   dir=$(dirname "$f")
@@ -92,7 +92,12 @@ DC="$ROOT/design-craft/SKILL.md"
 for rule in 'Let the UI explain itself' 'Wrap before truncating' 'One card system per screen' 'Height from content' 'Tracking floor -0.03em' '| Reflex | Build instead |'; do
   grep -qF -- "$rule" "$DC" || bad "craft floor rule missing from design-craft/SKILL.md: $rule"
 done
-[ -e "$ROOT/design-craft/reference" ] && bad "design-craft/reference/ still exists" || say "craft floor in SKILL.md; reference/ gone"
+[ -e "$ROOT/design-craft/reference" ] && bad "design-craft/reference/ still exists"
+[ -e "$ROOT/design-craft/jobs" ] && bad "design-craft/jobs/ still exists (renamed to surfaces/)"
+[ "$(ls "$ROOT/design-craft/surfaces" | tr '\n' ' ')" = "app-screen.md illustration.md public-page.md " ] || bad "design-craft/surfaces/ must hold app-screen, illustration and public-page only"
+grep -q '^## Project Context Scan$' "$ROOT/design-craft/surfaces/app-screen.md" || bad "heading 'Project Context Scan' missing from surfaces/app-screen.md (design-qa hints point to it)"
+grep -q '^## Craft floor$' "$DC" || bad "heading 'Craft floor' missing from design-craft/SKILL.md (design-qa hints point to it)"
+say "craft floor in SKILL.md; surfaces/ in place; reference/ and jobs/ gone"
 
 # 10. No backticked slash tokens in design-craft. pi-better-skills injects every skill a loaded body
 # names as a backticked /name or /skill:name token, transitively. Name skills as plain words.
@@ -101,9 +106,16 @@ SLASH_TOKENS=$(grep -nE '`/(skill:)?[A-Za-z0-9][A-Za-z0-9._-]*`' $DC_FILES)
 if [ -n "$SLASH_TOKENS" ]; then bad "backticked slash token in design-craft (injects skills transitively):"; echo "$SLASH_TOKENS"
 else say "no backticked slash tokens in design-craft"; fi
 
-# 11. Every routed skill resolves under a D3 root on this machine, or its route is marked (optional).
+# 11. Every routed skill resolves under a D3 root on this machine, or its row is marked (optional).
 # Child agents are not skills. Every routed skill also has a row in skills.md (install table).
-ROUTES=$(awk '/^## Routing table/{f=1;next} f&&/^## /{exit} f' "$DC" | grep '^| ' | grep -v '^| Level ' | cut -d'|' -f4 | sed 's/^ *//; s/ *$//' | grep -v '(child agent)')
+# Every row is a Pass or a Trigger, names an agent (design | builder | both), and each skill has one row.
+TABLE=$(awk '/^## Routing table/{f=1;next} f&&/^## /{exit} f' "$DC" | grep '^| ' | grep -v '^| Level ' | grep -v '^|---')
+row_check() { awk -F'|' '{a=$5; gsub(/ /,"",a); k=$3; sub(/^ */,"",k); if (a!="design" && a!="builder" && a!="both") print "agent: " $0; if (k !~ /^(Pass|Trigger): /) print "kind: " $0}'; }
+BADROWS=$(echo "$TABLE" | row_check)
+[ -z "$BADROWS" ] || { bad "Routing table rows without a valid agent or Pass/Trigger kind:"; echo "$BADROWS"; }
+DUPS=$(echo "$TABLE" | cut -d'|' -f4 | sed 's/^ *//; s/ *$//; s/ .*//' | sort | uniq -d)
+[ -z "$DUPS" ] || bad "skills with more than one Routing table row: $DUPS"
+ROUTES=$(echo "$TABLE" | cut -d'|' -f4 | sed 's/^ *//; s/ *$//' | grep -v '(child agent)')
 [ -n "$ROUTES" ] || bad "design-craft Routing table has no skills"
 ROUTED=""; N=0
 while IFS= read -r cell; do
@@ -117,14 +129,14 @@ $ROUTES
 EOF
 say "routed skills checked ($N)"
 
-# 12. The router names skills only in its Routing table and job pointers (the rows that link jobs/);
+# 12. The router names skills only in its Routing table and surface pointers (the rows that link surfaces/);
 # direction.md names none. Common English words that are also skill names are not checked.
-PROSE=$( { awk '/^## Routing table/{exit} {print}' "$DC" | grep -v '](jobs/'; cat "$ROOT/design-craft/direction.md"; } )
+PROSE=$( { awk '/^## Routing table/{exit} {print}' "$DC" | grep -v '](surfaces/'; cat "$ROOT/design-craft/direction.md"; } )
 for name in $ROUTED; do
   case "$name" in prototype|variant|break|animate) continue;; esac
-  echo "$PROSE" | grep -qE -- "(^|[^A-Za-z0-9-])$name([^A-Za-z0-9-]|\$)" && bad "design-craft names $name outside the Routing table and job pointers"
+  echo "$PROSE" | grep -qE -- "(^|[^A-Za-z0-9-])$name([^A-Za-z0-9-]|\$)" && bad "design-craft names $name outside the Routing table and surface pointers"
 done
-say "skill names stay in the Routing table and job pointers"
+say "skill names stay in the Routing table and surface pointers"
 
 echo "----"
 if [ "$FAIL" -eq 0 ]; then echo "verify: GREEN"; exit 0; else echo "verify: $FAIL failure(s)"; exit 1; fi

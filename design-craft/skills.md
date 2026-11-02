@@ -1,6 +1,6 @@
 # Skills and install
 
-Every skill the routing table and the job files name, with its question, its source and its install command. Sources come from ~/.agents/.skill-lock.json, checked 2026-11-02 with:
+Every skill the Routing table and the surface files name, with its question, its source and its install command. Sources come from ~/.agents/.skill-lock.json, checked 2026-11-02 with:
 
 ```
 jq -r --arg s <name> '.skills[$s].source' ~/.agents/.skill-lock.json
@@ -29,7 +29,7 @@ Install all of these. design-craft itself comes from FasalZein/design-skills: `n
 | better-typography | Type scale, font loading, wrapping | jakubkrehel/skills | `npx skills add jakubkrehel/skills -g -s better-typography` |
 | better-layout | Spacing, grouping, responsive, RTL | jakubkrehel/skills | `npx skills add jakubkrehel/skills -g -s better-layout` |
 | better-ui | Radius, shadow, border, icons | jakubkrehel/skills | `npx skills add jakubkrehel/skills -g -s better-ui` |
-| better-interface | A review across domains | jakubkrehel/skills | `npx skills add jakubkrehel/skills -g -s better-interface` |
+| better-interface | A review across domains of a built screen | jakubkrehel/skills | `npx skills add jakubkrehel/skills -g -s better-interface` |
 | break-ui | Renders data: worst-case fixtures and fixes | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s break-ui` |
 | ask-sonner | Toasts with sonner | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s ask-sonner` |
 | pick-ui-library | A new UI library is needed | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s pick-ui-library` |
@@ -38,6 +38,9 @@ Install all of these. design-craft itself comes from FasalZein/design-skills: `n
 | emil-design-eng | Motion: a feel call | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s emil-design-eng` |
 | mobile-native | Phone users | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s mobile-native` |
 | review-animations | Changed motion code | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s review-animations` |
+| interface-review | The part changed existing UI: regressions in its diff | jakubkrehel/skills | `npx skills add jakubkrehel/skills -g -s interface-review` |
+| find-animation-opportunities | What here should move? | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s find-animation-opportunities` |
+| improve-animations | The owner asks to improve existing motion | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s improve-animations` |
 | emil-prototype | Motion or interaction feel is open | emilkowalski/skill (not in the lock file) | `npx skills add emilkowalski/skill -g -s prototype`, then rename the folder and its `name:` field to emil-prototype |
 | browser-checks | Any browser step (pi) | local pi skill, not in the lock file | Copy ~/.pi/agent/skills/browser-checks |
 
@@ -55,7 +58,16 @@ Load these only when installed and their trigger fires. A missing optional skill
 | coss | The project uses coss or Base UI | cosscom/ui | `npx skills add cosscom/ui -g -s coss` |
 | prototype | Does this state model or logic feel right? (LOGIC branch) | mattpocock/skills | `npx skills add mattpocock/skills -g -s prototype` |
 | copywriting | Marketing copy | coreyhaines31/marketingskills | `npx skills add coreyhaines31/marketingskills -g -s copywriting` |
-| pencil-design | A .pen file is the source | edxeth/pencil-design | `npx skills add edxeth/pencil-design -g -s pencil-design` |
+| pencil-design | A .pen or .lib.pen file is the source | edxeth/pencil-design | `npx skills add edxeth/pencil-design -g -s pencil-design` |
+
+## Platform skills, not routed
+
+The workflow verifies web UI only. These route when a native track with its own checks exists.
+
+| Skill | Platform | Source | Install |
+|---|---|---|---|
+| animate-expo | React Native and Expo motion | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s animate-expo` |
+| write-swift | Swift and SwiftUI | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s write-swift` |
 
 ## Out of the router
 
@@ -68,8 +80,7 @@ These stay installed for manual use. The router never loads them.
 | design-md | A CLI manual; direction.md carries the DESIGN.md template |
 | agent-browser | A stub that points to the CLI; browser-checks carries the rules |
 | make-interfaces-feel-better | A near copy of better-ui |
-| animation-vocabulary | A glossary of motion terms for people |
+| animation-vocabulary | Owner choice: a glossary of motion terms for people |
 | hallmark | A second public-page system; it contradicts the taste skill's rules |
 | coss-particles | An example index for coss |
-| interface-review | A review across domains; better-interface holds that route |
 | build-design-library | A library build; the owner starts it |
