@@ -13,20 +13,20 @@ pass better-colors               # row: Primitive | Pass: palette, semantic toke
 pass better-typography           # row: Primitive | Pass: type scale, font loading, wrapping | builder
 pass better-layout               # row: Primitive | Pass: spacing, grouping, responsive, RTL | builder
 pass better-ui                   # row: Primitive | Pass: radius, shadow, border, icons | builder
-pass animate                     # row: Primitive | Pass: motion tokens and new animations | builder
-forbid apple-design              # row: Primitive | Trigger: springs, gestures, drag, sheets | builder (DESIGN.md Motion: none)
+pass animate                     # row: Primitive | Pass: motion tokens and new animations | builder (DESIGN.md Motion: the 200 ms bar move and its reduced-motion jump)
+forbid apple-design              # row: Primitive | Trigger: springs, gestures, drag, sheets | builder (DESIGN.md Motion: one FLIP bar move; no springs, gestures or sheets, and "no drag in this scope")
 ambiguous emil-design-eng        # row: Primitive | Trigger: a motion feel call | builder. DESIGN.md fixes durations and easing; whether applying them is "a motion feel call" is open
 
 # Verify and Any rows.
 must design-qa                   # row: Verify | Pass: every part | both
 must browser-checks              # row: Verify | Trigger: any browser step | both (the brief allows a browser)
-forbid mobile-native             # row: Any | Trigger: phone users | both (DESIGN.md: no phone users)
+ambiguous mobile-native            # row: Any | Trigger: phone users | both. DESIGN.md names no phone users (desk office, wall screen, dock-door tablets), but it designs a narrow layout at <= 720px and the brief checks 375 width
 forbid copywriting               # row: Any | Trigger: marketing copy | both (app screen, no marketing copy)
 
 # Triggers the fixture fires on another level.
 ambiguous shadcn                 # row: Component | Trigger: the project uses shadcn (components.json) | builder. Fires in this fixture, but the row is Component level and Build step 3 loads the part's level triggers only
 ambiguous interface-review       # row: Component | Pass: the part changed existing UI | builder. The token change restyles existing screens, but the row is Component level
-ambiguous design-taste-frontend  # row: Product | Pass: which overall look and house rules? | both. app-screen.md "Taste sections" sends every app-screen part to its references/app-screens.md; the row level is Product, and index.sh counts only SKILL.md text
+ambiguous design-taste-frontend  # row: Product | Pass: which overall look and house rules? | both. app-screen.md "Taste sections" sends every app-screen part to its references/app-screens.md; the row level is Product; index.sh counts a returned read of that reference file as a load
 
 # Unfired, other-level and design-only rows, and skills out of the router.
 forbid better-accessibility        # row: Component | Pass: custom controls, dialogs, focus, keyboard | builder (another level)

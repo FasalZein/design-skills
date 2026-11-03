@@ -18,11 +18,11 @@ forbid pencil-design             # row: Screen, flow | Trigger: a .pen or .lib.p
 # Verify and Any rows.
 must design-qa                   # row: Verify | Pass: every part | both
 must browser-checks              # row: Verify | Trigger: any browser step | both (the brief allows a browser)
-forbid mobile-native             # row: Any | Trigger: phone users | both (DESIGN.md: no phone users)
+ambiguous mobile-native            # row: Any | Trigger: phone users | both. DESIGN.md names no phone users (desk office, wall screen, dock-door tablets), but it designs a narrow layout at <= 720px and the brief checks 375 width
 forbid copywriting               # row: Any | Trigger: marketing copy | both (app screen, no marketing copy)
 
 # Ambiguous.
-ambiguous design-taste-frontend  # row: Product | Pass: which overall look and house rules? | both. Its Notes cell names a "Screen pass for both" (app screen: references/app-screens.md), but the Level cell is Product, and index.sh counts only SKILL.md text
+ambiguous design-taste-frontend  # row: Product | Pass: which overall look and house rules? | both. Its Notes cell names a "Screen pass for both" (app screen: references/app-screens.md), but the Level cell is Product; index.sh counts a returned read of that reference file as a load
 ambiguous interface-review       # row: Component | Pass: the part changed existing UI | builder. The screen changes existing UI (spec D21), but the row is Component level
 ambiguous shadcn                 # row: Component | Trigger: the project uses shadcn (components.json) | builder. Fires in this fixture, but the row is Component level and Build step 3 loads the part's level triggers only
 forbid ask-sonner                # row: Component | Trigger: toasts with sonner | builder (no sonner in package.json)
@@ -61,3 +61,4 @@ forbid build-design-library      # out of router: spec D4
 forbid animate-expo              # out of router: spec D13 platform skill
 forbid write-swift               # out of router: spec D13 platform skill
 allow design-craft               # injected workflow (agent file inject-skills); a re-read is not a routed load
+# Surface recipe (not a skill row, so not scored): the Charts recipe does not fire (no chart on Shipments).
