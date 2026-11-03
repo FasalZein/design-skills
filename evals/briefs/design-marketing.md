@@ -6,7 +6,7 @@ Headless design run on the Harbor marketing eval fixture. The brief and DESIGN.m
 - **Scope level:** product. **Surface:** public-page, with the product-demo slot as an illustration. **Mode:** headless.
 - **DESIGN.md:** {RUN_DIR}/DESIGN.md. Its "Open for the build" line names the one open part; every other decision is closed.
 - **Parts:** the primitive set; PricingCard; the sections hero, product demo, features, pricing and footer call to action; the whole page.
-- **Run directory:** {RUN_DIR}. You and every design-builder work only in this directory. It is a git repository on branch main.
+- **Run directory:** {RUN_DIR}. You and every design-builder work only in this directory. It is a git repository on branch main. Start every shell command with `cd {RUN_DIR}`, run git as `git -C {RUN_DIR}`, and delete scratch files with `trash`.
 - **Browser:** allowed. Your own dev server: `npm run dev -- --port {PORT} --strictPort`. Give each design-builder its own port from {PORT}+1 to {PORT}+4 and the same command with that port. Dependencies are installed; add no package.
 - **Checks:** `npm run typecheck` and `npm run build`.
 - **Builders:** up to 4 design-builders at once. A part goes to a builder only after the lower-level parts it uses passed Verify.
@@ -18,7 +18,7 @@ Headless design run on the Harbor marketing eval fixture. The brief and DESIGN.m
 
 ## Builder briefs
 
-Give each design-builder a brief in this shape: the part, its scope level and surface, mode headless, the DESIGN.md path, the run directory, browser allowed with its port, the checks, In and Out scope, a Done condition (the part at 1440 and 375 width; the page also at 1024), and these finish steps: commit only its own files to main (when git reports index.lock, wait and retry); write its report in design-craft's Report format at `$HOME/.pi/artifacts/design-builder/eval-{RUN_NAME}-<part>/report.md`, with each PASSES entry named by the skill of its pass; stop every process it started; end with the report as its final message.
+Give each design-builder a brief in this shape: the part, its scope level and surface, mode headless, the DESIGN.md path, the run directory with the shell rules above, browser allowed with its port, the checks, In and Out scope, a Done condition (the part at 1440 and 375 width; the page also at 1024), and these finish steps: commit only its own files to main (when git reports index.lock, wait and retry); write its report in design-craft's Report format at `$HOME/.pi/artifacts/design-builder/eval-{RUN_NAME}-<part>/report.md`, with each PASSES entry named by the skill of its pass; stop every process it started; end with the report as its final message.
 
 ## Done
 

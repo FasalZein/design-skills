@@ -51,10 +51,10 @@ Dark mode / reduced motion:
 
 ```bash
 $AB eval "document.documentElement.classList.add('dark')"   # or the project's toggle
-$AB set media --reduced-motion reduce
+$AB set media light reduced-motion   # dark reduced-motion for a dark page
 ```
 
-Verify the emulation took: `$AB eval "matchMedia('(prefers-reduced-motion: reduce)').matches"`. When it reports `false` (known agent-browser-chrome gap), the fallback ladder is:
+Verify the emulation took: `$AB eval "matchMedia('(prefers-reduced-motion: reduce)').matches"`. When it reports `false`, the fallback ladder is:
 
 1. Confirm a `@media (prefers-reduced-motion: reduce)` block exists in the source (read the CSS file directly — `document.styleSheets` throws `SecurityError` on `file://` external sheets).
 2. Inject the equivalent rules via `eval` and verify their CSS effect (animations/transitions neutralized).

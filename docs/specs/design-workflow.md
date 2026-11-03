@@ -57,6 +57,7 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D20 Craft passes per level.** Each level has a fixed pass list; each pass is one skill used as a lens, run by the agent its row names. A part is done when every pass of its level has a result: applied (skill loaded; what changed) or n/a (an observable fact). A pass that does not apply loads nothing. A component group (for example, a page section) runs the Screen and the Component passes; a pass that does not fit records n/a. The report carries a PASSES line. No verify.sh coverage lint.
 - **D21 New routes:** interface-review (builder; the part changed existing UI: review its own diff for regressions before reporting); find-animation-opportunities (design; after a screen is built, a motion round: the owner picks proposals, builders apply them with animate); improve-animations (design; the owner asks to improve existing motion: an audit plus plans that builders run).
 - **D22 Outcome loop.** `evals/retro/index.sh` and `compliance.sh` index design and design-builder sessions. A skill counts as loaded when its text came back in a tool result (its frontmatter `name:` line), never by a path in call arguments. After each batch they report passes run, skills that changed results, cost, peak context and owner corrections.
+- **D23 Design agent skills (owner, 2026-11-03).** The design agent loads every installed skill, so the owner can invoke any of them by command in the pane. skill-gate shows its model no catalog (PI_VISIBLE_SKILLS=none in the agent's env block); routed skills still load by file read. design-builder keeps design-craft as its only skill.
 
 ## Routing by question (D9, D19, D20)
 
@@ -126,14 +127,14 @@ ARTIFACT: <absolute path>
 ### Agents
 
 - **Both:** frontmatter settings, role, implementation rules (keep the styling method, commit to the current branch), spawning and report. No brief path. No workflow text: the injected router holds it.
-- **design:** attended; runs D14 and D15. Allowlist: design-craft only. Children: scout, researcher, design-builder.
+- **design:** attended; runs D14 and D15. Every skill loaded, empty model catalog (D23). Children: scout, researcher, design-builder.
 - **design-builder:** headless; builds decided parts; D16. Allowlist: design-craft only.
 
 ## Acceptance
 
 1. `bash scripts/verify.sh` is green with new checks: every routed skill resolves under a D3 root on this machine or is marked optional; the floor rules are in SKILL.md; no backticked slash tokens in design-craft; the router names no skill outside the routing table, the surface files and skills.md; every routing row has a Pass or Trigger kind and an agent (design | builder | both), one row per skill; `design-craft/surfaces/` holds app-screen, public-page and illustration with the two named headings; `design-craft/reference/` and `jobs/` are gone.
 2. The design-qa contract tests and the live probe tests are green.
-3. Both agent descriptions contain no brief path; both allowlists are design-craft only; the design agent can spawn researcher.
+3. Both agent descriptions contain no brief path; the design-builder allowlist is design-craft only; the design agent loads every skill with an empty model catalog (D23); the design agent can spawn researcher.
 4. Eval on the fixture app: 3 headless part briefs (a primitive set, a component, a screen) with a fixture DESIGN.md, x 3 models (Opus, Sonnet, GPT). In every run: every fired trigger's and applied pass's skill text appears in a tool result; no unfired, n/a or other agent's skill appears; PASSES has a result for every pass of the part's level; the static checks ran; a report exists, including runs that hit the time limit; screenshots came from agent-browser-chrome. Report cost and peak context against the sessions.tsv baseline. Plus one attended design-grilling session with the owner on the fixture.
 5. The installed copies in `~/.agents/skills` (design-craft, design-qa, laws-of-ux) match the repo after install.
 

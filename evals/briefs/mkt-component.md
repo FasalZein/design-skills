@@ -5,7 +5,7 @@ Headless design-builder run on the Harbor marketing eval fixture. The brief and 
 - **Part:** PricingCard, the plan card of the pricing section.
 - **Scope level:** component. **Surface:** public-page. **Mode:** headless.
 - **DESIGN.md:** {RUN_DIR}/DESIGN.md. Every decision this part needs is closed there ("Open for the build: none").
-- **Run directory:** {RUN_DIR}. Work only in this directory. It is a git repository; commit to its current branch.
+- **Run directory:** {RUN_DIR}. Work only in this directory. It is a git repository; commit to its current branch. Start every shell command with `cd {RUN_DIR}`, run git as `git -C {RUN_DIR}`, and delete scratch files with `trash`.
 - **Browser:** allowed. Start the dev server with `npm run dev -- --port {PORT} --strictPort` and use port {PORT} only. Dependencies are installed; add no package.
 - **Checks:** `npm run typecheck` and `npm run build`.
 - **Before and after:** the part replaces existing UI in the pricing section (#pricing).
