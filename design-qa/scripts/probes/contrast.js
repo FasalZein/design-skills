@@ -18,28 +18,29 @@
     } return over(acc, [255,255,255,1]); };
   const ratio = (a, b) => { const L1 = lum(a), L2 = lum(b); return (Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05); };
   const vis = e => e.checkVisibility ? e.checkVisibility({checkOpacity:true, visibilityProperty:true}) : e.offsetHeight > 0;
+  const checked = e => vis(e) && !!e.offsetHeight && !e.closest('.ss-stage');   // stageshow stage content: film.mjs owns it
+  // text: any element with a direct text node; placeholders for inputs
+  const isField = e => e.matches('input,textarea');
+  const ownText = e => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+  const textOf = e => { return isField(e) ? e.placeholder : (ownText(e) ? e.textContent : ''); };
+  const textColor = (e, st) => isField(e) ? (getComputedStyle(e,'::placeholder').color || st.color) : st.color;
+  const floorOf = st => { const px = parseFloat(st.fontSize), bold = parseInt(st.fontWeight) >= 700;   // large text: 24px, or 18.66px bold
+    return (px >= 24 || (px >= 18.66 && bold)) ? 3 : 4.5; };
+  const textFail = (e, st) => { const text = textOf(e); if (!text?.trim()) return null;
+    const fg = parse(textColor(e, st)); if (!fg) return {t:text.slice(0,30), r:'MANUAL — unparseable color'};
+    const bg = bgOf(e), r = ratio(over(fg, bg), bg), floor = floorOf(st);   // element's own background sits behind its text
+    return r < floor ? {t:text.slice(0,30), r:+r.toFixed(2), need:floor} : null; };
+  // non-text: control borders need 3:1 against the surrounding surface
+  const borderedControl = (e, st) => { return e.matches('input,select,textarea,button,[role=button]') && parseFloat(st.borderTopWidth) > 0
+    && st.borderTopStyle !== 'none' && !/rgba\(0, 0, 0, 0\)|transparent/.test(st.borderTopColor); };
+  const controlName = e => e.name || e.type || e.tagName;
+  const borderFail = (e, st) => { if (!borderedControl(e, st)) return null;
+    const bc = parse(st.borderTopColor), bg = bgOf(e.parentElement || e); if (!bc) return null;
+    const r = ratio(over(bc, bg), bg);
+    return r < 3 ? {t:'border:' + controlName(e), r:+r.toFixed(2), need:3} : null; };
   const fails = [];
-  for (const e of document.querySelectorAll('*')) {
-    if (!vis(e) || !e.offsetHeight || e.closest('.ss-stage')) continue;   // stageshow stage content: film.mjs owns it
+  for (const e of document.querySelectorAll('*')) { if (!checked(e)) continue;
     const st = getComputedStyle(e);
-    // text (any element with a direct text node; placeholders for inputs)
-    const text = e.matches('input,textarea') ? e.placeholder
-      : ([...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) ? e.textContent : '');
-    if (text?.trim()) {
-      const fg = parse(e.matches('input,textarea') ? (getComputedStyle(e,'::placeholder').color || st.color) : st.color);
-      if (!fg) fails.push({t:text.slice(0,30), r:'MANUAL — unparseable color'});
-      else { const bg = bgOf(e), c = over(fg, bg);   // element's own background sits behind its text
-        const px = parseFloat(st.fontSize), bold = parseInt(st.fontWeight) >= 700;
-        const floor = (px >= 24 || (px >= 18.66 && bold)) ? 3 : 4.5;
-        const r = ratio(c, bg);
-        if (r < floor) fails.push({t:text.slice(0,30), r:+r.toFixed(2), need:floor}); }
-    }
-    // non-text: control borders need 3:1 against the surrounding surface
-    if (e.matches('input,select,textarea,button,[role=button]') && parseFloat(st.borderTopWidth) > 0 && st.borderTopStyle !== 'none' && !/rgba\(0, 0, 0, 0\)|transparent/.test(st.borderTopColor)) {
-      const bc = parse(st.borderTopColor), bg = bgOf(e.parentElement || e);
-      if (bc) { const r = ratio(over(bc, bg), bg);
-        if (r < 3) fails.push({t:'border:' + (e.name || e.type || e.tagName), r:+r.toFixed(2), need:3}); }
-    }
-  }
+    for (const row of [textFail(e, st), borderFail(e, st)]) if (row) fails.push(row); }
   return fails.slice(0,40);
 })()
