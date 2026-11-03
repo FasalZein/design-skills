@@ -1,23 +1,33 @@
-# Build: the Docks section of the Overview screen
+# Build: the Docks board, the section of the Overview screen
 
 Headless design-builder run on the Harbor eval fixture. The brief and DESIGN.md are the owner's word.
 
-- **Part:** the Docks section of the Overview screen: DocksSection with the StatusBadge it renders.
+- **Part:** the Docks board: the Docks section of the Overview screen, with its board bars and the StatusBadge it uses.
 - **Scope level:** component group (a section of a screen). **Surface:** app-screen. **Mode:** headless.
-- **DESIGN.md:** {RUN_DIR}/DESIGN.md. Every decision this part needs is closed there ("Open for the build: none").
+- **DESIGN.md:** {RUN_DIR}/DESIGN.md (the owner-approved Hi-vis direction). Every decision this part needs is closed there ("Open for the build: none").
+- **Start:** {START}
 - **Run directory:** {RUN_DIR}. Work only in this directory. It is a git repository; commit to its current branch. Start every shell command with `cd {RUN_DIR}`, run git as `git -C {RUN_DIR}`, and delete scratch files with `trash`.
-- **Browser:** allowed. Start the dev server with `npm run dev -- --port {PORT} --strictPort` and use port {PORT} only. Dependencies are installed; add no package.
+- **Browser:** allowed. Start the dev server with `npm run dev -- --port {PORT} --strictPort` and use port {PORT} only. Dependencies are installed, including the three approved font packages of the DESIGN.md Build notes; add no package.
 - **Checks:** `npm run typecheck` and `npm run build`.
-- **Before and after:** the part adds a section to existing UI on #/overview.
+- **Before and after:** the part adds a section to the existing UI on #/overview.
 
 ## Scope
 
-- **In:** src/components/docks-section.tsx as the Docks lines of DESIGN.md define it (Tree, Components, States, Copy), fed with the shipments fixture; then render it on #/overview under "Next arrivals" (one import and one element in src/screens/overview.tsx). The approved primitive set is in src/index.css and the approved StatusBadge in src/components/status-badge.tsx: use both.
-- **Out:** the token layer (src/index.css), StatusBadge, the rest of the Overview screen and its grid, the Shipments screen, the sidebar, and the shipments fixture data in src/data/shipments.ts.
+- **In:** src/components/docks-board.tsx as the Docks board, Board bar, States, Motion and Copy lines of DESIGN.md define it, fed with src/data/shipments.ts:
+  - the 224px label column with the door number ("01" to "04") and its state text ("Free until 08:45", "Unloading · 11 min left", "Free all day");
+  - the 06:00 to 16:00 time axis with ticks every 2 h, a tick hidden within 40 min of Now;
+  - the Now line at the device time with its "Now <time>" label;
+  - the lanes for doors 1 to 4, then the "No door" lane whose bars pack into sub-lanes so none overlap;
+  - bar length from the estimate (20 min + 1.7 min per pallet), each bar state, the ID inside or beside the bar, the title attribute;
+  - the delayed truck at its newEta with a dashed tick and "<ID> booked <time>" at its booked time;
+  - the loading, empty and error states, and the door list it becomes at <= 720px;
+  - the one animation: a bar moves to its new place in 200 ms when its truck's door changes (FLIP), and jumps under prefers-reduced-motion.
+- **Also in:** render the board on #/overview in the left column under the Day line (or where the Day line goes when it is not built yet), with the section meta "Bar length: 20 min + 1.7 min per pallet".
+- **Out:** the token layer (src/index.css), StatusBadge and the Day line, the "Needs a door" rail and the title row, the Shipments screen, the sidebar, and the data in src/data/shipments.ts.
 
 ## Done
 
-Done when the Docks section shows docks 1 to 4 with their shipment ID and StatusBadge or "Free", as DESIGN.md defines them, on #/overview at 1440 and 375 width, the every-dock-free state renders, typecheck and build pass, and the report is written.
+Done when the board shows doors 01 to 04 and the "No door" lane with every truck of the data at its time, the Now line and the delayed truck's booked tick, the loading, empty and error states render, a door change on a bar (a prop change is enough) moves the bar as the Motion line defines, the board renders on #/overview at 1440 and 1024 width and as the door list at 375 width, typecheck and build pass, and the report is written.
 
 ## Finish
 

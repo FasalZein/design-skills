@@ -5,16 +5,16 @@ Headless design run on the Harbor eval fixture. The brief and DESIGN.md are the 
 - **Work:** build every decided part of DESIGN.md bottom-up through design-builders, and report the one open part to the owner.
 - **Scope level:** product. **Surface:** app-screen. **Mode:** headless.
 - **DESIGN.md:** {RUN_DIR}/DESIGN.md. Its "Open for the build" line names the one open part; every other decision is closed.
-- **Parts:** the primitive set; StatusBadge and ShipmentTable; the Shipments screen with ShipmentTable; the Overview screen with the metric, "Next arrivals" and "Delayed".
+- **Parts:** the primitive set (light and dark, the approved fonts, de-DE number formats); StatusBadge and the Day line; the "Needs a door" rail; the Shipments screen with its count tabs, table and door selects, and the narrow top bar; the Overview screen with its title row, finding line, Day line and rail.
 - **Run directory:** {RUN_DIR}. You and every design-builder work only in this directory. It is a git repository on branch main. Start every shell command with `cd {RUN_DIR}`, run git as `git -C {RUN_DIR}`, and delete scratch files with `trash`.
-- **Browser:** allowed. Your own dev server: `npm run dev -- --port {PORT} --strictPort`. Give each design-builder its own port from {PORT}+1 to {PORT}+4 and the same command with that port. Dependencies are installed; add no package.
+- **Browser:** allowed. Your own dev server: `npm run dev -- --port {PORT} --strictPort`. Give each design-builder its own port from {PORT}+1 to {PORT}+4 and the same command with that port. Dependencies are installed, including the three approved font packages of the DESIGN.md Build notes; add no package.
 - **Checks:** `npm run typecheck` and `npm run build`.
 - **Builders:** up to 4 design-builders at once. A part goes to a builder only after the lower-level parts it uses passed Verify.
 
 ## Scope
 
 - **In:** every decided part, primitives first, then components, then sections, then the screens.
-- **Out:** the Docks section of the Overview screen: report it with a DECISION NEEDED block and build none of it.
+- **Out:** the Docks section of the Overview screen (its form is open): report it with a DECISION NEEDED block and build none of it.
 
 ## Builder briefs
 

@@ -31,7 +31,7 @@ forbid interface-review            # row: Component | Pass: the part changed exi
 forbid shadcn                      # row: Component | Trigger: the project uses shadcn (components.json) | builder (another agent's row)
 forbid ask-sonner                  # row: Component | Trigger: toasts with sonner | builder (another agent's row)
 forbid coss                        # row: Component | Trigger: the project uses coss or Base UI | builder (another agent's row)
-forbid mobile-native               # row: Any | Trigger: phone users | both (DESIGN.md: no phone users)
+ambiguous mobile-native            # row: Any | Trigger: phone users | both. DESIGN.md names no phone users (desk office, wall screen, dock-door tablets), but it designs a narrow layout at <= 720px and the brief checks 375 width
 forbid copywriting                 # row: Any | Trigger: marketing copy | both (app screen, no marketing copy)
 forbid better-colors               # row: Primitive | Pass: palette, semantic tokens, contrast, dark mode | builder (another agent's row)
 forbid better-typography           # row: Primitive | Pass: type scale, font loading, wrapping | builder (another agent's row)

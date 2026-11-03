@@ -95,7 +95,7 @@ EVAL_RUNS_ROOT="$WORK/runs" bash "$EVALS/new-run.sh" screen taken 5301 >/dev/nul
 [ -f "$WORK/runs/taken/keep" ] && ok "existing run left untouched" || no "existing run changed"
 # Each brief renders with no placeholder left.
 for b in "$EVALS"/briefs/*.md; do
-  r=$(sed -e "s|{RUN_DIR}|/r|g" -e "s|{PORT}|1|g" -e "s|{RUN_NAME}|n|g" "$b" | grep -o '{[A-Z_]*}' | sort -u | paste -sd, -)
+  r=$(sed -e "s|{RUN_DIR}|/r|g" -e "s|{PORT}|1|g" -e "s|{RUN_NAME}|n|g" -e "s|{START}|s|g" "$b" | grep -o '{[A-Z_]*}' | sort -u | paste -sd, -)
   [ -z "$r" ] && ok "$(basename "$b") renders every placeholder" || no "$(basename "$b") keeps placeholders [$r]"
 done
 
@@ -128,8 +128,33 @@ check_run() { # part fixture-file-that-must-exist expected-text-in-DESIGN.md
   grep -qF "$r/DESIGN.md" "$WORK/$part.brief" && ! grep -q '{[A-Z_]*}' "$WORK/$part.brief" && ok "new-run $part: brief rendered" || no "new-run $part: brief not rendered"
 }
 if [ -d "$EVALS/fixture/node_modules" ]; then
-  check_run section src/components/status-badge.tsx 'Open for the build: none'
+  check_run section src/components/app-sidebar.tsx 'Open for the build: none'
+  [ ! -e "$WORK/runs/section/src/components/status-badge.tsx" ] && ok "new-run section: no old-direction overlay" || no "new-run section: old status-badge overlay present"
+  grep -q "newEta: '10:40'" "$WORK/runs/section/src/data/shipments.ts" && ok "new-run section: newEta in the data" || no "new-run section: newEta missing"
+  grep -qF 'starts from the stock fixture' "$WORK/section.brief" && ok "new-run section: brief names the fixture start" || no "new-run section: start line"
   check_run design-app src/App.tsx 'Open for the build: the Docks section'
+  ! grep -q '^- Docks board: label column\|^- Board bar:' "$WORK/runs/design-app/DESIGN.md" && ok "new-run design-app: the Docks form lines are open" || no "new-run design-app: Docks form still decided"
+
+  # Chain mode: a run starts from the committed HEAD of an earlier run; uncommitted work stays behind.
+  CH="$WORK/runs"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" primitive-set chain-p 5301 >/dev/null 2>&1 || no "chain: first run failed"
+  echo ':root { --chain-mark: 1; }' >> "$CH/chain-p/src/index.css"
+  git -C "$CH/chain-p" -c user.name=t -c user.email=t@l commit -qam "primitives built"
+  echo 'scratch' > "$CH/chain-p/uncommitted.txt"; echo '// dirty' >> "$CH/chain-p/src/App.tsx"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" component chain-c 5302 --from chain-p > "$WORK/chain-c.brief" 2>/dev/null && ok "chain: --from exits 0" || no "chain: --from failed"
+  [ "$(git -C "$CH/chain-c" rev-list --count HEAD 2>/dev/null)" = 1 ] && ok "chain: one new initial commit" || no "chain: commit count"
+  grep -q -- '--chain-mark' "$CH/chain-c/src/index.css" 2>/dev/null && ok "chain: committed work carried over" || no "chain: committed work missing"
+  [ ! -e "$CH/chain-c/uncommitted.txt" ] && ! grep -q '// dirty' "$CH/chain-c/src/App.tsx" && ok "chain: uncommitted work left behind" || no "chain: uncommitted work copied"
+  [ -d "$CH/chain-c/node_modules/@fontsource/barlow" ] && ok "chain: node_modules cloned" || no "chain: node_modules missing"
+  [ -z "$(git -C "$CH/chain-c" status --porcelain)" ] && ok "chain: clean tree after setup" || no "chain: dirty tree after setup"
+  git -C "$CH/chain-c" ls-files | grep -qE '^(node_modules|dist)/' && no "chain: committed node_modules" || ok "chain: no node_modules in git"
+  sha=$(git -C "$CH/chain-p" rev-parse --short HEAD)
+  grep -qF "result of run chain-p (commit $sha)" "$WORK/chain-c.brief" && ! grep -q '{[A-Z_]*}' "$WORK/chain-c.brief" && ok "chain: brief names the previous run" || no "chain: brief start line"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" section chain-x 5303 --from no-such-run >/dev/null 2>&1 && no "chain: missing previous run accepted" || ok "chain: missing previous run refused"
+  [ ! -e "$CH/chain-x" ] && ok "chain: refused run leaves no directory" || no "chain: refused run left a directory"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" design-app chain-d 5303 --from chain-p >/dev/null 2>&1 && no "chain: --from on design-app accepted" || ok "chain: --from only on Harbor builder parts"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" section chain-y 5303 --frm chain-p >/dev/null 2>&1 && no "chain: bad flag accepted" || ok "chain: bad flag refused"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" section chain-y 5303 --from ../chain-p >/dev/null 2>&1 && no "chain: path as previous run accepted" || ok "chain: path as previous run refused"
 else echo "skip: evals/fixture/node_modules missing (npm ci --prefix evals/fixture)"; fi
 if [ -d "$EVALS/fixture-marketing/node_modules" ]; then
   check_run mkt-primitive-set src/sections/product-demo.tsx 'Open for the build: none'
@@ -140,6 +165,18 @@ if [ -d "$EVALS/fixture-marketing/node_modules" ]; then
   bash "$EVALS/new-run.sh" mkt-component "$TAG-nr" 5301 >/dev/null 2>&1 && [ -d "$REPO/.eval-runs/$TAG-nr/.git" ] \
     && ok "new-run default root is <repo>/.eval-runs" || no "new-run default root"
 else echo "skip: evals/fixture-marketing/node_modules missing (npm ci --prefix evals/fixture-marketing)"; fi
+
+# Harbor briefs follow the approved DESIGN.md (Hi-vis): each names its chain start and the decisions its Done checks.
+brief_has() { grep -qF -- "$2" "$EVALS/briefs/$1.md" && ok "$1 brief: $2" || no "$1 brief lacks [$2]"; }
+for b in primitive-set component section screen; do brief_has "$b" '{START}'; done
+for s in 'Geist' '44px' 'de-DE' '"48.210,50 €"' '.dark' 'Barlow Condensed' 'Newsreader' '--radius: 0' 'prefers-reduced-motion'; do brief_has primitive-set "$s"; done
+for s in 'StatusBadge' 'B3 Action first' 'Day line' '"<n> of 4 doors free"' 'At gate'; do brief_has component "$s"; done
+for s in 'Overview' '"No door" lane' 'Now line' '06:00 to 16:00' 'booked <time>' 'FLIP' 'door list'; do brief_has section "$s"; done
+for s in 'count tabs' 'door select' 'top bar' 'booked 08:00' "Couldn't change the door. Try again." '1440, 1024 and 375'; do brief_has screen "$s"; done
+for d in "$EVALS"/fixture/DESIGN.md; do grep -q '^Direction: Hi-vis' "$d" && ok "fixture DESIGN.md is the approved Hi-vis direction" || no "fixture DESIGN.md is not Hi-vis"; done
+for p in @fontsource/barlow @fontsource/barlow-condensed @fontsource-variable/newsreader; do
+  jq -e --arg p "$p" '.dependencies[$p]' "$EVALS/fixture/package.json" >/dev/null && ok "fixture depends on $p" || no "fixture lacks $p"
+done
 
 # clean-run.sh: saves the log and diffs, deletes the run, and refuses anything outside <repo>/.eval-runs.
 CR="$EVALS/clean-run.sh"; R="$REPO/.eval-runs/$TAG-cr"

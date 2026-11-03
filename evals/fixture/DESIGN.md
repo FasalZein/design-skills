@@ -1,49 +1,79 @@
-# DESIGN: Harbor inbound (app-screen)
-Direction: Quiet and exact, like a dock board: cool slate surfaces, one harbor-blue action color, and every time, ID and count set in a tabular mono face. The memorable choice: arrival time is the leading column everywhere, so the screen reads as a timetable.
-Tree: Product / users and scene -> warehouse dispatchers at desk terminals in a lit office, working an 8-hour shift; light mode only; no phone users (fixture, 2026-11-03)
-Tree: Product / structural archetype -> app shell: sidebar + content (fixture, 2026-11-03)
-Tree: Product / visual density -> dense (fixture, 2026-11-03)
-Tree: Product / aesthetic direction -> quiet, exact (fixture, 2026-11-03)
-Tree: Product / unforgettable choice -> time-first timetable rows in IBM Plex Mono (fixture, 2026-11-03)
-Tree: Product / swap test -> passes: owned slate neutrals, 6px radius and Plex replace the stock shadcn layer (fixture, 2026-11-03)
-Tree: Primitive / token grade -> stock today; replace with the Tokens below (fixture, 2026-11-03)
-Tree: Primitive / palette strategy -> restrained: tinted neutrals, one action color, five status roles (fixture, 2026-11-03)
-Tree: Primitive / typeface -> IBM Plex Sans Variable + IBM Plex Mono, both installed (fixture, 2026-11-03)
-Tree: Primitive / motion -> two durations, one easing, no springs or gestures (fixture, 2026-11-03)
-Tree: Component / ShipmentTable -> the columns, states and copy below (fixture, 2026-11-03)
-Tree: Component / StatusBadge -> a dot + label on a tinted chip (fixture, 2026-11-03)
-Tree: Section / Docks -> docks 1 to 4 as timetable-style rows: dock number, then its shipment ID and StatusBadge, or "Free" (fixture, 2026-11-03)
-Tree: Screen / Overview -> one prominent metric with context, the next-arrivals timetable, delayed shipments and dock occupancy (fixture, 2026-11-03)
-Tokens: Write all tokens in src/index.css as CSS variables on :root, mapped through the existing `@theme inline` block. Light mode only: remove the .dark block. Component code uses semantic tokens only.
-Tokens: Neutrals (hue 250): --background oklch(0.985 0.004 250); --foreground oklch(0.22 0.02 250); --card oklch(0.995 0.002 250); --card-foreground = --foreground; --popover = --card; --popover-foreground = --foreground; --muted oklch(0.955 0.008 250); --muted-foreground oklch(0.50 0.02 250); --accent = --muted; --accent-foreground = --foreground; --secondary = --muted; --secondary-foreground = --foreground; --border oklch(0.90 0.01 250); --input = --border.
-Tokens: Action: --primary oklch(0.42 0.11 245); --primary-foreground oklch(0.985 0.004 250); --ring = --primary; --destructive oklch(0.55 0.19 27).
-Tokens: Sidebar: --sidebar oklch(0.955 0.008 250); --sidebar-foreground = --foreground; --sidebar-accent oklch(0.91 0.014 250); --sidebar-accent-foreground = --foreground; --sidebar-border oklch(0.89 0.01 250); --sidebar-primary = --primary; --sidebar-primary-foreground = --primary-foreground; --sidebar-ring = --primary.
-Tokens: Status roles, each a text color and a tint, exposed as Tailwind colors status-<name> and status-<name>-tint: scheduled oklch(0.50 0.02 250) on oklch(0.95 0.008 250); at-gate oklch(0.48 0.09 200) on oklch(0.95 0.03 200); unloading oklch(0.45 0.12 250) on oklch(0.95 0.03 250); received oklch(0.47 0.11 150) on oklch(0.95 0.04 150); delayed oklch(0.50 0.16 40) on oklch(0.95 0.04 40). Each text color meets 4.5:1 on its tint.
-Tokens: Charts: --chart-1 to --chart-5 take the status text colors in the order unloading, received, at-gate, delayed, scheduled.
-Tokens: Radius --radius 0.375rem (6px): cards and tables rounded-lg; buttons rounded-md; badges rounded-sm.
-Tokens: Spacing: the Tailwind 4px scale, steps 1, 2, 3, 4, 6, 8 only (4 to 32px). Page padding 24px; gap between page blocks 24px; card padding 16px; gap inside a card 12px.
-Tokens: Elevation: cards and tables have a 1px --border hairline and no shadow. No overlays are in scope.
-Tokens: Motion: --motion-fast 120ms (hover, press, color changes); --motion-base 200ms (content that enters); --motion-ease cubic-bezier(0.2, 0, 0, 1). Map them to Tailwind's default transition duration and timing function. Under prefers-reduced-motion, keep color fades and drop every transform. No springs, gestures, drag or sheets.
-Type: Faces: --font-sans 'IBM Plex Sans Variable' (package @fontsource-variable/ibm-plex-sans, OFL-1.1); --font-mono 'IBM Plex Mono' 400 and 500 (package @fontsource/ibm-plex-mono, OFL-1.1); both are in package.json. Remove the Geist import. Fallbacks: system-ui for sans, ui-monospace for mono.
-Type: Scale: 12/16 (micro-labels, notes), 13/20 (table cells), 14/20 (body, controls), 16/24 (card titles), 20/28 (page titles, weight 600), 32/40 (the one prominent metric, mono, weight 500). Weights 400, 500, 600 only.
-Type: Tracking: page titles -0.01em; body 0; uppercase micro-labels 0.04em. Times, IDs, counts, money and dock numbers use the mono face with tabular-nums.
-Layout: Shell: sidebar 240px fixed + content minmax(0, 1fr); the content region owns the scroll. Sidebar header 56px, the same height as each screen's header row. Nav items 36px tall with a 16px icon.
-Layout: Screen header row: 56px tall, the page title on the left, its controls on the right, a bottom hairline.
-Layout: Breakpoints: designed for 1280 to 1920px. At 1024px and below the sidebar becomes a 56px icon rail with aria-labels. At 375px nothing overflows the viewport: tables scroll horizontally inside their own container.
-Layout: Overview grid: two columns, 2fr and 1fr, gap 24px. Left: the metric, then "Next arrivals". Right: "Delayed", then "Docks". At 1024px and below: one column in the order metric, Delayed, Next arrivals, Docks.
-Components: Use the installed shadcn components (button, card, badge, table, separator) and lucide-react icons. Add no UI library.
-Components: StatusBadge (src/components/status-badge.tsx): props { status: ShipmentStatus }. A 6px dot in the status text color, then the label, on the status tint; 12/16, weight 500, rounded-sm, 2px 6px padding; one line, never truncated.
-Components: ShipmentTable (src/components/shipment-table.tsx): props { shipments: Shipment[]; state: 'loading' | 'error' | 'ready'; onRetry: () => void }. Rows sorted by ETA ascending. Columns in order: ETA (HH:MM, mono), ID (mono), Carrier, Origin, Dock, Pallets (right-aligned, mono), Value (right-aligned, mono, de-DE EUR with 2 decimals, for example "48.210,50 €"), Status (StatusBadge). Row height 40px; 13/20 cells; header row sticky at the top of the scroll container, 12/16 uppercase micro-labels in --muted-foreground.
-Components: ShipmentTable cells: the Carrier column has a fixed 220px width and truncates with the full name in a title attribute. A shipment with a note shows the note under the carrier name, 12/16 in the delayed text color, wrapping. A null dock reads "Unassigned" in --muted-foreground. Value and ETA never wrap.
-Components: DocksSection (src/components/docks-section.tsx): props { shipments: Shipment[] }. A card titled "Docks" (16/24 card title) holding four 40px rows for docks 1 to 4 in order, separated by 1px --border hairlines: "Dock <n>" (mono, --muted-foreground), then the shipment on that dock: its ID (mono) and its StatusBadge. A shipment is on dock n when its dock is n and its status is at-gate, unloading or received. A dock with no shipment reads "Free" in --muted-foreground. Rows never wrap; the section is as wide as its grid column.
-Components: Overview metric (Overview screen): "Pallets to receive" as a 32/40 mono number, with one context line under it: "<received> of <expected> received · <delayed> delayed".
-States: ShipmentTable: loading = 5 skeleton rows at the 40px row height in --muted, no spinner; empty (state 'ready' with zero rows) = one row spanning all columns with the empty copy; error = the error copy and a Retry button that calls onRetry; ready = the rows.
-States: StatusBadge: one look per status; no hover state.
-States: DocksSection: occupied and free per row; every dock free shows four "Free" rows. No loading or error state: the data is local.
-States: Overview: populated only; it reads the shipments fixture.
-Copy: Page titles "Overview", "Shipments". Nav labels "Overview", "Shipments". Sidebar footer "Duisburg warehouse".
-Copy: Status labels: scheduled "Scheduled"; at-gate "At gate"; unloading "Unloading"; received "Received"; delayed "Delayed".
-Copy: ShipmentTable headers "ETA", "ID", "Carrier", "Origin", "Dock", "Pallets", "Value", "Status". Empty: "No inbound shipments today." Error: "Shipments could not load." with the button "Retry".
-Copy: Overview sections "Next arrivals" (the scheduled shipments as timetable rows: ETA, ID, carrier, pallets), "Delayed" (each delayed shipment: ID, carrier, its note; a tinted delayed surface, no left border stripe; with none, the section reads "No delays."), "Docks" (docks 1 to 4, each with its current shipment ID and status, or "Free").
-Copy: Words the product does not use: dashboard, seamless, effortless, insights, welcome, streamline.
+# DESIGN: Harbor (inbound shipments, Duisburg dock)
+Direction: Hi-vis, loud and legible: concrete grey, a black shell and safety orange only where a person must act or a door is working; the memorable choice is the Docks board, with doors 01 to 04 as lanes in large condensed numerals, the day across, a Now line and a No door lane.
+
+Tree:
+- Product / evidence -> dmd create (style vault, 6 refs: Orderful, Dock, Dollar Shave Club, Sleeve, Aboard, Prismic; low relevance, kept in .design-md/style-context.json); design-taste-frontend app draw (achromatic-ledger, framed-sheet, data-terminal, true-black-flat, accent-ladder); researcher brief on dock tools, /Users/tothemoon/.pi/artifacts/researcher/dock-tools-research-2026-11-03.md (round 1, 2026-11-03)
+- Product / overall look -> C Hi-vis, chosen over A Ladeliste, B Nachtschicht, D Kontor, E Magnettafel (round 1, 2026-11-03)
+- Product / parts taken -> IBM Plex Mono for shipment IDs and clock times only (from A); a dark wall-screen mode as a later remap (from B); Newsreader serif for page and section titles (from D) (round 1, 2026-11-03)
+- Product / initial mode -> light first; dark is a semantic-token remap for the dock-office wall screen (round 1, 2026-11-03)
+- Product / archetype -> app shell: labelled sidebar + content (round 1, 2026-11-03)
+- Product / unforgettable choice -> the Docks board (round 1, 2026-11-03)
+- Product / palette strategy -> committed: black shell + safety orange on action and active marks; tinted concrete neutrals (round 1, 2026-11-03)
+- Domain / dock doors -> 4 doors, numbered 1 to 4 (round 1, 2026-11-03)
+- Domain / bar length -> estimated unloading: 20 min + pallets x 60 / 34.8 min, rounded (Yardo estimator via the researcher brief) (round 1, 2026-11-03)
+- Domain / board window -> 06:00 to 16:00 (round 1, 2026-11-03)
+- Screen / Overview -> O2 Board + rail (round 2, 2026-11-03)
+- Screen / Shipments -> S1 Tabs + table (round 2, 2026-11-03)
+- Screen / narrow shell -> N3 Switch (round 2, 2026-11-03)
+- Interaction / door assignment -> a door select on the row; no drag in this scope (round 2, 2026-11-03)
+- Copy / numbers -> German format through Intl de-DE (48.210,50 €); words stay English (round 2, 2026-11-03)
+- Component / StatusBadge -> B3 Action first (round 3, 2026-11-03)
+- Component / stat-metric -> M2 Day line (round 3, 2026-11-03)
+- Primitive / density -> Dock floor at every width (round 3, 2026-11-03)
+- Primitive / motion -> Feedback: only the bar move on a door change (round 3, 2026-11-03)
+- Primitive / dark remap -> as shown in round 3 (round 3, 2026-11-03)
+- Primitive / color roles and type scale -> approved as shown on the round 3 Primitives screen (round 3, 2026-11-03)
+- Screen pass / laws-of-ux -> 4 rules added below: one primary per view, Undo for Send, optimistic door change with rollback, busy-door warning (design agent, approved with this file, 2026-11-03)
+- Approval -> DESIGN.md approved as written; font packages approved; all round prototypes kept (2026-11-03)
+
+Tokens:
+- Color, light (src/index.css :root; map the shadcn roles onto these): ground #e6e5e1 (page); surface #ffffff (panels, board, table); raised #f2f1ee (hover, group rows); line #d3d1cb (panel edges, dividers); rule #e6e5e1 (row and lane rules); control #8d8a82 (input and button borders, 3.4:1); track #e6e5e1 (ratio tracks, received bars); text #141414 (18.4:1); muted #55534e (7.7:1); shell #141414, shell-text #f3f2ef, shell-muted #b9b6ae, shell-hover #242424; signal #f05a00 (3.4:1 mark: unloading bar, at-gate badge fill, primary button, active nav, Now line, selected tab); on-signal #141414 (text on signal fills); signal-text #b84300 (5.5:1, orange words such as the Now label); signal-pale #ffe3d1 (selected row); signal-ink #6e2600; neg #c8281e (5.6:1, delay marks); neg-text #a3201a (7.6:1); neg-pale #fde4e1, neg-ink #8a1b15 (delayed badge); done-ink #3a3935 (received mark). Focus: 2px solid text color, 2px offset.
+- Color, dark (`.dark` or [data-mode="dark"], same role names): ground #121211; surface #1b1b19; raised #252522; line #33322e; rule #282724; control #6b6862; track #33322e; text #f3f2ef; muted #b3b0a8; shell #0b0b0a, shell-text #f3f2ef, shell-muted #b3b0a8, shell-hover #1f1f1d; signal #f26a1b; on-signal #141414; signal-text #ff8f52; signal-pale #3a2214; signal-ink #ffb48a; neg #ef5b4f; neg-text #ff8a80; neg-pale #3a1a17; neg-ink #ffb3ab; done-ink #d6d3cc.
+- Radius: 0 on every surface, control, badge and bar (`--radius: 0`).
+- Elevation: 1px line on panels; no shadow at rest; selects use the native menu.
+- Spacing (4px grid): tight 4 (inside a badge); item 8 (icon to label, rail rows); group 16 (panel inset, narrow gutter); section 20 (between blocks, grid gap); page 32 (desktop side gutter), 24 top.
+- Density (Dock floor, every width): controls 44px (buttons, door selects, tabs 48px); table rows 56px; board lanes 56px; bars 32px; No door sub-lane pitch 40px; nav rows 40px; body 15/22.
+- Motion: one animation. When a truck's door changes (select or Send), its board bar moves from its old position to the new one in 200 ms, cubic-bezier(0.2, 0, 0, 1), as a transform (FLIP). Under prefers-reduced-motion the bar jumps. Nothing else moves; hover and focus change color without transition; no entrance animations.
+
+Type:
+- Faces: Barlow 400/500/600 (text, OFL); Barlow Condensed 700 (figures and door numbers, OFL); Newsreader 500 (page and section titles, OFL); IBM Plex Mono 400/500 (shipment IDs and clock times only, OFL, already a dependency). Remove the Geist import.
+- Scale: h1 30/1.15 Newsreader 500, tracking -0.01em (26px at <= 720px); h2 20/24 Newsreader 500; figures 32/1.05 Barlow Condensed 700; door numbers 30/1 Barlow Condensed 700; body 15/22 Barlow 400; labels and meta 13/16 Barlow 400 muted; badge 12/16 Barlow 500 (600 when filled); ID and time 13 Plex Mono; axis ticks 12 Plex Mono muted.
+- Tabular figures on every number. Sentence case. No tracked capitals.
+
+Layout:
+- Shell: grid 240px sidebar + minmax(0, 1fr), height 100dvh; the content region scrolls. Sidebar on the shell color: header 64px (Harbor mark: a door with three slats and an orange sill, plus "Harbor" in Barlow Condensed 700 20px and "Duisburg · inbound" 12px), nav Overview and Shipments (16px outline icons, 40px rows, active = signal fill with on-signal text 600), footer "Early shift · 06:00–14:00".
+- Narrow (<= 720px), N3: no sidebar; a 56px top bar on the shell color with the mark, "Harbor" and an Overview | Shipments switch (two 44px targets, active = signal fill); 16px gutters; the title-row primary button goes full width (44px).
+- Overview: title row (h1 "Overview", sub "Tuesday 3 November · updated 07:55", primary action at the right, bottom-aligned); the finding line under it (max 72ch); then grid minmax(0, 1fr) 340px, gap 20. Left column: the Day line, then the Docks section. Right column: the "Needs a door" rail. At <= 720px the rail moves under the Docks section, and the board becomes a door list (each door: number, its state, its non-received slots with time, ID and badge; then a No door group).
+- Docks board: label column 224px (door number + state text such as "Free until 08:45", "Unloading · 11 min left", "Free all day"); time axis 06:00–16:00 with ticks every 2 h in the Overview column (hide a tick within 40 min of Now); a Now line (2px signal, label "Now 07:55" in signal-text Plex Mono 600); lanes for doors 1–4, then a No door lane whose bars pack into sub-lanes so none overlap; a delayed truck shows a dashed tick at its booked time with "<ID> booked <time>". Section meta: "Bar length: 20 min + 1.7 min per pallet".
+- Shipments: title row (h1 "Shipments", sub "8 inbound today · 164 pallets · 320.307,85 €"); underline count tabs All, To come, At the doors, Received, Delayed (2px signal indicator, counts computed from the rows); one table sorted by expected time: Expected (Plex Mono; a delayed row shows the new time over "booked 08:00"), Shipment (Plex Mono), Carrier (delay note under it in neg-text), Origin, Pallets (right), Value (right, de-DE EUR), Status (badge), Door (select, or the plain door for received and unloading). At <= 720px each row becomes two lines: carrier + badge, then "time · ID · pallets · value", then the door select.
+
+Components:
+- StatusBadge (B3 Action first): a fill only where a person must act. At gate: signal fill, on-signal text 600, dark dot. Delayed: neg-pale fill, neg-ink text 600, neg diamond. Unloading: signal dot + ink word, no fill. Scheduled: 1px muted ring + muted word. Received: done-ink dot + muted word. Height 22px, padding 0 (8px when filled), nowrap, never squeezed (flex: none). Words: Scheduled, At gate, Unloading, Received, Delayed.
+- Day line (M2 stat): one unboxed row of 4 figures: "<n> trucks today", "<n> of <total> pallets received", "<n> of 4 doors free", "<n> delayed" (figure in neg-text when above 0). Figures Barlow Condensed 700 32px, words muted; items split by 1px line with 20px padding. At <= 720px a 2x2 grid. Every value is computed from the rows.
+- Board bar: received = track fill, muted ID; unloading = signal fill, on-signal ID; at gate = 2px signal outline; scheduled = 1px ink outline; delayed = 1px neg outline, neg-text ID. The ID sits inside; if it does not fit it sits after the bar, or before it at the right edge. The title attribute holds ID, carrier, pallets, time span and state.
+- Needs a door rail: panel with group heads "At the gate" (count) and "No door yet" (count). Rows: "<time> · <carrier>" over "<ID> · <n> pallets" (delayed: "· delayed, booked <time>" in neg-text), door select at the right. The at-gate row carries "Send to door <n>" as an outlined secondary button.
+- Door select: native select with an accessible name "Door for <ID>"; options "No door", "Door 1" to "Door 4"; a door whose slots overlap the truck's span reads "Door n (busy)".
+- Buttons: primary = signal fill, on-signal text 600, 44px; secondary = surface fill, 1px control border, 44px; no other variants in scope.
+- Tabs: text buttons, 48px, muted label + ink count; selected = ink label, 2px signal underline on a full-width 1px line.
+
+States:
+- Docks board: loading = the 4 lanes with door numbers and flat bars at real size in the label column, no shimmer; empty = "No trucks are booked for today. Doors 1–4 are free."; error = "Couldn't load today's bookings. Last updated <time>." + Retry; populated as above.
+- Needs a door rail: loading = 3 rows of flat bars; empty = "Every truck has a door."; error = "Couldn't load arrivals." + Retry.
+- Day line: loading = flat bars at figure size; error follows the board's error (same request).
+- Shipments table: loading = 5 rows of flat bars at 56px pitch, header shown; empty tab = one sentence per tab ("No delayed trucks today.", "Nothing received yet today.", "No truck is at a door.", "No more trucks to come today.", All: "No trucks are booked for today."); error = "Couldn't load shipments. Last updated <time>." + Retry.
+- Door change: optimistic; the bar moves at once (motion rule), the select is disabled with "Saving…" while pending; on failure the row and bar roll back, and an inline error under the select reads "Couldn't change the door. Try again." with Retry; the user's choice stays in the select.
+- Busy door: choosing a busy door shows an inline warning under the select, "Door 1 is busy 08:45–09:26 (IN-20434).", and still saves.
+- Send to door: when a truck is at the gate, the title-row primary reads "Send <ID> to door <n>"; after it runs, the button reads "Undo: <ID> back to the gate" until the next action. With no truck at the gate the title row has no primary button.
+
+Copy:
+- Exact strings: "Overview", "Shipments", "Docks", "Needs a door", "At the gate", "No door yet", "No door", "<n> to place", "Free until <time>", "Unloading · <n> min left", "Unloading · over estimate", "Free", "Free all day", "No bookings", "Now <time>", "<ID> booked <time>", "Bar length: 20 min + 1.7 min per pallet", "Send <ID> to door <n>", "Undo: <ID> back to the gate", "Early shift · 06:00–14:00", "Duisburg · inbound".
+- Finding line template: "<ID> (<carrier>, <n> pallets) is at the gate, <m> min before its <time> slot. Door <n> is free. <k> trucks have no door yet; the first arrives at <time>." Each figure comes from the data.
+- A door is "Door 1" in text and "01" on the board. Missing values print as an em dash (—). Times are 24 h HH:MM. Relative figures name their baseline ("+2 h 40 min" next to "booked 08:00").
+- Words the product does not use: "Dashboard", "Ramp", "Records", "Items", "Welcome", "Seamlessly", "Streamline".
+
+Build notes:
+- Data: add `newEta?: string` to Shipment and set it to "10:40" for IN-20433; the board, the Day line and the table read it instead of parsing the note. The clock is the device time; the prototype used 07:55.
+- Fonts: add @fontsource/barlow 5.3.0, @fontsource/barlow-condensed 5.3.0 and @fontsource-variable/newsreader 5.3.0 (OFL-1.1); the owner approved these packages (2026-11-03).
+- Prototype for reference: /Users/tothemoon/.pi/artifacts/design/harbor-grill/rounds/round-3/index.html (it carries the tokens, the board layout code and the FLIP move).
+
 Open for the build: none
