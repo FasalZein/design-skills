@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>landing: line shadows</title>
+<style>
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  section { height: 300px; background: #fff; }
+</style></head><body>
+<!-- Full-width sections, all white (0 transitions). A 1px line shadow below, a 1px inset line shadow above and a
+     2px line under a soft shadow are seams; a blurred shadow and a 3px offset are not. -->
+<section class="one" style="box-shadow: 0 1px 0 #ccc">One</section>
+<section class="two" style="box-shadow: inset 0 -1px 0 rgba(0,0,0,.1)">Two</section>
+<section class="three" style="box-shadow: 0 8px 24px rgba(0,0,0,.08), 0 2px 0 #ddd">Three</section>
+<section class="soft" style="box-shadow: 0 1px 4px #ccc">Soft</section>
+<section class="deep" style="box-shadow: 0 3px 0 #ccc">Deep</section>
+</body></html>

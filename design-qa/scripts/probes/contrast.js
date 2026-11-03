@@ -2,9 +2,10 @@
 (() => {
   const cv = document.createElement('canvas'); cv.width = cv.height = 1;
   const ctx = cv.getContext('2d', { willReadFrequently: true });
+  // canvas keeps the old fillStyle for a color it cannot parse: two different start values expose that, with no marker color
   const parse = v => { if (!v) return null;
-    ctx.fillStyle = '#123456'; ctx.fillStyle = v;
-    if (ctx.fillStyle === '#123456' && v.replace(/\s/g,'').toLowerCase() !== '#123456') return null;
+    ctx.fillStyle = '#000'; ctx.fillStyle = v; const first = ctx.fillStyle;
+    ctx.fillStyle = '#fff'; ctx.fillStyle = v; if (ctx.fillStyle !== first) return null;
     ctx.clearRect(0,0,1,1); ctx.fillRect(0,0,1,1);
     const d = ctx.getImageData(0,0,1,1).data; return [d[0], d[1], d[2], d[3]/255]; };
   const lum = ([r,g,b]) => { const f = v => { v/=255; return v<=.03928 ? v/12.92 : ((v+.055)/1.055)**2.4 };
