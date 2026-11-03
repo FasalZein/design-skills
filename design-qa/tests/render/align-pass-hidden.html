@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>align pass (a collapsed subtree has no visible area)</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card"><p style="margin:0">Visible paragraph</p>
+  <div style="height:0; overflow:hidden"><p style="margin:0">Hidden first</p><p style="margin:0">Hidden second</p><p style="margin:0 0 0 7px">Hidden third</p></div></div>
+</body></html>

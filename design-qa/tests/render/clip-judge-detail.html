@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>clip judge (truncated cell; the full value is behind a detail link or tooltip trigger)</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  table { table-layout: fixed; width: 360px; border-collapse: collapse; } td { border: 1px solid #ccc; padding: 4px 8px; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card"><a href="#detail" style="display:block; width:80px" class="truncate" data-judge="Islamic Investors Feeder Fund II">Islamic Investors Feeder Fund II</a>
+  <span class="truncate" style="display:block; width:80px" aria-describedby="tip" data-judge="Al Noor Income Fund Class A">Al Noor Income Fund Class A</span>
+  <span role="tooltip" id="tip" hidden>Al Noor Income Fund Class A</span></div>
+<table><colgroup><col style="width:120px"><col style="width:240px"></colgroup>
+<tr><td class="truncate" data-judge="Al Noor Growth Fund Class B"><a href="#detail">Al Noor Growth Fund Class B</a></td><td>Closed</td></tr></table>
+<section id="detail"><h2>Islamic Investors Feeder Fund II</h2><p>Al Noor Growth Fund Class B</p></section>
+</body></html>

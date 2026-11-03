@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>align judge (label and value in different sizes, centred)</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .center { align-items: center; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card"><div class="row center"><span style="font-size:12px" data-judge="AUM | $12.0M">AUM</span><span style="font-size:32px">$12.0M</span></div></div>
+</body></html>
