@@ -27,7 +27,7 @@ Hand the result off by path: the builder brief names the DESIGN.md path. A decis
 
 ## DESIGN.md template
 
-Write it at the repo root, or where the existing DESIGN.md lives. Add each verdict when the owner makes it.
+Write it at the repo root, or where the existing DESIGN.md lives. Add each verdict when the owner makes it. A DMD-generated file becomes this template first (next section).
 
 ```
 # DESIGN: <product or surface>
@@ -40,4 +40,30 @@ Components: <primitives and variants per role>
 States: <per component: loading, empty, error, populated, and the extras>
 Copy: <exact strings; words the product does not use>
 Open for the build: <decisions the verdicts left open>
+References: <style name> (<dmd query>), one per line, for each style a DMD run cited
 ```
+
+## From a DMD-generated DESIGN.md
+
+The DMD CLI writes evidence, not decisions: a project context, its query, generic design checks and reference styles. Rewrite it into the template before the first round: after a create run, DESIGN.md itself; after an improve run, merge improve.md into the existing DESIGN.md.
+
+| DMD section | Template field |
+|---|---|
+| Context Query, Brand check | Direction |
+| Color check; each style's Core Colors | Tokens (color roles) |
+| Typography check; each style's Type | Type |
+| Layout check; each style's Spacing & Shape | Layout, Tokens (spacing, radius) |
+| Components check; each style's Components | Components |
+| Content check | Copy |
+| Motion check | Tokens (motion) |
+| Accessibility check | States |
+| Existing Design Context (improve) | The field it describes, as the owner wrote it |
+| Reference Styles (names) | References |
+| Project Context, Implementation Direction, Guidance | None: facts for the draft, not decisions |
+
+1. **Keep the references.** Copy every style name the run cited into References, with the query. The full matches stay in dmd's style-context.json.
+2. **Mark candidates open.** A value from a reference style is a candidate: write `open: <value> (<style>)`. A generic check text is no value; its field reads `open`. Only a line the owner wrote before the run, or a verdict, is closed.
+3. **Ask from the references.** The first round's options for the overall look come from the cited styles; each option names its style.
+4. **Close by verdict.** Each verdict replaces its `open:` entry with the decided value and adds its Tree line.
+
+Done when DESIGN.md holds the template fields only, References names every cited style, and every value reads a verdict, a line the owner wrote, or `open`.

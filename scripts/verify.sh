@@ -150,6 +150,8 @@ done <<EOF
 $ROUTES
 EOF
 say "routed skills checked ($N)"
+# 11a. design-md routes for the design agent only (spec D24, Acceptance 6).
+[ "$(echo "$TABLE" | awk -F'|' '$4 ~ /^ design-md / {a=$5; gsub(/ /,"",a); print a}')" = design ] && say "design-md row is design-only" || bad "design-md must have one Routing table row with agent design"
 
 # 12. The router names skills only in its Routing table and surface pointers (the rows that link surfaces/);
 # direction.md names none. Common English words that are also skill names are not checked.
