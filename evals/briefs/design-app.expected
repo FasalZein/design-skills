@@ -1,0 +1,68 @@
+# Expected skill loads for the design-app brief (level: product, headless build with one open part, agent: design), derived from the
+# Routing table in design-craft/SKILL.md. evals/score.sh reads the first two fields of each line.
+#   pass <skill>       a pass row of the part's level for the agent: PASSES needs a result for it.
+#                      applied -> its text must come back; n/a -> its text must not come back.
+#   must <skill>       a fired trigger or the Verify pass: its text must come back.
+#   forbid <skill>     an unfired trigger, another agent's row, another level's row, or a skill out of the router.
+#   allow <skill>      may come back; not required.
+#   ambiguous <skill>  scored like allow; the routing table leaves the expectation open (see the reason).
+#   open <word>        design runs only: the open part; the DECISION NEEDED block must name it.
+# Every skill that comes back and is not pass (applied), must, allow or ambiguous is unexpected.
+
+# Passes of the level.
+pass laws-of-ux                    # row: Screen, flow | Pass: navigation, forms, multi-step flows, destructive actions | both (Screen review, Bottom-up build step 6)
+pass find-animation-opportunities  # row: Screen, flow | Pass: what here should move? | design (Screen review, Bottom-up build step 6)
+
+# Fired triggers and the Verify row.
+must design-qa                     # row: Verify | Pass: every part | both (static checks run in every run)
+must browser-checks                # row: Verify | Trigger: any browser step | both (intake shots at Gather facts: the parts change existing UI and a browser is allowed)
+
+# Ambiguous.
+ambiguous design-taste-frontend    # row: Product | Pass: which overall look and house rules? | both. The Product pass runs in grilling rounds; DESIGN.md closes the look and headless runs take Gather facts only, but the surface file still sends parts to its sections
+ambiguous variant                  # row: Component | Pass: structure, density, emphasis, type or voice | design. The open part's form is open, but headless runs skip rounds and stop the open part with DECISION NEEDED
+
+# Unfired, other-level and other-agent rows, and skills out of the router.
+forbid better-accessibility        # row: Component | Pass: custom controls, dialogs, focus, keyboard | builder (another agent's row)
+forbid better-writing              # row: Component | Pass: labels, errors, empty states, confirmations | builder (another agent's row)
+forbid state-machine               # row: Component | Pass: states, one at a time | both (the design agent builds no component in a headless build; builders run the Component passes)
+forbid break-ui                    # row: Component | Pass: renders data: worst-case fixtures and fixes | builder (another agent's row)
+forbid review-animations           # row: Component | Pass: changed motion code | builder (another agent's row)
+forbid interface-review            # row: Component | Pass: the part changed existing UI | builder (another agent's row)
+forbid shadcn                      # row: Component | Trigger: the project uses shadcn (components.json) | builder (another agent's row)
+forbid ask-sonner                  # row: Component | Trigger: toasts with sonner | builder (another agent's row)
+forbid coss                        # row: Component | Trigger: the project uses coss or Base UI | builder (another agent's row)
+forbid mobile-native               # row: Any | Trigger: phone users | both (DESIGN.md: no phone users)
+forbid copywriting                 # row: Any | Trigger: marketing copy | both (app screen, no marketing copy)
+forbid better-colors               # row: Primitive | Pass: palette, semantic tokens, contrast, dark mode | builder (another agent's row)
+forbid better-typography           # row: Primitive | Pass: type scale, font loading, wrapping | builder (another agent's row)
+forbid better-layout               # row: Primitive | Pass: spacing, grouping, responsive, RTL | builder (another agent's row)
+forbid better-ui                   # row: Primitive | Pass: radius, shadow, border, icons | builder (another agent's row)
+forbid animate                     # row: Primitive | Pass: motion tokens and new animations | builder (another agent's row)
+forbid apple-design                # row: Primitive | Trigger: springs, gestures, drag, sheets | builder (another agent's row)
+forbid emil-design-eng             # row: Primitive | Trigger: a motion feel call | builder (another agent's row)
+forbid better-interface            # row: Screen, flow | Pass: a review across domains | builder (another agent's row)
+forbid stageshow                   # row: Screen, flow | Trigger: a product illustration or demo on a page | both (no stage in the fixture)
+forbid build-design                # row: Screen, flow | Trigger: a Figma file or a design image is the source | builder (another agent's row)
+forbid pencil-design               # row: Screen, flow | Trigger: a .pen or .lib.pen file is the source | builder (another agent's row)
+forbid explain-interface           # row: Product | Pass: how was a site the owner names built? | design (n/a: the brief names no site)
+forbid prototype                   # row: Screen, flow | Trigger: a state model or logic question is open | design (no state model or logic question is open)
+forbid improve-animations          # row: Screen, flow | Trigger: the owner asks to improve existing motion | design (the owner does not ask to improve motion)
+forbid emil-prototype              # row: Component | Pass: motion or interaction feel, while it is open | design (no motion or interaction feel is open)
+forbid break                       # row: Component | Trigger: every scenario on one page, for one look | design (no one-look scenario page in a build)
+forbid pick-ui-library             # row: Component | Trigger: a new UI library is needed | design (no new UI library)
+forbid impeccable                  # out of router: spec D13
+forbid grill-design                # out of router: spec D13
+forbid design-md                   # out of router: spec D13
+forbid agent-browser               # out of router: spec D13 (the skill stub; the CLI is used directly)
+forbid make-interfaces-feel-better # out of router: spec D13
+forbid animation-vocabulary        # out of router: spec D13
+forbid hallmark                    # out of router: spec D13
+forbid coss-particles              # out of router: spec D13
+forbid build-design-library        # out of router: spec D4
+forbid animate-expo                # out of router: spec D13 platform skill
+forbid write-swift                 # out of router: spec D13 platform skill
+
+# The open part (DESIGN.md "Open for the build").
+open Docks                          # the Docks section of the Overview screen
+
+allow design-craft                 # injected workflow (agent file inject-skills); a re-read is not a routed load
