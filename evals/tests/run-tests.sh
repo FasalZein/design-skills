@@ -13,8 +13,10 @@ TAG="test-$$"
 trap 'rm -rf "$WORK" "$REPO/.eval-runs/$TAG"-*' EXIT
 # Session fixtures go to one folder; design fixtures name their parent session as __SESS__/<file>.
 FIX="$WORK/sess"; mkdir -p "$FIX"
-cp "$HERE"/fixtures/sessions/*.jsonl "$FIX/"
-for f in "$HERE"/fixtures/design/*.jsonl; do sed "s|__SESS__|$FIX|g" "$f" > "$FIX/$(basename "$f")"; done
+# A <session>.report.md beside a session is its frozen report copy; __RPT__ in a session is the folder of live reports.
+RPT="$WORK/rpt"; mkdir -p "$RPT" && cp "$HERE/fixtures/reports/good.md" "$RPT/good.md"
+for f in "$HERE"/fixtures/sessions/*.jsonl "$HERE"/fixtures/sessions/*.report.md; do sed "s|__RPT__|$RPT|g" "$f" > "$FIX/$(basename "$f")"; done
+for f in "$HERE"/fixtures/design/*.jsonl "$HERE"/fixtures/design/*.report.md; do sed "s|__SESS__|$FIX|g" "$f" > "$FIX/$(basename "$f")"; done
 
 PI_SESSIONS_DIR="$FIX" bash "$EVALS/retro/index.sh" "$WORK/sessions.tsv" >/dev/null 2>&1 || no "index.sh on the score fixtures failed"
 printf '%s\t%s\t%s\t%s\n' "# run" part model session \
@@ -23,7 +25,9 @@ printf '%s\t%s\t%s\t%s\n' "# run" part model session \
   norep component gpt "$FIX/score-no-report.jsonl" \
   time component gpt "$FIX/score-time-limit.jsonl" \
   svar component gpt "$FIX/score-shots-var.jsonl" \
-  svarp component gpt "$FIX/score-shots-var-plain.jsonl" > "$WORK/runs.tsv"
+  svarp component gpt "$FIX/score-shots-var-plain.jsonl" \
+  pw component opus "$FIX/score-prose-write.jsonl" \
+  un component opus "$FIX/score-unfilled-passes.jsonl" > "$WORK/runs.tsv"
 bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/runs.tsv" > "$WORK/score.out" 2>&1; st=$?
 [ "$st" -eq 0 ] && ok "score exits 0 on scorable runs" || { no "score exit $st"; cat "$WORK/score.out"; }
 line() { grep "^$1 " "$WORK/score.out"; }
@@ -42,14 +46,54 @@ has bad 'shots=FAIL(chrome=0,plain=1,other=0)'
 # assignment) counts its screenshot and batch calls as chrome; a literal plain agent-browser screenshot stays plain.
 has svar 'shots=ok(chrome=2)'
 has svarp 'shots=FAIL(chrome=1,plain=1,other=0)'
-has bad 'report=ok'
-# No final RESULT message and no written report.
-has norep 'report=FAIL'
+# Owner decision 31: a final message without a PASSES field is not the report. When the session's report file exists
+# (the frozen copy <session>.report.md beside it, else the path in the final ARTIFACT line, else the report path the
+# brief names), report fails on format and passes, text and unexpected come from that file; the run line names it.
+has bad 'report=FAIL(final message not the report)'
+has bad "report_file=frozen($FIX/score-bad.report.md)"
+# No final RESULT message and no report file.
+has norep 'report=FAIL(no report)'
 has norep 'static=ok(scan=1'
-# Stopped by the time limit: the written draft is the report, and its PASSES entries count.
+# Stopped by the time limit: the report file is the report, and its PASSES entries count.
 has time 'report=ok'
 has time 'passes=FAIL(missing:better-accessibility,state-machine,break-ui,review-animations,interface-review)'
-grep -q '^score: 6 runs, 4 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing: $(tail -1 "$WORK/score.out")"
+# Prose final message, report file at the ARTIFACT path. The session holds no write call: the file, not a call, counts.
+for item in 'report=FAIL(final message not the report)' passes=ok text=ok unexpected=ok "report_file=live($RPT/good.md)"; do has pw "$item"; done
+# F4: the final message has a PASSES field with only an unfilled entry: it is the report, scored as it is. Neither the
+# older codemode draft nor the frozen copy beside it recovers the passes.
+for item in report=ok 'passes=FAIL(missing:better-accessibility,better-writing,state-machine,break-ui,review-animations,interface-review)'; do has un "$item"; done
+line un | grep -q 'report_file=' && no "un: the final report was replaced by a report file: [$(line un)]" || ok "un: no report file used"
+# Variants of the prose run: prose_run <name> <ARTIFACT path, or - for none> [brief text] puts a copy in $WORK/<name>.
+prose_run() {
+  local d="$WORK/$1" fin=$'RESULT: DONE\n\nBuilt ShipmentTable.'; mkdir -p "$d"
+  [ "$2" = - ] || fin+=$'\n\nARTIFACT: '"$2"
+  jq -c --arg f "$fin" --arg b "${3:-brief}" 'if (.type=="message" and .message.role=="assistant" and .message.content[0].type=="text") then .message.content[0].text=$f
+    elif (.type=="message" and .message.role=="user") then .message.content[0].text=$b else . end' "$FIX/score-prose-write.jsonl" > "$d/score-prose-write.jsonl"
+  printf '%s\tcomponent\topus\t%s\n' "$1" "$d/score-prose-write.jsonl" > "$d/runs.tsv"
+}
+# HOME is a scratch folder, so the brief path $HOME/.pi/artifacts/... resolves inside $WORK.
+score_in() { HOME="$WORK/home" bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/$1/runs.tsv" 2>&1 | grep "^$1 " > "$WORK/$1/out"; }
+want() { grep -qF -- "$2" "$WORK/$1/out" && ok "$1: $2" || no "$1: want [$2] in [$(cat "$WORK/$1/out")]"; }
+BRIEF='Write the report at `$HOME/.pi/artifacts/design-builder/eval-t-%s/report.md` in the Report format.'
+# No ARTIFACT line: the report path the brief names.
+mkdir -p "$WORK/home/.pi/artifacts/design-builder/eval-t-bp" && cp "$RPT/good.md" "$WORK/home/.pi/artifacts/design-builder/eval-t-bp/report.md"
+prose_run bp - "$(printf "$BRIEF" bp)"; score_in bp
+for item in 'report=FAIL(final message not the report)' passes=ok unexpected=ok "report_file=live($WORK/home/.pi/artifacts/design-builder/eval-t-bp/report.md)"; do want bp "$item"; done
+# F3: ARTIFACT names A while the brief's report B also exists: A counts.
+mkdir -p "$WORK/home/.pi/artifacts/design-builder/eval-t-ab" && cp "$HERE/fixtures/reports/draft.md" "$WORK/home/.pi/artifacts/design-builder/eval-t-ab/report.md"
+prose_run ab "$WORK/ab/A.md" "$(printf "$BRIEF" ab)"; cp "$RPT/good.md" "$WORK/ab/A.md"; score_in ab
+for item in passes=ok "report_file=live($WORK/ab/A.md)"; do want ab "$item"; done
+# The frozen copy beside the session wins over the live ARTIFACT file.
+prose_run fz "$WORK/fz/live.md"; cp "$HERE/fixtures/reports/draft.md" "$WORK/fz/live.md"; cp "$RPT/good.md" "$WORK/fz/score-prose-write.report.md"; score_in fz
+for item in passes=ok "report_file=frozen($WORK/fz/score-prose-write.report.md)"; do want fz "$item"; done
+# No report file at the ARTIFACT path, no frozen copy: no report, and no passes.
+prose_run nf "$WORK/nf/missing.md" "$(printf "$BRIEF" nf)"; score_in nf
+for item in 'report=FAIL(no report)' 'passes=FAIL(missing:better-accessibility,better-writing,state-machine,break-ui,review-animations,interface-review)'; do want nf "$item"; done
+# Parent decision after owner decision 31: a note between status and colon ("applied (+ fix):", "n/a (no motion code):")
+# keeps the status, in a report file too.
+prose_run q -; cp "$HERE/fixtures/reports/qualifier.md" "$WORK/q/score-prose-write.report.md"; score_in q
+for item in passes=ok text=ok unexpected=ok; do want q "$item"; done
+grep -q '^score: 8 runs, 6 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing: $(tail -1 "$WORK/score.out")"
 
 # Design runs: the design session against its own expected file, its DECISION NEEDED block, and each child
 # design-builder session (found by its header's parentSession) against the expected file of its level.
@@ -69,6 +113,24 @@ dhas dgood/2 'static=FAIL(scan=0'
 # The bad design session: no block, no children, a builder-only skill, a missing design pass.
 for item in 'decision=FAIL(no block)' 'children=FAIL(none found)' 'open_built=FAIL(no child evidence)' 'unexpected=FAIL(better-colors)' 'passes=FAIL(missing:find-animation-opportunities)'; do dhas dbad "$item"; done
 grep -q '^score: 4 runs, 3 with a FAIL item$' "$WORK/dscore.out" && ok "design summary line" || no "design summary line: $(tail -1 "$WORK/dscore.out")"
+
+# Owner decision 31: the DECISION NEEDED block counts in the report file (here the frozen copy) when the final message is prose.
+printf '%s\t%s\t%s\t%s\n' dfile design-app opus "$FIX/design-file.jsonl" > "$WORK/dfile.tsv"
+PI_SESSIONS_DIR="$FIX" bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/dfile.tsv" > "$WORK/dfile.out" 2>&1
+for item in decision=ok 'report=FAIL(final message not the report)' "report_file=frozen($FIX/design-file.report.md)"; do
+  grep '^dfile ' "$WORK/dfile.out" | grep -qF -- "$item" && ok "dfile: $item" || no "dfile: want [$item] in [$(grep '^dfile ' "$WORK/dfile.out")]"
+done
+# A child's WORK line comes from its report file: the child ends on prose, its brief says "component group" (section),
+# and its frozen report says component.
+d="$WORK/cw"; mkdir -p "$d"; cp "$FIX/design-good.jsonl" "$d/design-good.jsonl"
+jq -c --arg p "$d/design-good.jsonl" 'if .type=="session" then .parentSession=$p
+  elif (.type=="message" and .message.role=="user") then .message.content[0].text |= sub("Scope level:\\*\\* component\\."; "Scope level:** component group.")
+  elif (.type=="message" and .message.role=="assistant" and .message.content[0].type=="text") then .message.content[0].text="RESULT: DONE\n\nBuilt StatusBadge." else . end' "$FIX/child-component.jsonl" > "$d/child-cw.jsonl"
+grep -q 'Scope level:\*\* component group' "$d/child-cw.jsonl" || no "cw fixture edit failed"
+jq -rs '[.[]|select(.type=="message" and .message.role=="assistant")|.message.content[]?|select(.type=="text")|.text]|last' "$FIX/child-component.jsonl" > "$d/child-cw.report.md"
+printf '%s\t%s\t%s\t%s\n' cw design-app opus "$d/design-good.jsonl" > "$d/runs.tsv"
+PI_SESSIONS_DIR="$d" bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$d/runs.tsv" > "$d/out" 2>&1
+grep -q '^cw/1 component ' "$d/out" && ok "cw: child WORK line read from its report file" || no "cw: want [cw/1 component] in [$(grep '^cw/1' "$d/out")]"
 
 # Input errors exit 1.
 printf 'x\tcomponent\tm\t%s\n' "$FIX/score-good.jsonl" > "$WORK/one.tsv"
@@ -357,17 +419,17 @@ done
 got=$(mkt_part_for "the product-demo section: an animated illustration of the Harbor timetable in the empty slot #demo." "public-page, with the product-demo slot as an illustration")
 [ "$got" = mkt-section ] && ok "F5 demo part -> $got" || no "F5 demo part -> [$got], want mkt-section"
 got=$(mkt_part_for "the timetable stage." "illustration"); [ "$got" = mkt-section ] && ok "F5 illustration surface -> $got" || no "F5 illustration surface -> [$got], want mkt-section"
-# F7: the written-report fallback rejects an n/a entry with no fact, like the index.
-mkdir -p "$WORK/f7" && sed 's/better-writing -> applied: empty copy/better-writing -> n\/a: /' "$FIX/score-time-limit.jsonl" > "$WORK/f7/score-time-limit.jsonl"
+# F7: the report-file reading rejects an n/a entry with no fact, like the index.
+mkdir -p "$WORK/f7" && cp "$FIX/score-time-limit.jsonl" "$WORK/f7/" && sed 's/better-writing -> applied: empty copy/better-writing -> n\/a: /' "$FIX/score-time-limit.report.md" > "$WORK/f7/score-time-limit.report.md"
 printf 'f7\tcomponent\tgpt\t%s\n' "$WORK/f7/score-time-limit.jsonl" > "$WORK/f7/runs.tsv"
 bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/f7/runs.tsv" 2>&1 | grep '^f7 ' | grep -o 'passes=[^ ]*' | grep -q 'better-writing' \
   && ok "F7 empty n/a fact counts as missing" || no "F7 empty n/a fact accepted: [$(bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/f7/runs.tsv" 2>&1 | grep '^f7 ')]"
 # F8: the design-marketing Done keeps the existing FAQ section and does not ask to remove it.
 grep -q 'nowhere in the code' "$EVALS/briefs/design-marketing.md" && no "F8 design-marketing Done still demands the FAQ be gone" || ok "F8 no removal demand"
 brief_has design-marketing 'the existing FAQ section stays as it is'
-# Retro candidate 1 (h-opus-2-comp): the written-report fallback keeps an entry whose change holds < and >.
-mkdir -p "$WORK/lt" && sed 's/better-writing -> applied: empty copy/better-writing -> applied: a <ul aria-label=\\"Today\\"> list/' "$FIX/score-time-limit.jsonl" > "$WORK/lt/score-time-limit.jsonl"
-grep -q 'a <ul aria-label' "$WORK/lt/score-time-limit.jsonl" || no "lt fixture edit failed"
+# Retro candidate 1 (h-opus-2-comp): the report-file reading keeps an entry whose change holds < and >.
+mkdir -p "$WORK/lt" && cp "$FIX/score-time-limit.jsonl" "$WORK/lt/" && sed 's/better-writing -> applied: empty copy/better-writing -> applied: a <ul aria-label="Today"> list/' "$FIX/score-time-limit.report.md" > "$WORK/lt/score-time-limit.report.md"
+grep -q 'a <ul aria-label' "$WORK/lt/score-time-limit.report.md" || no "lt fixture edit failed"
 printf 'lt\tcomponent\tgpt\t%s\n' "$WORK/lt/score-time-limit.jsonl" > "$WORK/lt/runs.tsv"
 bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/lt/runs.tsv" 2>&1 | grep '^lt ' | grep -o 'passes=[^ ]*' | grep -q 'better-writing' \
   && no "fallback drops a change with < and >" || ok "fallback keeps a change with < and >"

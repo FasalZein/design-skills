@@ -1,0 +1,3 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-05T11:00:00.000Z","data":{"agent":"design-builder","model":"m/ref","title":"e4 status qualifier"}}
+{"type":"message","timestamp":"2026-11-05T11:00:01.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}
+{"type":"message","timestamp":"2026-11-05T11:02:00.000Z","message":{"role":"assistant","content":[{"type":"text","text":"RESULT: DONE\nPASSES: break-ui -> applied (+ fix): slots past 16:00 are cut at the edge\nreview-animations -> n/a (no motion code): the part has no animation\nbetter-writing -> applied (note): \nstate-machine -> applied: one state prop\nVERIFY: x"}],"usage":{"input":5}}}

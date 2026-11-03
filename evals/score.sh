@@ -5,7 +5,7 @@
 #   runs.tsv      one run per line: run<TAB>part<TAB>model<TAB>session file (absolute path); # starts a comment
 # Expected loads per part: evals/briefs/<part>.expected (EXPECTED_DIR overrides the folder).
 # A design-app or design-marketing run scores the design session against its own .expected, then adds:
-#   decision    its final message or written report holds a DECISION NEEDED block with a Q1 line, and
+#   decision    its final message or report file holds a DECISION NEEDED block with a Q1 line, and
 #               the block names the open part (the "open" word of the .expected file)
 #   children    the number of child design-builder sessions: sessions under PI_SESSIONS_DIR (default
 #               ~/.pi/agent/sessions) whose launch metadata names agent design-builder and whose header
@@ -24,9 +24,17 @@
 #   unexpected  no other skill came back: not a forbidden one, not an n/a pass, not one the expected file omits
 #   passes      PASSES has a result for every "pass" line of the part's level
 #   static      the design-qa scanner (design-scan) ran
-#   report      a report exists: the final RESULT message, or a written report with RESULT and PASSES lines
+#   report      the final RESULT message has a PASSES field (filled or not): it is the report, ok, scored as it is.
+#               Else the report file counts (see below): FAIL(final message not the report) when a final RESULT
+#               message exists, ok when the run stopped before one (owner decision 31: format apart from routing);
+#               passes, text and unexpected are then scored from the file. No file: FAIL(no report).
+#   report_file frozen(<path>) or live(<path>): the report file read, printed only when the file is used.
 #   shots       screenshots came from agent-browser-chrome, none from plain agent-browser or another tool
 #   cost, peak_ctx, result  from the index; ambiguous = expected-file "ambiguous" skills that came back
+# The report file of a session: its frozen copy <session without .jsonl>.report.md beside it (the parent copies each
+# run's report.md there at scoring time), else the path in the final RESULT message's ARTIFACT line, else the report
+# path the brief names ($HOME/.pi/artifacts/design-builder/eval-<run>/report.md, or the design agent's path). The
+# scorer reads the file, never the tool call that wrote it.
 # Exit 0 when every run is scored (FAIL items included), 1 on unreadable input or an unknown part.
 set -o pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -58,13 +66,17 @@ score_one() {
   if [ -z "$row" ]; then echo "$run $part $model FAIL: session not in $TSV"; FAILED_RUNS=$((FAILED_RUNS+1)); return 0; fi
   returned=$(col "$row" skills_returned); passes=$(col "$row" passes); result=$(col "$row" result)
   cost=$(col "$row" cost); peak=$(col "$row" peak_ctx)
-  # A run stopped before its final RESULT message has no PASSES in the index: read the last written report,
+  # Owner decision 31: a final RESULT message with a PASSES field is the report; its index passes count as they are,
+  # with no recovery from elsewhere. Without one (or with no final RESULT), the report file counts: its passes, read
   # with the index's own entry check (evals/retro/passes.jq), so an unfilled entry does not count here either.
-  [ -n "$passes" ] || passes=$(jq -L "$HERE/retro" -rs 'include "passes";
-    [ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]?
-      | select(.type=="toolCall" and .name=="write") | .arguments.content // ""
-      | select(test("(^|\n)RESULT:") and test("(^|\n)PASSES:")) ] | last // ""
-    | [ passes_of[] | "\(.pass) -> \(.status): \(.change)" ] | join("; ")' "$session")
+  fin=$(final_result "$session") || { echo "score: cannot parse session $session" >&2; return 2; }
+  rep_item=""; rep_file=""
+  if grep -q '^PASSES:' <<< "$fin"; then rep_item=ok
+  elif rf=$(report_file "$session"); then
+    rep_file=" report_file=${rf%%$'\t'*}(${rf#*$'\t'})"
+    if [ -n "$fin" ]; then rep_item="FAIL(final message not the report)"; else rep_item=ok; fi
+    passes=$(jq -L "$HERE/retro" -Rrs 'include "passes"; [ passes_of[] | "\(.pass) -> \(.status): \(.change)" ] | join("; ")' "${rf#*$'\t'}")
+  else rep_item="FAIL(no report)"; passes=""; fi
 
   # Pass outcomes: "<pass> -> applied|n/a: <change>" entries; the pass names its skill.
   applied=""; na=""; missing_pass=""
@@ -86,7 +98,7 @@ score_one() {
   done
 
   # Checks from the session's own tool calls (bash commands and codemode code), split into shell segments.
-  read -r scan tsc chrome plain other report_written < <(jq -rs '
+  read -r scan tsc chrome plain other < <(jq -rs '
     [ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="toolCall") ] as $calls
     | [ $calls[] | select(.name=="bash" or .name=="codemode") | [.arguments | .. | strings] | join("\n")
         | split("\n")[] | splits("&&|\\|\\||;|\\|") ] as $seg
@@ -94,12 +106,10 @@ score_one() {
     # Names that hold agent-browser-chrome (a shell assignment or a JS const/let in codemode): ${AB} screenshot is chrome.
     ([ $seg[] | capture("(^|[^\\w$])(?<v>[A-Za-z_]\\w*)\\s*=\\s*[\"\u0027`]?agent-browser-chrome\\b") | .v ] | unique) as $cv
     | (if ($cv | length) > 0 then "\\$\\{?(" + ($cv | join("|")) + ")\\b\\}?\\s.*\\b(screenshot|batch)\\b" else null end) as $cvre
-    |
-    ([ $calls[] | select(.name=="write") | .arguments.content // "" | select(test("(^|\n)RESULT:") and test("(^|\n)PASSES:")) ] | length) as $rw
     | [ n("design-scan"), n("\\btsc\\b|typecheck|npm run build"),
         ([ $seg[] | select(test("agent-browser-chrome\\b.*\\b(screenshot|batch)\\b") or ($cvre != null and test($cvre))) ] | length),
         n("(^|[^-\\w/])agent-browser\\s.*\\bscreenshot\\b"),
-        n("screencapture|\\.screenshot\\(|playwright\\s+screenshot"), $rw ] | @tsv' "$session")
+        n("screencapture|\\.screenshot\\(|playwright\\s+screenshot") ] | @tsv' "$session")
   [ -n "$scan" ] || { echo "score: cannot parse session $session" >&2; return 2; }
 
   item() { if [ -z "$2" ]; then printf ' %s=ok' "$1"; else printf ' %s=FAIL(%s)' "$1" "$2"; fi; }
@@ -109,7 +119,7 @@ score_one() {
   line="$line$(item unexpected "${unexpected#,}")"
   line="$line$(item passes "$pf")"
   line="$line$( [ "$scan" -gt 0 ] && printf ' static=ok(scan=%s,tsc=%s)' "$scan" "$tsc" || printf ' static=FAIL(scan=0,tsc=%s)' "$tsc")"
-  line="$line$( { [ "$result" != none ] && [ -n "$result" ]; } || [ "$report_written" -gt 0 ] && printf ' report=ok' || printf ' report=FAIL')"
+  line="$line report=$rep_item$rep_file"
   line="$line$( [ "$chrome" -gt 0 ] && [ "$plain" -eq 0 ] && [ "$other" -eq 0 ] && printf ' shots=ok(chrome=%s)' "$chrome" || printf ' shots=FAIL(chrome=%s,plain=%s,other=%s)' "$chrome" "$plain" "$other")"
   line="$line${EXTRA:-} cost=\$$cost peak_ctx=$peak result=$result ambiguous=[${amb#,}]"
   echo "$line"
@@ -117,10 +127,27 @@ score_one() {
   return 0
 }
 
-# Text a session ends on: its final assistant text and its last written report.
-final_text() { jq -rs '([ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="text") | .text ] | last // ""),
-  ([ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="toolCall" and .name=="write")
-     | .arguments.content // "" | select(test("(^|\n)RESULT:")) ] | last // "")' "$1"; }
+# The final RESULT message: the last assistant text with a RESULT line (the index's choice), or nothing.
+final_result() { jq -rs '[ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="text") | .text
+  | select(test("(^|\n)RESULT:")) ] | last // ""' "$1"; }
+# The report file of session $1 (header comment): prints "frozen<TAB>path" or "live<TAB>path"; exit 1 when none is readable.
+# A final ARTIFACT line decides the live path, even when its file is missing; only without one does the brief path count.
+report_file() {
+  local frozen=${1%.jsonl}.report.md art
+  [ -r "$frozen" ] && { printf 'frozen\t%s\n' "$frozen"; return 0; }
+  art=$(final_result "$1" | sed -n 's/^ARTIFACT:[[:space:]]*`\{0,1\}\(\/[^`]*[^`[:space:]]\)`\{0,1\}[[:space:]]*$/\1/p' | tail -1)
+  [ -n "$art" ] || art=$(brief_text "$1" | grep -oE '(\$HOME|~|/[^[:space:]`"()]*)/\.pi/artifacts/design(-builder)?/eval-[A-Za-z0-9._-]+/report\.md' | head -1 \
+    | sed -e "s|^\\\$HOME|$HOME|" -e "s|^~|$HOME|")
+  [ -n "$art" ] && [ -r "$art" ] && [ -f "$art" ] || return 1
+  printf 'live\t%s\n' "$art"
+}
+# Text a session ends on: its final assistant text and its report file (decision block, WORK line).
+final_text() {
+  local rf
+  jq -rs '[ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="text") | .text ] | last // ""' "$1"
+  rf=$(report_file "$1") && cat "${rf#*$'\t'}"
+  return 0
+}
 # The brief: the first user message.
 brief_text() { jq -rs '[ .[] | select(.type=="message" and .message.role=="user") | .message.content[]? | select(.type=="text") | .text ] | first // ""' "$1"; }
 # Design-builder child sessions of $1, oldest first: the header's parentSession names $1 and the launch metadata
