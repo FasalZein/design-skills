@@ -359,6 +359,12 @@ bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/f7/runs.tsv" 2>&1 | grep '^f7
 # F8: the design-marketing Done keeps the existing FAQ section and does not ask to remove it.
 grep -q 'nowhere in the code' "$EVALS/briefs/design-marketing.md" && no "F8 design-marketing Done still demands the FAQ be gone" || ok "F8 no removal demand"
 brief_has design-marketing 'the existing FAQ section stays as it is'
+# Retro candidate 1 (h-opus-2-comp): the written-report fallback keeps an entry whose change holds < and >.
+mkdir -p "$WORK/lt" && sed 's/better-writing -> applied: empty copy/better-writing -> applied: a <ul aria-label=\\"Today\\"> list/' "$FIX/score-time-limit.jsonl" > "$WORK/lt/score-time-limit.jsonl"
+grep -q 'a <ul aria-label' "$WORK/lt/score-time-limit.jsonl" || no "lt fixture edit failed"
+printf 'lt\tcomponent\tgpt\t%s\n' "$WORK/lt/score-time-limit.jsonl" > "$WORK/lt/runs.tsv"
+bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/lt/runs.tsv" 2>&1 | grep '^lt ' | grep -o 'passes=[^ ]*' | grep -q 'better-writing' \
+  && no "fallback drops a change with < and >" || ok "fallback keeps a change with < and >"
 # F1: --from refuses a symlinked source and a source that is not its own repository root, before creating the run.
 F1="$WORK/f1runs"; mkdir -p "$F1" "$WORK/f1ext/node_modules" && git -C "$WORK/f1ext" init -q && echo x > "$WORK/f1ext/x" \
   && git -C "$WORK/f1ext" add x && git -C "$WORK/f1ext" -c user.name=t -c user.email=t@l commit -qm x && ln -s "$WORK/f1ext" "$F1/lnk"

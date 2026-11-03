@@ -127,6 +127,11 @@ TSV="$WORK/edges.tsv"
 expect "e1 empty pass" passes_applied 1
 expect "e1 empty pass" passes_na 0
 expect "e1 empty pass" passes "copy -> applied: shorter labels"
+# h-opus-2-comp retro candidate 1: the first entry sits on the PASSES: line, and a change may hold < and > (HTML
+# tags, arrows); only a placeholder that starts with "<" is unfilled.
+expect "e3 passes on the PASSES line" passes_applied 2
+expect "e3 passes on the PASSES line" passes_na 1
+expect "e3 passes on the PASSES line" passes 'better-accessibility -> applied: the Day line is a <ul aria-label="Today"> with aria-busy while loading; break-ui -> applied: 1,234 rows -> no overflow at 375; review-animations -> n/a: no motion in either part'
 expect "e2 60-line frontmatter" skills_returned psi
 expect "e2 60-line frontmatter" skill_count 1
 # A session whose only timestamp cannot be parsed is unreadable input: a PARSE_FAIL row and exit 1, not dur_min 0.

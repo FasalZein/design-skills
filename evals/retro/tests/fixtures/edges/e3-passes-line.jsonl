@@ -1,0 +1,3 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-05T10:00:00.000Z","data":{"agent":"design-builder","model":"m/ref","title":"e3 passes on the PASSES line"}}
+{"type":"message","timestamp":"2026-11-05T10:00:01.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}
+{"type":"message","timestamp":"2026-11-05T10:02:00.000Z","message":{"role":"assistant","content":[{"type":"text","text":"RESULT: DONE\nPASSES: better-accessibility -> applied: the Day line is a <ul aria-label=\"Today\"> with aria-busy while loading\nbreak-ui -> applied: 1,234 rows -> no overflow at 375\nreview-animations -> n/a: no motion in either part\nVERIFY: x"}],"usage":{"input":5}}}
