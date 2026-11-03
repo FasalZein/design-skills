@@ -50,9 +50,9 @@ forbid improve-animations          # row: Screen, flow | Trigger: the owner asks
 forbid emil-prototype              # row: Component | Pass: motion or interaction feel, while it is open | design (no motion or interaction feel is open)
 forbid break                       # row: Component | Trigger: every scenario on one page, for one look | design (no one-look scenario page in a build)
 forbid pick-ui-library             # row: Component | Trigger: a new UI library is needed | design (no new UI library)
+forbid design-md                   # row: Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design (DESIGN.md exists with one open part; the brief does not call its direction weak)
 forbid impeccable                  # out of router: spec D13
 forbid grill-design                # out of router: spec D13
-forbid design-md                   # out of router: spec D13
 forbid agent-browser               # out of router: spec D13 (the skill stub; the CLI is used directly)
 forbid make-interfaces-feel-better # out of router: spec D13
 forbid animation-vocabulary        # out of router: spec D13

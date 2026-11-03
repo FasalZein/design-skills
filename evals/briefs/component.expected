@@ -49,9 +49,9 @@ forbid variant                   # row: Component | Pass: structure, density, em
 forbid emil-prototype            # row: Component | Pass: motion or interaction feel, while it is open | design
 forbid break                     # row: Component | Trigger: every scenario on one page, for one look | design
 forbid pick-ui-library           # row: Component | Trigger: a new UI library is needed | design
+forbid design-md                 # row: Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design (another agent's row; a builder with no DESIGN.md stops with DECISION NEEDED, D24)
 forbid impeccable                # out of router: spec D13
 forbid grill-design              # out of router: spec D13
-forbid design-md                 # out of router: spec D13
 forbid agent-browser             # out of router: spec D13 (the skill stub; the CLI is used directly)
 forbid make-interfaces-feel-better # out of router: spec D13
 forbid animation-vocabulary      # out of router: spec D13

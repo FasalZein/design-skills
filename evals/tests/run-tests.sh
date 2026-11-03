@@ -105,6 +105,10 @@ for f in "$EVALS"/briefs/*.expected; do
   case $(basename "$f") in design-*) want=1;; *) want=0;; esac
   [ "$n" -eq "$want" ] && ok "$(basename "$f") has $want open line(s)" || no "$(basename "$f") has $n open lines, want $want"
 done
+# design-md routes for the design agent only (spec D24): builders never run it, and the design briefs ship a DESIGN.md.
+for f in "$EVALS"/briefs/*.expected; do
+  awk '$1=="forbid" && $2=="design-md"' "$f" | grep -q . && ok "$(basename "$f") forbids design-md" || no "$(basename "$f") must forbid design-md"
+done
 # Each design brief's DESIGN.md variant has exactly one open part; each fixture DESIGN.md has none.
 for d in "$EVALS"/overlays/design-*/DESIGN.md; do
   grep -c '^Open for the build: ' "$d" | grep -qx 1 && ! grep -q '^Open for the build: none' "$d" && ok "$d has one open part" || no "$d: want one open part"

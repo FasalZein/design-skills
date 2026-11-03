@@ -143,15 +143,19 @@ while IFS=$'\t' read -r run part model session; do
       open=$(kind "$exp" open | head -1)
       if [ "$part" = design-marketing ]; then prefix=mkt-; else prefix=""; fi
       fin=$(final_text "$session")
-      if ! printf '%s\n' "$fin" | grep -q '^DECISION NEEDED'; then dec="FAIL(no block)"
-      elif ! printf '%s\n' "$fin" | grep -q '^Q1:'; then dec="FAIL(no Q1)"
-      elif ! printf '%s\n' "$fin" | sed -n '/^DECISION NEEDED/,/^RECOMMEND:/p' | grep -qiF -- "$open"; then dec="FAIL(block names no $open)"
+      # Here-strings, not pipes: under pipefail, grep -q can exit before the
+      # writer finishes and turn a match into exit 141 (SIGPIPE).
+      blk=$(sed -n '/^DECISION NEEDED/,/^RECOMMEND:/p' <<< "$fin")
+      if ! grep -q '^DECISION NEEDED' <<< "$fin"; then dec="FAIL(no block)"
+      elif ! grep -q '^Q1:' <<< "$fin"; then dec="FAIL(no Q1)"
+      elif ! grep -qiF -- "$open" <<< "$blk"; then dec="FAIL(block names no $open)"
       else dec=ok; fi
       kids=$(children_of "$session"); nk=0; built=""; i=0
       [ -n "$kids" ] && nk=$(printf '%s\n' "$kids" | wc -l | tr -d ' ')
       while read -r k; do
         [ -n "$k" ] || continue; i=$((i+1))
-        brief_text "$k" | grep -i 'part:' | grep -iF -- "$open" | grep -qviE 'without|except|excluding|not|open' && built="$built,$run/$i"
+        hit=$(brief_text "$k" | grep -i 'part:' | grep -iF -- "$open")
+        [ -n "$hit" ] && grep -qviE 'without|except|excluding|not|open' <<< "$hit" && built="$built,$run/$i"
       done <<< "$kids"
       if [ -z "$built" ]; then ob=ok; else ob="FAIL(${built#,})"; fi
       EXTRA=" decision=$dec children=$nk open_built=$ob"

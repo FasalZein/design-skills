@@ -1,6 +1,6 @@
 # Design workflow v2
 
-Status: approved by the owner, 2026-11-03; revision 3 the same day (design grilling, install set, bottom-up build); revision 4 the same day (surfaces, one routing table with an agent column, craft passes, outcome loop).
+Status: approved by the owner, 2026-11-03; revision 3 the same day (design grilling, install set, bottom-up build); revision 4 the same day (surfaces, one routing table with an agent column, craft passes, outcome loop); revision 5 the same day (design-md routed, D24).
 Evidence: `~/.pi/artifacts/design-retro/` (plan.md, owner-corrections.md, skill-overlap.md, grill-flow.md, builder-runs.md, sessions.tsv).
 
 ## Problem
@@ -39,8 +39,8 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D12 One skill per read call**, whole, unless the route names sections.
 - **D13 Install set.**
   - Core: FasalZein/design-skills (design-craft, design-qa, laws-of-ux), jakubkrehel/skills, emilkowalski/skill, benjitaylor/skills (stageshow), Leonxlnx/taste-skill (design-taste-frontend), and the agent-browser CLI on the Chrome engine.
-  - Optional, used only when installed and their trigger fires: shadcn and coss (the project uses them), mattpocock prototype (a logic question), copywriting (marketing copy), pencil-design (a .pen file).
-  - Out of the router (stay installed for manual use): impeccable, grill-design (design-craft carries its own loop), design-md, the agent-browser skill stub, make-interfaces-feel-better, animation-vocabulary (owner choice), hallmark, coss-particles.
+  - Optional, used only when installed and their trigger fires: shadcn and coss (the project uses them), mattpocock prototype (a logic question), copywriting (marketing copy), pencil-design (a .pen file), design-md (no DESIGN.md or a weak direction; needs the dmd CLI and its vault, D24).
+  - Out of the router (stay installed for manual use): impeccable, grill-design (design-craft carries its own loop), the agent-browser skill stub, make-interfaces-feel-better, animation-vocabulary (owner choice), hallmark, coss-particles.
   - Platform skills, not routed: animate-expo and write-swift. The workflow verifies web UI only; they route when a native track with its own checks exists.
 - **D14 Design grilling (attended).** The design agent interviews the owner like grilling, with prototypes as the questions.
   - Tree levels: product, then screens and flows, then component groups, then components, then primitives (color, type, spacing, radius, motion tokens).
@@ -58,6 +58,11 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D21 New routes:** interface-review (builder; the part changed existing UI: review its own diff for regressions before reporting); find-animation-opportunities (design; after a screen is built, a motion round: the owner picks proposals, builders apply them with animate); improve-animations (design; the owner asks to improve existing motion: an audit plus plans that builders run).
 - **D22 Outcome loop.** `evals/retro/index.sh` and `compliance.sh` index design and design-builder sessions. A skill counts as loaded when its text came back in a tool result (its frontmatter `name:` line), never by a path in call arguments. After each batch they report passes run, skills that changed results, cost, peak context and owner corrections.
 - **D23 Design agent skills (owner, 2026-11-03).** The design agent loads every installed skill, so the owner can invoke any of them by command in the pane. skill-gate shows its model no catalog (PI_VISIBLE_SKILLS=none in the agent's env block); routed skills still load by file read. design-builder keeps design-craft as its only skill.
+- **D24 design-md routes for the design agent (owner, 2026-11-03).** design-md (the owner's DMD CLI skill) leaves "Out of the router" for the optional set (D13): it needs the dmd CLI and its style vault.
+  - Trigger, Product level, agent design: the project has no DESIGN.md (`dmd create`), or the brief calls its direction weak (`dmd improve`). It runs after Gather facts.
+  - The vault is the style-vault folder of the DMD repo, found from `readlink -f "$(command -v dmd)"`; outside that repo dmd needs `--archive <vault>`.
+  - Its reference styles feed the first grilling round. direction.md maps its output into the DESIGN.md template; each value stays open until the owner's verdict.
+  - A design-builder with no DESIGN.md stops at intake with the DECISION NEEDED block (D16) and never runs design-md.
 
 ## Routing by question (D9, D19, D20)
 
@@ -68,6 +73,7 @@ Pass rows run on every part of their level; trigger rows fire on their condition
 | Product | Pass: which overall look and house rules? | design-taste-frontend | both |
 | Product | Pass: reference products, competitors, domain data | researcher (child agent) | design |
 | Product | Pass: how was a site the owner names built? | explain-interface | design |
+| Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design-md (optional) | design |
 | Screen, flow | Pass: navigation, forms, multi-step flows, destructive actions | laws-of-ux | both |
 | Screen, flow | Pass: what here should move? | find-animation-opportunities | design |
 | Screen, flow | Pass: a review across domains | better-interface | builder |
@@ -105,7 +111,7 @@ Pass rows run on every part of their level; trigger rows fire on their condition
 
 - `SKILL.md`, injected: sort the work (surface: app-screen, public-page, illustration; scope level; attended or headless); the craft floor; the design grilling steps; the build steps with craft passes; Verify; the report; the routing table with its agent column; D3, D10, D11, D12 and D16. Every step ends on a checkable done-condition.
 - `surfaces/<surface>.md`: surface rules. app-screen carries the Project Context Scan, the Design Decision Gate and the unique recipes from the old reference files (app shells, lockups, settings, loading tiers, charts, the color kernel, font fallback metrics, sizing and surfaces, density and elevation, the spacing pass), each behind its own trigger. public-page names the design-taste-frontend sections. illustration carries the stageshow hand-off fields.
-- `direction.md`: round mechanics (prototype file, picker, screenshots, open, ask_user pattern with "take parts from others") and the DESIGN.md template.
+- `direction.md`: round mechanics (prototype file, picker, screenshots, open, ask_user pattern with "take parts from others"), the DESIGN.md template, and the mapping of a DMD-generated DESIGN.md into it (D24).
 - `skills.md`: the install table, core and optional; platform skills; skills out of the router.
 - `evals/retro/`: index.sh, compliance.sh and a README on running them after a batch (D22).
 - `reference/` is deleted after its unique parts move.
@@ -137,6 +143,7 @@ ARTIFACT: <absolute path>
 3. Both agent descriptions contain no brief path; the design-builder allowlist is design-craft only; the design agent loads every skill with an empty model catalog (D23); the design agent can spawn researcher.
 4. Eval on the fixture app: 3 headless part briefs (a primitive set, a component, a screen) with a fixture DESIGN.md, x 3 models (Opus, Sonnet, GPT). In every run: every fired trigger's and applied pass's skill text appears in a tool result; no unfired, n/a or other agent's skill appears; PASSES has a result for every pass of the part's level; the static checks ran; a report exists, including runs that hit the time limit; screenshots came from agent-browser-chrome. Report cost and peak context against the sessions.tsv baseline. Plus one attended design-grilling session with the owner on the fixture.
 5. The installed copies in `~/.agents/skills` (design-craft, design-qa, laws-of-ux) match the repo after install.
+6. design-md routes for the design agent only: its Routing table row names the agent design, every eval expected file forbids it, and a design-builder with no DESIGN.md reports DECISION NEEDED (D24).
 
 ## Slices
 
