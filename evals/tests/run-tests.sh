@@ -200,6 +200,13 @@ brief_has() { grep -qF -- "$2" "$EVALS/briefs/$1.md" && ok "$1 brief: $2" || no 
 for b in primitive-set component section screen; do brief_has "$b" '{START}'; done
 for s in 'Geist' '44px' 'de-DE' '"48.210,50 €"' '.dark' 'Barlow Condensed' 'Newsreader' '--radius: 0' 'prefers-reduced-motion'; do brief_has primitive-set "$s"; done
 for s in 'StatusBadge' 'B3 Action first' 'Day line' '"<n> of 4 doors free"' 'At gate'; do brief_has component "$s"; done
+# Owner decision 30: levels 2 and 3 check the part alone at 375 px and the screens at 1440 and 1024; the whole screen
+# at 375 waits for level 4, which builds the 56px narrow shell (the 240px sidebar leaves 135px before it).
+brief_has component 'on their screens at 1440 and 1024 width'; brief_has section 'on #/overview at 1440 and 1024 width'
+for b in component section; do
+  brief_has "$b" 'alone at 375 width (a harness page or a narrow container'
+  grep -qE 'screens? at 1440 and 375|1440, 1024 and 375' "$EVALS/briefs/$b.md" && no "$b brief checks a whole screen at 375" || ok "$b brief: no whole screen at 375"
+done
 for s in 'Overview' '"No door" lane' 'Now line' '06:00 to 16:00' 'booked <time>' 'FLIP' 'door list'; do brief_has section "$s"; done
 for s in 'count tabs' 'door select' 'top bar' 'booked 08:00' "Couldn't change the door. Try again." '1440, 1024 and 375'; do brief_has screen "$s"; done
 for d in "$EVALS"/fixture/DESIGN.md; do grep -q '^Direction: Hi-vis' "$d" && ok "fixture DESIGN.md is the approved Hi-vis direction" || no "fixture DESIGN.md is not Hi-vis"; done

@@ -21,7 +21,7 @@ Headless design-builder run on the Harbor eval fixture. The brief and DESIGN.md 
 
 ## Done
 
-Done when StatusBadge renders all five states and the Day line its populated, loading and error states as DESIGN.md defines them, the figures match the data (8 trucks today, 26 of 164 pallets received, 1 delayed; the free doors follow the device clock), both show on their screens at 1440 and 375 width, typecheck and build pass, and the report is written.
+Done when StatusBadge renders all five states and the Day line its populated, loading and error states as DESIGN.md defines them, the figures match the data (8 trucks today, 26 of 164 pallets received, 1 delayed; the free doors follow the device clock), both show on their screens at 1440 and 1024 width, each part renders alone at 375 width (a harness page or a narrow container: the 56px narrow shell is a screen-level part, so at this level the 240px sidebar still fills a 375px screen), typecheck and build pass, and the report is written.
 
 ## Finish
 

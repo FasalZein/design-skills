@@ -27,7 +27,7 @@ Headless design-builder run on the Harbor eval fixture. The brief and DESIGN.md 
 
 ## Done
 
-Done when the board shows doors 01 to 04 and the "No door" lane with every truck of the data at its time, the Now line and the delayed truck's booked tick, the loading, empty and error states render, a door change on a bar (a prop change is enough) moves the bar as the Motion line defines, the board renders on #/overview at 1440 and 1024 width and as the door list at 375 width, typecheck and build pass, and the report is written.
+Done when the board shows doors 01 to 04 and the "No door" lane with every truck of the data at its time, the Now line and the delayed truck's booked tick, the loading, empty and error states render, a door change on a bar (a prop change is enough) moves the bar as the Motion line defines, the board renders on #/overview at 1440 and 1024 width and alone at 375 width (a harness page or a narrow container: the 56px narrow shell is a screen-level part, so at this level the 240px sidebar still fills a 375px screen) as the door list, typecheck and build pass, and the report is written.
 
 ## Finish
 
