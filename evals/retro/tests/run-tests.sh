@@ -174,5 +174,18 @@ mkdir -p "$WORK/unread" && cp "$COLS/c2-minimal.jsonl" "$WORK/unread/" && printf
 PI_SESSIONS_DIR="$WORK/unread" bash "$RETRO/index.sh" "$WORK/unread.tsv" 2>&1 >/dev/null | grep -q '^index: session search failed in ' && ok "index fails on an unreadable session file" || no "index ignored an unreadable session file"
 chmod 644 "$WORK/unread/locked.jsonl"
 
+# A skill's reference file counts as a load of that skill when the returned text matches the file on disk
+# (owner decision 22, 2026-11-03); the path in call arguments alone still never counts (D22).
+mkdir -p "$WORK/refs"
+for f in "$FIX"/refs/*.jsonl; do sed "s|__REFS__|$FIX/refs-skills|g" "$f" > "$WORK/refs/$(basename "$f")"; done
+PI_SESSIONS_DIR="$WORK/refs" bash "$RETRO/index.sh" "$WORK/refs.tsv" >"$WORK/refs.log" 2>&1 && ok "index on reference fixtures exits 0" || { no "index on reference fixtures"; cat "$WORK/refs.log"; }
+TSV="$WORK/refs.tsv"
+expect "r1 reference read" skills_returned demo-taste
+expect "r1 reference read" skill_count 1
+expect "r3 partial reference read" skills_returned demo-taste
+# A failed read, text that is not the file's, a missing file, and a references/ folder outside a skills/ folder.
+expect "r2 reference not loaded" skills_returned ""
+expect "r2 reference not loaded" skill_count 0
+
 echo "----"
 [ "$FAILS" -eq 0 ] && { echo "retro tests: PASS"; exit 0; } || { echo "retro tests: $FAILS failure(s)"; exit 1; }

@@ -3,7 +3,8 @@
 # Usage: evals/retro/index.sh [OUT.tsv]   (default: ~/.pi/artifacts/retro/sessions.tsv)
 # Skills count as loaded only when their text came back in a tool result: a frontmatter block
 # that holds a "name: <skill>" and a "description:" line, in any order (or the two lines adjacent), or a section of a
-# <skill>/SKILL.md read whose result holds a markdown heading. Paths in call arguments alone
+# <skill>/SKILL.md read whose result holds a markdown heading, or a read of one file under
+# skills/<skill>/references/ whose returned lines match that file on disk. Paths in call arguments alone
 # do not count (a read can fail, be cut by the tool-result cap, or name a template).
 # Passes come from the report artifact the final RESULT message names; the final message itself
 # is the fallback. Exit 1 on unreadable input, a failed write or a PARSE_FAIL row.
@@ -22,9 +23,32 @@ sort -o "$LIST" "$LIST"
 printf 'start\tagent\tmodel\tbytes\tturns\tuser_msgs\tpeak_ctx\tout_tok\tcost\tdur_min\terrors\tbrowser_cmds\tskills_returned\tskill_count\tasks\tpasses_applied\tpasses_na\tpasses\tresult\ttitle\tfile\n' > "$OUT" \
   || { echo "index: cannot write $OUT" >&2; exit 1; }
 PARSE_FAILS=0
+# A reference read counts when at least 3 of its returned lines (8 or more characters; first 40) are lines of
+# the file, and they are at least half of those lines: tool notes and a cut last line do not break a match.
+REF_MIN_LINES=3
+ref_skills() { # session file -> comma list of skills whose reference file content came back
+  local skill path text n m found=""
+  while IFS=$'\t' read -r skill path text; do
+    path=${path/#\~/$HOME}
+    [ -f "$path" ] || continue
+    n=0; m=0
+    while IFS= read -r line; do
+      n=$((n+1)); grep -qxF -- "$line" "$path" && m=$((m+1))
+    done < <(printf '%s' "$text" | base64 -D | sed 's/\r$//' | awk 'length($0) >= 8' | head -40)
+    [ "$m" -ge "$REF_MIN_LINES" ] && [ $((m*2)) -ge "$n" ] && found="$found,$skill"
+  done < <(jq -rs '
+    ([ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="toolCall")
+       | {key: .id, value: (.arguments|tostring)} ] | from_entries) as $args
+    | .[] | select(.type=="message" and .message.role=="toolResult" and .message.isError != true)
+    | ([ ($args[.message.toolCallId] // "") | scan("((?:~|/)[^\"\\\\\\s]*/skills/([A-Za-z0-9._-]+)/references/[A-Za-z0-9._/-]+\\.md)") ] | unique_by(.[0])) as $p
+    | select(($p|length)==1)
+    | [ $p[0][1], $p[0][0], ([.message.content[]? | select(.type=="text") | .text] | join("\n") | @base64) ] | @tsv' "$1" 2>/dev/null)
+  printf '%s' "${found#,}"
+}
 while read -r f; do
   bytes=$(stat -f %z "$f")
-  jq -rs --arg f "$f" --arg bytes "$bytes" '
+  refs=$(ref_skills "$f")
+  jq -rs --arg f "$f" --arg bytes "$bytes" --arg refs "$refs" '
     def calls: [.[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="toolCall")];
     def results: [.[] | select(.type=="message" and .message.role=="toolResult")];
     def ok_results: [results[] | select(.message.isError != true)];
@@ -64,7 +88,7 @@ while read -r f; do
     | ([ ok_results[] | select(text_of | holds_section)
          | ($argsById[.message.toolCallId] // "") | [scan("(?:^|/)([A-Za-z0-9._-]+)/SKILL\\.md") | .[0]] | unique
          | select(length==1) | .[0] ]) as $sec
-    | (($fm + $pair + $sec) | unique) as $sk
+    | (($fm + $pair + $sec + ($refs | split(",") | map(select(. != "")))) | unique) as $sk
     | ([ $a[] | .message.content[]? | select(.type=="text") | .text ] | map(select(test("(^|\n)RESULT:"))) | last // "") as $final
     | ($final | capture("(^|\n)ARTIFACT:\\s*(?<p>/[^\n]*?)\\s*(\n|$)")?.p // "") as $art
     | ([ $calls[] | select(.name=="write" and $art != "" and .arguments.path == $art) | .arguments.content ] | last // $final) as $rep
