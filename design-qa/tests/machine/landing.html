@@ -6,9 +6,13 @@
   section { height: 300px; }
   hr { margin: 0; }
   .faq::after { content: ''; display: block; width: 100%; height: 1px; background: #ccc; }
+  .cta::before { content: ""; display: block; width: 100%; height: 2px; background: #ccc; }
+  .note::before { content: ""; display: block; width: 50%; height: 2px; background: #ccc; }
 </style></head><body>
-<!-- Section-level seams: header border, two hr rules, a thin wide pseudo-element line. Skipped: a sticky bar's border,
-     a border inside a list, a narrow box. Backgrounds in document order: white, grey, grey, white, dark = 3 transitions. -->
+<!-- Section-level seams: header border, two hr rules, a thin wide pseudo-element line, a 2px painted band, a 2px wide
+     ::before line. Skipped: a sticky bar's border, a border inside a list, a narrow box, a 2px band with no paint,
+     a ::before line only half the viewport wide, a zero-width border. A seam exactly 60vw (864px) wide counts. Bands sorted by their top edge: promo white (absolute at the top), main white, hero white, proof grey, pricing grey,
+     faq white, a 60vw-wide #eee band, footer dark = 4 transitions. A band exactly 120px high is not a band. -->
 <nav class="bar" style="position:sticky; top:0; border-bottom:1px solid #ccc">Sticky bar</nav>
 <header class="top" style="height:80px; border-bottom:1px solid #ddd">Brand</header>
 <main>
@@ -20,6 +24,15 @@
   <hr class="rule">
   <section class="faq" style="background:#fff">FAQ</section>
   <section class="aside" style="width:400px; height:200px; border-top:1px solid #ccc">Narrow</section>
+  <div class="tail" style="width:864px; height:121px; background:#eee">Band exactly 60vw wide</div>
+  <div class="tail2" style="height:120px; background:#f4f4f4">Band exactly 120px high</div>
 </main>
-<footer class="foot" style="height:200px; background:#111; color:#fff">Footer</footer>
+<div class="band" style="height:2px; background:#eee"></div>
+<div class="gap" style="height:2px"></div>
+<footer class="foot" style="height:200px; background:#111; color:#fff">Footer
+  <section class="cta" style="height:40px">Call to action</section>
+  <section class="note" style="height:40px">Note</section>
+  <section class="flat" style="height:40px; border-top:0 solid #ccc">Zero-width border</section>
+  <section class="edge" style="width:864px; height:40px; border-top:1px solid #ccc">Exactly 60vw wide</section></footer>
+<div class="promo" style="position:absolute; top:0; left:0; width:100%; height:130px; background:#fff">Promo drawn first, written last</div>
 </body></html>
