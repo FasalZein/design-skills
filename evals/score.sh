@@ -5,7 +5,7 @@
 #   runs.tsv      one run per line: run<TAB>part<TAB>model<TAB>session file (absolute path); # starts a comment
 # Expected loads per part: evals/briefs/<part>.expected (EXPECTED_DIR overrides the folder).
 # A design-app or design-marketing run scores the design session against its own .expected, then adds:
-#   decision    its final message or written report holds a DECISION NEEDED block with a Q1 line, and
+#   decision    its final message or written report (write or codemode tools.write) holds a DECISION NEEDED block with a Q1 line, and
 #               the block names the open part (the "open" word of the .expected file)
 #   children    the number of child design-builder sessions: sessions under PI_SESSIONS_DIR (default
 #               ~/.pi/agent/sessions) whose launch metadata names agent design-builder and whose header
@@ -126,10 +126,10 @@ score_one() {
   return 0
 }
 
-# Text a session ends on: its final assistant text and its last written report.
-final_text() { jq -rs '([ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="text") | .text ] | last // ""),
-  ([ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="toolCall" and .name=="write")
-     | .arguments.content // "" | select(test("(^|\n)RESULT:")) ] | last // "")' "$1"; }
+# Text a session ends on: its final assistant text and its last written report with a RESULT line (a write call, or
+# codemode tools.write: the reader of the report fallback, evals/retro/passes.jq written_texts).
+final_text() { jq -L "$HERE/retro" -rs 'include "passes"; ([ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="text") | .text ] | last // ""),
+  ([ written_texts[] | select(test("(^|\n)RESULT:")) ] | last // "")' "$1"; }
 # The brief: the first user message.
 brief_text() { jq -rs '[ .[] | select(.type=="message" and .message.role=="user") | .message.content[]? | select(.type=="text") | .text ] | first // ""' "$1"; }
 # Design-builder child sessions of $1, oldest first: the header's parentSession names $1 and the launch metadata

@@ -132,6 +132,11 @@ expect "e1 empty pass" passes "copy -> applied: shorter labels"
 expect "e3 passes on the PASSES line" passes_applied 2
 expect "e3 passes on the PASSES line" passes_na 1
 expect "e3 passes on the PASSES line" passes 'better-accessibility -> applied: the Day line is a <ul aria-label="Today"> with aria-busy while loading; break-ui -> applied: 1,234 rows -> no overflow at 375; review-animations -> n/a: no motion in either part'
+# Parent decision after owner decision 31 (h-opus-3-docks "break-ui -> applied (+ fix):"): a qualifier between the
+# status and the colon keeps the status; the entry is normalized, and a qualified entry with no change stays unfilled.
+expect "e4 status qualifier" passes_applied 2
+expect "e4 status qualifier" passes_na 1
+expect "e4 status qualifier" passes "break-ui -> applied: slots past 16:00 are cut at the edge; review-animations -> n/a: the part has no animation; state-machine -> applied: one state prop"
 expect "e2 60-line frontmatter" skills_returned psi
 expect "e2 60-line frontmatter" skill_count 1
 # A session whose only timestamp cannot be parsed is unreadable input: a PARSE_FAIL row and exit 1, not dur_min 0.

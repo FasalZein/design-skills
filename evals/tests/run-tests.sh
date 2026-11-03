@@ -26,7 +26,8 @@ printf '%s\t%s\t%s\t%s\n' "# run" part model session \
   svarp component gpt "$FIX/score-shots-var-plain.jsonl" \
   pw component opus "$FIX/score-prose-write.jsonl" \
   pc component opus "$FIX/score-prose-codemode.jsonl" \
-  fr component opus "$FIX/score-final-report.jsonl" > "$WORK/runs.tsv"
+  fr component opus "$FIX/score-final-report.jsonl" \
+  q component opus "$FIX/score-qualifier.jsonl" > "$WORK/runs.tsv"
 bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/runs.tsv" > "$WORK/score.out" 2>&1; st=$?
 [ "$st" -eq 0 ] && ok "score exits 0 on scorable runs" || { no "score exit $st"; cat "$WORK/score.out"; }
 line() { grep "^$1 " "$WORK/score.out"; }
@@ -64,7 +65,9 @@ jq -rs '[.[]|.message.content[]?|select(.id=="c13" and .type=="toolCall")|.argum
 printf 'inl\tcomponent\topus\t%s\n' "$WORK/inl/score-prose-codemode.jsonl" > "$WORK/inl/runs.tsv"
 got=$(bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/inl/runs.tsv" 2>&1 | grep '^inl ')
 case $got in *"passes=ok"*"report=FAIL(final message not the report)"*) ok "inline codemode literal is the written report";; *) no "inline codemode literal: [$got]";; esac
-grep -q '^score: 9 runs, 6 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing: $(tail -1 "$WORK/score.out")"
+# A qualifier between status and colon ("applied (+ fix):", "n/a (no motion code):") keeps the status, in a codemode report.
+for item in passes=ok text=ok unexpected=ok; do has q "$item"; done
+grep -q '^score: 10 runs, 7 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing: $(tail -1 "$WORK/score.out")"
 
 # Design runs: the design session against its own expected file, its DECISION NEEDED block, and each child
 # design-builder session (found by its header's parentSession) against the expected file of its level.
@@ -84,6 +87,13 @@ dhas dgood/2 'static=FAIL(scan=0'
 # The bad design session: no block, no children, a builder-only skill, a missing design pass.
 for item in 'decision=FAIL(no block)' 'children=FAIL(none found)' 'open_built=FAIL(no child evidence)' 'unexpected=FAIL(better-colors)' 'passes=FAIL(missing:find-animation-opportunities)'; do dhas dbad "$item"; done
 grep -q '^score: 4 runs, 3 with a FAIL item$' "$WORK/dscore.out" && ok "design summary line" || no "design summary line: $(tail -1 "$WORK/dscore.out")"
+
+# Owner decision 31, round 2: the DECISION NEEDED block counts in a report written through codemode tools.write,
+# read like the report fallback, when the final message is prose.
+printf '%s\t%s\t%s\t%s\n' dcm design-app opus "$FIX/design-codemode.jsonl" > "$WORK/dcm.tsv"
+PI_SESSIONS_DIR="$FIX" bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/dcm.tsv" > "$WORK/dcm.out" 2>&1
+grep '^dcm ' "$WORK/dcm.out" | grep -qF 'decision=ok' && ok "dcm: decision block read from a codemode report" || no "dcm: want [decision=ok] in [$(grep '^dcm ' "$WORK/dcm.out")]"
+grep '^dcm ' "$WORK/dcm.out" | grep -qF 'report=FAIL(final message not the report)' && ok "dcm: report=FAIL(final message not the report)" || no "dcm report: [$(grep '^dcm ' "$WORK/dcm.out")]"
 
 # Input errors exit 1.
 printf 'x\tcomponent\tm\t%s\n' "$FIX/score-good.jsonl" > "$WORK/one.tsv"
