@@ -164,6 +164,10 @@ say "skill names stay in the Routing table and surface pointers"
 if RT=$(bash "$ROOT/evals/retro/tests/run-tests.sh" 2>&1); then say "retro fixture tests pass"
 else bad "retro fixture tests failing:"; echo "$RT" | grep -v '^ok:'; fi
 
+# 12b. Eval harness: fixture tests for evals/score.sh, the expected files and evals/new-run.sh (Acceptance 4)
+if ET=$(bash "$ROOT/evals/tests/run-tests.sh" 2>&1); then say "eval harness tests pass"
+else bad "eval harness tests failing:"; echo "$ET" | grep -v '^ok:'; fi
+
 # 13. Every repo SKILL.md loads with pi's own skill loader (YAML frontmatter, not a line grep).
 if FM=$(node "$ROOT/scripts/check-skill-frontmatter.mjs" "$ROOT" 2>&1); then say "every SKILL.md loads with pi's skill loader"
 else bad "SKILL.md frontmatter rejected by pi's skill loader:"; echo "$FM"; fi
