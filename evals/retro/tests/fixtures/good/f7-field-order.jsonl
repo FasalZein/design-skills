@@ -1,0 +1,5 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-03T05:00:00.000Z","data":{"agent":"design-builder","model":"cpa/test-model","modelRef":"cpa/test-model:high","title":"f7 field order"}}
+{"type":"message","timestamp":"2026-11-03T05:00:01.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}
+{"type":"message","timestamp":"2026-11-03T05:01:00.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"c1","name":"read","arguments":{"path":"/home/u/.agents/skills/interface-review/SKILL.md"}}],"usage":{"input":10,"output":5,"cost":{"total":0.01}}}}
+{"type":"message","timestamp":"2026-11-03T05:01:01.000Z","message":{"role":"toolResult","toolCallId":"c1","toolName":"read","isError":false,"content":[{"type":"text","text":"---\nname: interface-review\ndisable-model-invocation: true\ndescription: Review your own UI diff for regressions.\n---\n\n# Interface review\n\nBody."}]}}
+{"type":"message","timestamp":"2026-11-03T05:10:00.000Z","message":{"role":"assistant","content":[{"type":"text","text":"RESULT: DONE\nARTIFACT: none"}],"usage":{"input":20,"output":5,"cost":{"total":0.01}}}}

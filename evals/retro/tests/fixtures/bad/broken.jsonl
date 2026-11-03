@@ -1,0 +1,2 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-03T05:00:00.000Z","data":{"agent":"design","model":"cpa/test-model","modelRef":"cpa/test-model:high","title":"broken"}}
+{"type":"message", this line is not json

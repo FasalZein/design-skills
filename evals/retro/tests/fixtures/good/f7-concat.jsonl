@@ -1,0 +1,5 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-03T05:00:00.000Z","data":{"agent":"design","model":"cpa/test-model","title":"f7 concatenated skills"}}
+{"type":"message","timestamp":"2026-11-03T05:00:01.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}
+{"type":"message","timestamp":"2026-11-03T05:01:00.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"c1","name":"bash","arguments":{"command":"for s in design-craft laws-of-ux; do echo \"=== $s\"; cat $s/SKILL.md; done"}}],"usage":{"input":10,"output":5}}}
+{"type":"message","timestamp":"2026-11-03T05:01:01.000Z","message":{"role":"toolResult","toolCallId":"c1","toolName":"bash","isError":false,"content":[{"type":"text","text":"=== design-craft\n---\nname: design-craft\ndescription: Design workflow.\n---\n\n# Design workflow\n\n---\n\nBody after a rule.\n=== laws-of-ux\n---\nname: laws-of-ux\ndescription: UX laws.\n---\n\n# Laws\n"}]}}
+{"type":"message","timestamp":"2026-11-03T05:10:00.000Z","message":{"role":"assistant","content":[{"type":"text","text":"RESULT: DONE\nARTIFACT: none"}],"usage":{"input":20,"output":5}}}

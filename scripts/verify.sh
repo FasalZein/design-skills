@@ -160,6 +160,10 @@ for name in $ROUTED; do
 done
 say "skill names stay in the Routing table and surface pointers"
 
+# 12a. Retro scripts: fixture tests for index.sh and compliance.sh (D22)
+if RT=$(bash "$ROOT/evals/retro/tests/run-tests.sh" 2>&1); then say "retro fixture tests pass"
+else bad "retro fixture tests failing:"; echo "$RT" | grep -v '^ok:'; fi
+
 # 13. Every repo SKILL.md loads with pi's own skill loader (YAML frontmatter, not a line grep).
 if FM=$(node "$ROOT/scripts/check-skill-frontmatter.mjs" "$ROOT" 2>&1); then say "every SKILL.md loads with pi's skill loader"
 else bad "SKILL.md frontmatter rejected by pi's skill loader:"; echo "$FM"; fi
