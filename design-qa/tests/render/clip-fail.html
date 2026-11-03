@@ -7,11 +7,11 @@
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .narrow { width: 80px; }</style></head><body>
 <!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
-<h1 class="truncate" style="width:200px" data-fail="A systematic engine designed to monetize">A systematic engine designed to monetize volatility</h1>
-<div class="card"><span class="truncate narrow" style="display:block" title="$12.0M – $18.0M" data-fail="$12.0M – $18.0M">$12.0M – $18.0M</span>
-  <div class="narrow" style="overflow:hidden; white-space:nowrap" data-fail="Milestone cut hard">Milestone cut hard</div>
-  <div class="truncate narrow" data-fail="Islamic Investors Fund">Islamic Investors Fund</div>
-  <div class="narrow" style="white-space:nowrap" data-fail="Spills out of the box">Spills out of the box</div></div>
+<h1 class="truncate" style="width:200px" data-fail="A systematic engine designed to monetize" data-why="title, money or metric truncated">A systematic engine designed to monetize volatility</h1>
+<div class="card"><span class="truncate narrow" style="display:block" title="$12.0M – $18.0M" data-fail="$12.0M – $18.0M" data-why="title, money or metric truncated">$12.0M – $18.0M</span>
+  <div class="narrow" style="overflow:hidden; white-space:nowrap" data-fail="Milestone cut hard" data-why="cut without ellipsis">Milestone cut hard</div>
+  <div class="truncate narrow" data-fail="Islamic Investors Fund" data-why="truncated, full value unreachable">Islamic Investors Fund</div>
+  <div class="narrow" style="white-space:nowrap" data-fail="Spills out of the box" data-why="spills out of its box">Spills out of the box</div></div>
 <!-- whole lines clamped away: no line shows in part, the box itself still cuts its own text -->
-<p style="display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; width:200px; line-height:24px; margin:0" data-fail="Quarterly review notes that run on for s">Quarterly review notes that run on for several lines past the clamp and hide the rest of the sentence</p>
+<p style="display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; width:200px; line-height:24px; margin:0" data-fail="Quarterly review notes that run on for s" data-why="truncated, full value unreachable">Quarterly review notes that run on for several lines past the clamp and hide the rest of the sentence</p>
 </body></html>

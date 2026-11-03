@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>clip fail: cut sides, heading and label variants</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .narrow { width: 80px; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair); data-why = that row's reason. -->
+<div class="card">
+<div style="height:10px; overflow:hidden; line-height:normal" data-fail="Partial normal leading" data-why="cut without ellipsis">Partial normal leading</div>
+<div style="height:24px; overflow:hidden; line-height:24px" data-fail="Top half hidden label" data-why="cut without ellipsis"><p style="margin:-12px 0 0">Top half hidden label</p></div>
+<div style="overflow:hidden" data-fail="Left edge hidden label" data-why="cut without ellipsis"><p style="margin:0 0 0 -30px; white-space:nowrap">Left edge hidden label</p></div>
+<div class="narrow" style="overflow-x:clip; white-space:nowrap" data-fail="Clip axis label long" data-why="cut without ellipsis">Clip axis label long</div>
+<div class="narrow" style="overflow:hidden; white-space:nowrap" data-fail="First child cut labelSecond child cut la" data-why="cut without ellipsis"><p style="margin:0; width:200px">First child cut label</p><p style="margin:0; width:200px">Second child cut label</p></div>
+<div class="narrow" style="white-space:nowrap; direction:rtl" data-fail="Spills out to the left" data-why="spills out of its box">Spills out to the left</div>
+<div class="narrow" style="overflow:hidden; white-space:nowrap; text-indent:120px" data-fail="Indented away" data-why="cut without ellipsis">Indented away</div>
+<div class="truncate" style="width:200px; height:10px" data-fail="Short ellipsis box" data-why="cut without ellipsis">Short ellipsis box</div>
+<h2 style="font-size:48px; line-height:0.9; margin:0; height:20px; overflow:hidden" data-fail="Gyp cut tight" data-why="cut without ellipsis">Gyp cut tight</h2>
+<!-- Gate 8: a heading truncated, whether the heading is the clip box or the text inside it -->
+<div class="truncate narrow" data-fail="Heading inside cut" data-why="title, money or metric truncated"><h3 style="display:inline; font-size:16px">Heading inside cut</h3></div>
+<h3 class="truncate narrow" style="font-size:16px; margin:0" data-fail="Span heading text" data-why="title, money or metric truncated"><span>Span heading text</span></h3>
+<!-- Recovery paths: the full value in aria-label or title (JUDGE); an empty or different title is no recovery (FAIL) -->
+<span class="truncate narrow" style="display:block" aria-label="Al Noor Income Fund Class A" data-judge="Al Noor Income Fund Class A" data-why="truncated: confirm the design fixes this width">Al Noor Income Fund Class A</span>
+<div class="truncate narrow" title="Al Noor Feeder Fund" data-judge="Al Noor Feeder Fund" data-why="truncated: confirm the design fixes this width">Al Noor
+      Feeder Fund</div>
+<div class="truncate narrow" title="" data-fail="Empty tooltip label cut" data-why="truncated, full value unreachable">Empty tooltip label cut</div>
+<div class="truncate narrow" title="Something else" data-fail="Mismatched label text cut" data-why="truncated, full value unreachable">Mismatched label text cut</div>
+<!-- A link inside the truncated box is its detail path (JUDGE) -->
+<div class="truncate narrow" data-judge="Link trailing words cut" data-why="truncated: verify the detail or tooltip path shows the full value"><a href="#x">Link</a> trailing words cut</div>
+</div>
+</body></html>

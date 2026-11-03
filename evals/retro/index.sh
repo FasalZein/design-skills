@@ -33,9 +33,10 @@ while read -r f; do
     # A report line "RESULT: X" with a filled value (a template line holds "|" alternatives).
     def result_of: [ split("\n")[] | select(test("^RESULT:") and (test("\\|") | not)) | capture("^RESULT:\\s*(?<r>[A-Z]+)").r ] | first // "none";
     # PASSES entries "<pass> -> applied: <change>" or "<pass> -> n/a: <fact>", up to the next report field.
+    # An empty change or fact is an unfilled entry: the capture requires a non-space first character.
     def passes_of: (split("\n") | (map(test("^PASSES:")) | index(true)) as $i
       | if $i == null then [] else .[$i:] | (.[0] |= sub("^PASSES:\\s*";"")) | .[0:1] + (.[1:] | until(length==0 or (.[0]|test("^[A-Z]+:")); .[1:]) as $rest | .[0:(length - ($rest|length))]) end
-      | map(capture("^\\s*(?<pass>[^<>|\\s][^<>|]*?)\\s*->\\s*(?<status>applied|n/a):\\s*(?<change>[^<>|]+?)\\s*$")) | map(select(.change != "")));
+      | map(capture("^\\s*(?<pass>[^<>|\\s][^<>|]*?)\\s*->\\s*(?<status>applied|n/a):\\s*(?<change>[^<>|\\s][^<>|]*?)\\s*$")));
     (map(select(.customType=="pi-subagents_launch_metadata"))[0].data) as $m
     | (map(select(.type=="message" and .message.role=="assistant"))) as $a
     | (map(select(.type=="message" and .message.role=="user")) | length) as $u
@@ -52,7 +53,7 @@ while read -r f; do
        + ([ $calls[] | select(.name=="codemode") | (.arguments.code // "") | scan("tools\\.ask_user\\s*\\(") ] | length)) as $asks
     # Every pair of adjacent "---" lines, so a body rule cannot hide the next skill'"'"'s frontmatter.
     | ([ results[] | text_of | split("\n") as $l | [range(0; $l|length) | select($l[.]=="---")] as $fx
-         | range(0; ($fx|length)-1) as $k | select($fx[$k+1] - $fx[$k] <= 41) | $l[($fx[$k]+1):$fx[$k+1]] | join("\n")
+         | range(0; ($fx|length)-1) as $k | $l[($fx[$k]+1):$fx[$k+1]] | join("\n")
          | select(test("(^|\n)description:")) | capture("(^|\n)name: *(?<n>[A-Za-z0-9._-]+) *(\n|$)")?.n ]) as $fm
     # Also a "name:" line directly followed by "description:" (a fence glued to other output, a cut result).
     | ([ results[] | text_of | split("\n") as $l | range(0; ($l|length)-1) as $i
@@ -68,7 +69,7 @@ while read -r f; do
     | ($rep | passes_of) as $ps
     | ($final | result_of) as $res
     | [ ($ts[0] // "")[0:16], $m.agent, ($m.modelRef // $m.model // ""), $bytes, ($a|length), $u, $peak, $out, ($cost*100|round/100),
-        (if ($ts|length)>1 then (((($ts|last)|sub("\\.[0-9]+Z$";"Z")|fromdate) - (($ts[0])|sub("\\.[0-9]+Z$";"Z")|fromdate))/60|floor) else 0 end),
+        (if ($ts|length)>0 then (((($ts|last)|sub("\\.[0-9]+Z$";"Z")|fromdate) - (($ts[0])|sub("\\.[0-9]+Z$";"Z")|fromdate))/60|floor) else 0 end),
         $err, $br, ($sk|join(",")), ($sk|length), $asks,
         ([ $ps[] | select(.status=="applied") ] | length), ([ $ps[] | select(.status=="n/a") ] | length),
         ([ $ps[] | "\(.pass) -> \(.status): \(.change)" ] | join("; ") | gsub("[\t\n]";" ")),

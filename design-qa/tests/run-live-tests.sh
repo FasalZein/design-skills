@@ -5,6 +5,7 @@
 #   Row identity: the FAIL rows must be exactly the keys in data-fail attributes, and the JUDGE rows exactly
 #   the keys in data-judge attributes. A row key is its t field, or "a | b" for a pair row.
 #   JUDGE rows print only with DQ_JUDGE=1; the test checks both forms.
+#   Reason: an element with data-why also needs its row's why field to equal that text.
 # Stage scope: on a fixture with a .ss-stage, the other render probes and targets.js must report nothing.
 # Machine probes: each must evaluate to a value on a fixture page (smoke test; no expected tier).
 set -u -o pipefail
@@ -31,6 +32,8 @@ for page in "$FIX"/*.html; do
   # every reported row has a matching key, and every key a matching row
   ids=$(printf '%s' "$full" | jq -c '{fail: [.fail[] | .t // "\(.a) | \(.b)"] | sort, judge: [.judge[] | .t // "\(.a) | \(.b)"] | sort}')
   same=$(printf '%s\n%s' "$marked" "$ids" | jq -s '(.[0].fail|sort) == .[1].fail and (.[0].judge|sort) == .[1].judge')
+  whys=$(ab eval '[...document.querySelectorAll("[data-why]")].map(e => ({k: e.getAttribute("data-fail") ?? e.getAttribute("data-judge"), why: e.getAttribute("data-why")}))')
+  [ "$same" = true ] && same=$(printf '%s\n%s' "$whys" "$full" | jq -s '(.[1].fail + (.[1].judge // [])) as $rows | [.[0][] | . as $w | any($rows[]; (.t // "\(.a) | \(.b)") == $w.k and .why == $w.why)] | all')
   # tier matches counts; FAIL rows always present; judge rows only with the switch
   shape=$(printf '%s\n%s' "$out" "$full" | jq -s '
     (.[0] | .counts.fail == (.fail|length) and (has("judge")|not)

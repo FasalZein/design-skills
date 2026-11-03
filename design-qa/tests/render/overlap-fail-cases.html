@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>overlap fail and judge: layers, grids, media, twins, in-flow collisions</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card">
+<!-- JUDGE: a deliberate layer -->
+<div style="position:relative; height:40px"><span style="position:absolute; top:0; left:0; background:#fff" data-judge="New | Paragraph under badge">New</span><p style="margin:0">Paragraph under badge</p></div>
+<div><p style="margin:0">Slide text one</p><p style="margin:-12px 0 0; transform:translateX(4px)" data-judge="Slide text one | Slide text two">Slide text two</p></div>
+<div style="display:grid"><p style="grid-area:1/1; margin:0" data-judge="Grid layer back | Grid layer front">Grid layer back</p><p style="grid-area:1/1; margin:0; padding-left:10px">Grid layer front</p></div>
+<div><img alt="" style="width:40px; height:40px" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23bbb'/%3E%3C/svg%3E"><img alt="" style="width:40px; height:40px; margin-left:-12px" data-judge="IMG | IMG" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23bbb'/%3E%3C/svg%3E"></div>
+<div><p style="margin:0">Echo</p><p style="margin:-12px 0 0" data-judge="Echo | Echo">Echo</p></div>
+</div>
+<div class="card">
+<!-- FAIL: in-flow collisions -->
+<img alt="" style="display:block; width:40px; height:40px" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23bbb'/%3E%3C/svg%3E"><p style="margin:-20px 0 0" data-fail="IMG | Text under image">Text under image</p>
+<p style="margin:0" data-fail="Line oneLine two | Cover">Line one<br>Line two</p><button type="button" style="display:block; margin-top:-48px; height:48px">Cover</button>
+<p style="margin:0"><span>Price</span><img alt="" style="width:20px; height:20px; margin-left:-10px" data-fail="Price | IMG" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23bbb'/%3E%3C/svg%3E"></p>
+<p style="margin:0; background:linear-gradient(red, blue); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent" data-fail="Gradient title | Gradient overlap">Gradient title</p><p style="margin:-12px 0 0">Gradient overlap</p>
+<button type="button" aria-label="Close dialog" style="width:24px; height:24px; display:block" data-fail="Close dialog | Next"></button><button type="button" style="display:block; margin-top:-12px">Next</button>
+<p style="margin:0; font-size:48px; line-height:1">Tight one</p><p style="margin:-10px 0 0; font-size:48px; line-height:1" data-fail="Tight one | Tight two">Tight two</p>
+</div>
+<!-- FAIL: two in-flow items inside one absolute menu; the shared layer does not make them a deliberate overlap -->
+<div style="position:absolute; top:900px; left:24px; width:300px"><p style="margin:0">Menu item one</p><p style="margin:-12px 0 0" data-fail="Menu item one | Menu item two">Menu item two</p></div>
+</body></html>
