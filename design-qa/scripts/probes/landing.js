@@ -5,7 +5,10 @@
   const clear = c => /rgba\(0, 0, 0, 0\)|transparent/.test(c);
   const border = (s, side) => parseFloat(s['border' + side + 'Width']) > 0 && s['border' + side + 'Style'] !== 'none';
   const hrLike = (e, s, r) => e.tagName === 'HR' || (r.height <= 2 && !clear(s.backgroundColor));
-  const shadowLine = s => /(^|,)\s*(inset\s+)?0(px)?\s+-?[12]px\s+0/.test(s.boxShadow || '');
+  // Chrome computes each shadow color first ("rgb(204, 204, 204) 0px 1px 0px 0px inset"); drop colors and words, keep lengths
+  const lineShadow = sh => { const [x, y, blur = 0] = sh.replace(/[a-z]+\([^)]*\)|#[0-9a-f]+|[a-z]+/gi, ' ').trim().split(/\s+/).map(parseFloat);
+    return x === 0 && (Math.abs(y) === 1 || Math.abs(y) === 2) && blur === 0; };
+  const shadowLine = s => s.boxShadow.split(/,(?![^(]*\))/).some(lineShadow);
   const pseudoLine = e => ['::before','::after'].some(which => { const ps = getComputedStyle(e, which);
     return ps.content !== 'none' && parseFloat(ps.height) <= 2 && parseFloat(ps.width) > vw*0.5 && !clear(ps.backgroundColor); });
   // a seam: a top or bottom border, an hr-like thin band, a 1-2px line shadow, or a thin wide pseudo-element line

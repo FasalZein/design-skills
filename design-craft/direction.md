@@ -4,7 +4,7 @@ Read this at the first round of design grilling. A round puts the whole frontier
 
 ## Build the round
 
-1. **One file per round.** One standalone HTML file under your artifact directory: `<artifact dir>/rounds/round-<n>/index.html`, with its CSS and script inline and no dev server or login. Prototypes stay in the artifact directory; they never enter the project or a branch.
+1. **One file per round.** One standalone HTML file under your artifact directory: `<artifact dir>/rounds/round-<n>/index.html`, with its CSS and script inline and no dev server or login. Start each option and the picker with an HTML comment that names it. Prototypes stay in the artifact directory; they never enter the project or a branch.
 2. **One picker.** A fixed bar at the bottom center of the page, with one group per frontier question. Each group lists its options by short names (A "Ledger", B "Split"), switches with a click or the number keys, and keeps the choice in the URL hash. Use these names in every question. A skill that brings its own picker (variants, states, worst-case data) puts its options into this bar.
 3. **Real product data.** Names, numbers, dates and copy from the repo, its fixtures or researcher facts. A state toggle in the bar shows loading, empty, error and populated where the part has them.
 4. **Options.** 5 for the overall look, 2 to 4 at lower levels. Options differ on the question's axis and stay equal on the rest: when the brand and components are fixed, vary the structure, not the look. Each option meets the craft floor; mark no favourite in the file.
@@ -13,8 +13,8 @@ Done when the file opens from disk and every option renders with real data.
 
 ## Check, open, ask
 
-1. **Screenshot first.** Shoot every option at 1440 and 375 width with agent-browser-chrome. Read each shot; fix clipping, overflow, cut-off images, odd gaps and dead controls; re-shoot.
-2. **Open it** for the owner: `open <file>`. The owner sees the file, not a list of screenshot paths.
+1. **Screenshot first.** Shoot every option at 1440 and 375 width with agent-browser-chrome. Read only the shots you must judge yourself; fix clipping, overflow, cut-off images, odd gaps and dead controls; re-shoot. Read the prototype file by section: `rg -n` for its section comments, then that line range.
+2. **Open it** for the owner: `open <file>` and `open <the round's shots>`. The owner sees the file and the shots on screen, not a list of paths.
 3. **One ask_user per round.** One question per frontier decision, each with a recommended answer, worded so "yes" takes the recommendation. Q1 is the pick, with a "take parts from others" multi-select of the named parts of the other options. Add the 1 to 4 rules the prototype exposes (an order, a threshold, a label). Check every option's `value` and `preview` fields before the call.
 
 Done when the owner answered every question; a cancelled ask is asked again once, shorter.
@@ -63,7 +63,7 @@ The DMD CLI writes evidence, not decisions: a project context, its query, generi
 
 1. **Keep the references.** Copy every style name the run cited into References, with the query. The full matches stay in dmd's style-context.json.
 2. **Mark candidates open.** A value from a reference style is a candidate: write `open: <value> (<style>)`. A generic check text is no value; its field reads `open`. Only a line the owner wrote before the run, or a verdict, is closed.
-3. **Ask from the references.** The first round's options for the overall look come from the cited styles; each option names its style.
+3. **Ask from the references.** When the cited styles fit the product, the first round's options for the overall look come from them; each option names its style. When they do not fit, the draft stays open and the Routing table's Notes name the draw that leads the first round.
 4. **Close by verdict.** Each verdict replaces its `open:` entry with the decided value and adds its Tree line.
 
 Done when DESIGN.md holds the template fields only, References names every cited style, and every value reads a verdict, a line the owner wrote, or `open`.

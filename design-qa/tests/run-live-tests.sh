@@ -97,6 +97,8 @@ contrast_rows contrast '[{"t":"Gray body text","r":4.48,"need":4.5},{"t":"Large 
 # no opaque background anywhere: layers composite over the white canvas; the parentless root control's border too
 contrast_rows contrast-canvas '[{"t":"border:HTML","r":1.36,"need":3},{"t":"Gray on bare canvas","r":4.48,"need":4.5},
   {"t":"White on half black canvas","r":4.0,"need":4.5},{"t":"Gray on half white","r":2.85,"need":4.5}]'
+# #123456 is a real color: navy text passes on white (12.72), and a navy background and border are measured
+contrast_rows contrast-navy '[{"t":"Gray on navy","r":1.01,"need":4.5},{"t":"border:navy","r":1.65,"need":3}]'
 # landing rules: section-level seams (border, hr, thin wide pseudo-element line) counted per tag.class; a sticky bar,
 # a list row and a narrow box are skipped. Transitions: background changes between wide bands in top-to-bottom order.
 ab open "file://$HERE/machine/landing.html" >/dev/null
@@ -105,6 +107,14 @@ want='{"rules":{"HEADER.top":1,"HR.rule":2,"SECTION.faq":1,"DIV.band":1,"SECTION
 if printf '%s\n%s' "$out" "$want" | jq -se '.[0] == .[1]' >/dev/null; then
   PASS=$((PASS+1)); echo "ok   landing seams and transitions match"
 else ko "landing: want $want, got $(printf '%s' "$out" | jq -c .)"; fi
+# line shadows: Chrome computes box-shadow color first ("rgb(204, 204, 204) 0px 1px 0px 0px"); a 1-2px unblurred
+# vertical offset is a seam, also inset or as one of several shadows; a blurred shadow or a 3px offset is not.
+ab open "file://$HERE/machine/landing-shadow.html" >/dev/null
+out=$(ab eval --stdin < "$PROBES/landing.js")
+want='{"rules":{"SECTION.one":1,"SECTION.two":1,"SECTION.three":1},"transitions":0}'
+if printf '%s\n%s' "$out" "$want" | jq -se '.[0] == .[1]' >/dev/null; then
+  PASS=$((PASS+1)); echo "ok   landing line shadows count as seams"
+else ko "landing-shadow: want $want, got $(printf '%s' "$out" | jq -c .)"; fi
 echo "----"
 echo "probe tests: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

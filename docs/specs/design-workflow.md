@@ -61,7 +61,7 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D24 design-md routes for the design agent (owner, 2026-11-03).** design-md (the owner's DMD CLI skill) leaves "Out of the router" for the optional set (D13): it needs the dmd CLI and its style vault.
   - Trigger, Product level, agent design: the project has no DESIGN.md (`dmd create`), or the brief calls its direction weak (`dmd improve`). It runs after Gather facts.
   - The vault is the style-vault folder of the DMD repo, found from `readlink -f "$(command -v dmd)"`; outside that repo dmd needs `--archive <vault>`.
-  - Its reference styles feed the first grilling round. direction.md maps its output into the DESIGN.md template; each value stays open until the owner's verdict.
+  - Its reference styles feed the first grilling round; when they do not fit the product (Harbor eval: 6 brand and marketing sites for a warehouse tool), its DESIGN.md stays a draft and the design-taste-frontend draw leads the first round. direction.md maps its output into the DESIGN.md template; each value stays open until the owner's verdict.
   - A design-builder with no DESIGN.md stops at intake with the DECISION NEEDED block (D16) and never runs design-md.
 
 ## Routing by question (D9, D19, D20)
