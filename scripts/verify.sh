@@ -160,5 +160,9 @@ for name in $ROUTED; do
 done
 say "skill names stay in the Routing table and surface pointers"
 
+# 13. Every repo SKILL.md loads with pi's own skill loader (YAML frontmatter, not a line grep).
+if FM=$(node "$ROOT/scripts/check-skill-frontmatter.mjs" "$ROOT" 2>&1); then say "every SKILL.md loads with pi's skill loader"
+else bad "SKILL.md frontmatter rejected by pi's skill loader:"; echo "$FM"; fi
+
 echo "----"
 if [ "$FAIL" -eq 0 ]; then echo "verify: GREEN"; exit 0; else echo "verify: $FAIL failure(s)"; exit 1; fi

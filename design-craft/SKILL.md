@@ -1,6 +1,6 @@
 ---
 name: design-craft
-description: Design workflow for UI work: sort the work, grill the design with prototype rounds, build the decided parts bottom-up, verify each part, report.
+description: "Design workflow for UI work: sort the work, grill the design with prototype rounds, build the decided parts bottom-up, verify each part, report."
 globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.html", "**/*.css", "**/*.scss"]
 disable-model-invocation: true
 ---
@@ -20,7 +20,7 @@ disable-model-invocation: true
 | illustration | Faux product UI for a page slot, still or animated | [surfaces/illustration.md](surfaces/illustration.md) |
 | library | A design system or component library build | None: stop and report it; the owner starts build-design-library |
 
-2. **Scope level.** The level of the largest unit the work asks for: product, screen or flow, component group, component, or primitive (color, type, spacing, radius, motion tokens). A section of a page is a component group.
+2. **Scope level.** The level of the largest unit the work asks for: product, screen or flow, component group, component, or primitive (color, type, spacing, radius, motion tokens). A section of a page is a component group. A component group runs the Screen and the Component passes; a pass that does not fit records n/a.
 3. **Mode.** **Attended**: the owner answers in this session through ask_user. **Headless**: no one answers; the brief is the owner's word.
 4. **Report draft.** Write it under your artifact directory in the Report format.
 
@@ -44,7 +44,7 @@ The report draft exists from the end of Sort and is updated after each step. Whe
 Every part meets this floor. Precedence, highest first: DESIGN.md, the brief, the surface file, this floor, then a routed skill's values where the floor is silent. Inside an illustration stage, its surface file decides window chrome, placeholders, colors and data.
 
 - **Let the UI explain itself.** Add text only for information the UI cannot show. A subtitle that restates its heading, a "This page shows..." intro and a filler description slot each fail. A heading carries a description only when the description adds such information.
-- **Wrap before truncating.** Titles, money, metric labels and button labels wrap or stay whole. Truncate only in a cell whose width the design fixes (a table cell, a list row), and keep the full text reachable.
+- **Wrap before truncating.** Titles, money and metric labels wrap or stay whole. Button and other control labels stay on one line. Truncate only in a cell whose width the design fixes (a table cell, a list row), and keep the full text reachable.
 - **One card system per screen**: one radius, border, padding and shadow set for every card.
 - **Height from content.** A block is as tall as its content plus its padding; `min-height` with vertical centering is for a full-viewport hero only. Empty bands between blocks within one surface: ≤64px app/data, ≤128px marketing. Stacked section paddings may total ~192px on marketing pages; >256px is dead air anywhere. Pull the next block up or give the band content.
 - **Tracking floor -0.03em** on every surface; `tracking-tighter` fails. Body text keeps 0.
@@ -67,7 +67,7 @@ A context-sensitive treatment (warm neutrals, texture, large radii, uppercase mi
 
 The owner decides; you find the facts and build the prototypes. Headless runs take step 1 alone, reading the facts themselves, then go to the build; an open decision there follows "Open parts".
 
-1. **Gather facts.** Read the brief and every file it names; DESIGN.md anywhere in the repo (`rg --files -g DESIGN.md`), docs/design/ and UX or UI specs; the token layer and the component layer; the two nearest sibling screens and the gallery route, if one exists. Send each fact you cannot read to a child: scout for the existing code, researcher for reference products, competitors and domain data. Done when the draft lists the sources read and each child's question, and no project file has changed.
+1. **Gather facts.** Read the brief and every file it names; DESIGN.md anywhere in the repo (`rg --files -g DESIGN.md`), docs/design/ and UX or UI specs; the token layer and the component layer; the two nearest sibling screens and the gallery route, if one exists. Send each fact you cannot read to a child: scout for the existing code, researcher for reference products, competitors and domain data. When the part changes an existing screen and a browser is allowed, take the intake screenshots now, before the first edit: step 1 of "Before and after" in the Verify row's "## Live checks". Done when the draft lists the sources read and each child's question, the intake shots exist in before/ or the draft reads `before-and-after: N-A — <reason>`, and no project file has changed.
 2. **Map the design tree.** The root is the scope level; below it come the lower levels of Sort step 2. A decision is closed when DESIGN.md, an approved token or an existing component settles it; note that source. Go down only through levels that hold an open decision. Your surface file adds the decisions its surface needs. Done when every decision in the draft's tree reads `open` or `closed: <source>`.
 3. **Ask a round.** The **frontier** is every open decision whose parent decisions are closed. Run the design agent's passes and triggers of the frontier's levels; for an open overall look, the Product direction pass deals the options and supplies the house rules. Build, check and ask the round with [direction.md](direction.md). A question that waits on a running child waits; ask the rest now. Done when the owner has answered every question of the round.
 4. **Record each verdict** in DESIGN.md as the owner makes it, with the template in direction.md, then recompute the frontier. Repeat from step 3 until the frontier is empty. A small section can finish in one round; a whole page usually takes the page, its sections, its open components, and a primitives sheet when it adds tokens. Done when every decision in the tree is closed.
@@ -78,7 +78,7 @@ The owner decides; you find the facts and build the prototypes. Headless runs ta
 1. **Order the parts.** List the parts DESIGN.md (or the brief) names, by level: primitives, then components, then screens. A part is **decided** when every decision it needs is closed, else **open**. Done when the draft lists each part with its level, decided or open, and the parts it uses.
 2. **Send or take.** The design agent sends each decided part whose lower-level parts passed Verify to a design-builder, with the DESIGN.md path and the part's name; independent parts go in parallel. A design-builder builds the parts in its brief. Done when every decided part is sent or built, and every open part is in OPEN or a DECISION NEEDED block.
 3. **Build a part.** Load the fired triggers of the part's level and the Any rows. Implement within DESIGN.md, the surface file and the floor, with the project's tokens and components. Before renaming a component or prop, find every use with `rg -n -w`. Run the typecheck (the project script, or `tsc --noEmit`). Done when the typecheck passes and every fired trigger in LOADED is read or `(missing)`.
-4. **Craft passes.** Run each of your pass rows of the part's level, one skill per pass, as a lens on the part. Done when every pass of the level has a result in PASSES: `applied: <what changed>` with the skill loaded, or `n/a: <observable fact>` ("no motion in the part", "no strings changed"). A pass that loads and changes nothing reads `applied: no change, <why>`.
+4. **Craft passes.** Run each of your pass rows of the part's level (a component group: the Screen and the Component rows), one skill per pass, as a lens on the part. Done when every pass of the level has a result in PASSES: `applied: <what changed>` with the skill loaded, or `n/a: <observable fact>` ("no motion in the part", "no strings changed"). A pass that loads and changes nothing reads `applied: no change, <why>`.
 5. **Verify the part** (next section). Done when the part passed Verify; only then does a higher level use it.
 6. **Screen review (design agent).** After a screen passes Verify, run the design agent's Screen passes. A motion pass becomes a round: the owner picks proposals, and builders apply them with the Primitive motion pass. Done when every design-agent Screen pass has a result in PASSES.
 
@@ -124,7 +124,7 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 
 | Level | Pass or trigger | Skill | Agent | Notes |
 |---|---|---|---|---|
-| Product | Pass: which overall look and house rules? | design-taste-frontend | both | Design: "3. Draw the direction" deals the options. Screen pass for both: "House rules"; public pages read the sections in their surface file |
+| Product | Pass: which overall look and house rules? | design-taste-frontend | both | Public page: "3. Draw the direction" deals the options (design); Screen pass for both: "House rules", plus the sections in its surface file. App screen: references/app-screens.md whole, for its app draw, "13. House rules for app screens" and its table, KPI and chart rules; the page sections do not apply |
 | Product | Pass: reference products, competitors, domain data | researcher (child agent) | design | Spawn it; it returns facts, never decisions |
 | Product | Pass: how was a site the owner names built? | explain-interface | design | n/a when the owner names no site |
 | Screen, flow | Pass: navigation, forms, multi-step flows, destructive actions | laws-of-ux | both |  |
@@ -151,11 +151,11 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 | Primitive | Pass: palette, semantic tokens, contrast, dark mode | better-colors | builder |  |
 | Primitive | Pass: type scale, font loading, wrapping | better-typography | builder |  |
 | Primitive | Pass: spacing, grouping, responsive, RTL | better-layout | builder |  |
-| Primitive | Pass: radius, shadow, border, icons | better-ui | builder |  |
+| Primitive | Pass: radius, shadow, border, icons | better-ui | builder | Its motion values (stagger, durations) yield to animate |
 | Primitive | Pass: motion tokens and new animations | animate | builder |  |
 | Primitive | Trigger: springs, gestures, drag, sheets | apple-design | builder |  |
 | Primitive | Trigger: a motion feel call | emil-design-eng | builder |  |
 | Any | Trigger: phone users | mobile-native | both |  |
 | Any | Trigger: marketing copy | copywriting (optional) | both |  |
-| Verify | Pass: every part | design-qa | both | "## Static checks"; Screen pass: "## Live checks" when a browser is allowed |
+| Verify | Pass: every part | design-qa | both | "## Static checks" on every part; "## Live checks" on every part when a browser is allowed, its intake shots at Gather facts |
 | Verify | Trigger: any browser step | browser-checks | both | Before the first browser command (pi) |

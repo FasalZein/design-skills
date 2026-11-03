@@ -14,6 +14,10 @@ The design-qa scanner reports a stock token layer as `STOCK_TOKEN`.
 
 Done when the draft names the grade and, for stock, the token changes.
 
+## Taste sections
+
+design-taste-frontend owns this surface's look through its references/app-screens.md, not its page run. Read that file whole while you gather facts. When the overall look is open, its app draw (`draw.mjs --app`) deals the round's options. Its "13. House rules for app screens" and its KPI (5), chart (6) and table (7) sections apply at Build and as the Screen pass.
+
 ## Design Decision Gate
 
 These are the app-screen decisions in the design tree. Each one is closed by DESIGN.md or the brief, or it is open. Attended: the open ones join the frontier. Headless: an open one is an open part (DECISION NEEDED). Write the gate line into the report draft before the first edit.
@@ -23,7 +27,7 @@ These are the app-screen decisions in the design tree. Each one is closed by DES
 3. **Aesthetic direction**: a specific adjective pair, never "modern" or "clean".
 4. **Initial mode from the physical scene**: one sentence on who uses this, where, under what light, in what mood. It picks light or dark; the other mode remaps the semantic tokens.
 5. **Typeface**: from the brief's world, with a verified source and license. A stock face (Inter, Geist, DM Sans, Roboto) needs a stated reason.
-6. **Token grade and palette strategy**: the scan's grade, plus restrained, committed, full palette or drenched.
+6. **Token grade and palette strategy**: the scan's grade, plus restrained, committed, full palette or drenched (the Color kernel recipe defines them).
 7. **Composition**: the shell recipe below.
 8. **The unforgettable choice**: if someone saw 10 similar screens today, which one concrete visual or structural choice makes them remember this one?
 9. **Swap test and category reflex**: if a template layout and Inter would go unnoticed in its place, the choice defaulted; remake it. If the palette or look is guessable from the product category alone, or from category plus anti-reference ("fintech but not navy, so terminal dark"), rework it.
@@ -119,6 +123,77 @@ Done when each async region shows all four states behind the state toggle and th
 - Each chart has a text summary of its takeaway ("Revenue grew 12% over Q3, driven by…"), its data reachable as a table (a visible toggle or a `<figure>` with an accessible table), and live updates announced through a polite live region for meaningful changes only.
 
 Done when the chart has its three extra states, a degradation step per breakpoint, a summary and a data table.
+
+### Color kernel (trigger: the palette strategy is open, or the token grade is none)
+
+State the strategy before picking colors. The multiplier scales every stop's chroma; re-clamp against the gamut caps after scaling.
+
+| Strategy | Use | Chroma |
+|---|---|---|
+| Restrained | Tinted neutrals and one accent on at most 10% of the surface. Name what makes it distinct: the neutral hue, the accent or the type | ×0.6 |
+| Committed | One saturated color carries 30-60% of the surface | ×1.0 |
+| Full palette | 3-4 named roles: campaigns, data viz | ×1.2 |
+| Drenched | The surface is the color | ×1.4 |
+
+Greenfield derivation (grade none), in order:
+
+1. **Hue from the product name**: `H = (first_letter_ordinal × 137 + second_letter_ordinal × 47) mod 360` (a=1 to z=26; skip non-letters; with one letter, reuse it). Keep the derived hue over a category stereotype. When it cannot meet contrast or gamut after capping, shift ±30° and derive again.
+2. **12-stop lightness spine** at that hue, stops 50 to 950: `L = 0.99, 0.96, 0.90, 0.82, 0.71, 0.64, 0.55, 0.49, 0.40, 0.32, 0.27, 0.24`. Committed chroma per stop: `C = 0.02, 0.04, 0.06, 0.09, 0.11, 0.13, 0.13, 0.12, 0.10, 0.08, 0.06, 0.05`. Scale by the strategy multiplier, then cap C at 0.09 for hues 170-210° and about 0.18 elsewhere. Hold the hue within 10° across stops.
+3. **Companion neutral** at `H+180°` (at least 120° from the primary), C ≤ 0.02: the tinted neutrals that replace dead white and gray. Surfaces use stops 50 and 100.
+
+Then map the scales to semantic tokens and measure contrast with the Primitive palette pass.
+
+### Font fallback metrics (trigger: the part loads a web font)
+
+Remove the fallback layout shift with metric overrides on a fallback `@font-face`. Use the framework automation when the project has it (`next/font`, Fontaine); write the face by hand only without one.
+
+```css
+@font-face {
+  font-family: "Brand-fallback";
+  src: local("Arial");
+  size-adjust: 105%; ascent-override: 92%; descent-override: 24%; line-gap-override: 0%;
+}
+```
+
+Tune the four values until the fallback's line breaks match the web font's.
+
+### Sizing and surfaces (trigger: the part lays out a row, a grid or nested surfaces)
+
+- **Sizing contract**: declare each element **Hug** (wraps its content), **Fill** (`flex: 1`) or **Fixed** (sidebars, avatars).
+- **Grid remainders**: leave no empty cell. Remainder 1: the last item spans the row. Remainder 2: both items span half.
+- **Surfaces**: at most three visible surface levels per view (page, section, card). A transient overlay rarely counts.
+
+### Density and elevation (trigger: the part sets control heights, surface tints or shadows)
+
+Pick one density mode per surface; mixed modes in one view read as a bug. Grouped controls share one height.
+
+| Mode | Control height | Field gap | Use |
+|---|---|---|---|
+| Compact | 32px | 12-16px | Data tools, admin surfaces, pro users |
+| Comfortable (default) | 40px | 16-24px | Product UI |
+| Spacious | 48px | 24-32px | Onboarding, touch-first |
+
+Map every surface to one of four elevation levels. Depth comes from tint and shadow together.
+
+| Level | Surface | Shadow |
+|---|---|---|
+| Sunken | 1 stop darker than the page (wells, inset inputs) | none or inset |
+| Default | the page surface | none |
+| Raised | 1 stop lighter (cards, bars) | a border-weight shadow |
+| Overlay | lightest (menus, dialogs, popovers) | a wider two-layer shadow |
+
+In dark mode the ladder becomes tint: a closer surface is lighter.
+
+### Spacing pass (trigger: a screen or component group is built, before Verify)
+
+The ladder, on a 4px grid: **tight** 4px (inside an atomic element), **item** 8px, **group** 16px, **section** 24-32px, **page** 32-64px.
+
+1. Classify every gap as tight, item, group, section or page.
+2. Snap each gap that fits no class to the nearest class.
+3. Compare inset (padding inside a surface) with stack (the gap between siblings) on repeated surfaces: they differ, so containment reads apart from adjacency. Check that grouped controls share heights.
+4. Squint: blur the screenshot; the primary element and the groupings stay identifiable.
+
+Done when every gap names its class and the squint test passes.
 
 ### CJK text (trigger: the product serves Chinese, Japanese or Korean users)
 
