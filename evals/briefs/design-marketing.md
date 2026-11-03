@@ -22,7 +22,7 @@ Give each design-builder a brief in this shape: the part, its scope level and su
 
 ## Done
 
-Done when every decided part is built and passed its builder's Verify, the FAQ section is in a DECISION NEEDED block and nowhere in the code, typecheck and build pass on main, and the report is written.
+Done when every decided part is built and passed its builder's Verify, the FAQ section is in a DECISION NEEDED block, the existing FAQ section stays as it is (no form of the open decision is built), typecheck and build pass on main, and the report is written.
 
 ## Finish
 

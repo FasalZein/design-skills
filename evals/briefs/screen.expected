@@ -13,7 +13,6 @@ pass laws-of-ux                   # row: Screen, flow | Pass: navigation, forms,
 pass better-interface            # row: Screen, flow | Pass: a review across domains | builder
 forbid stageshow                 # row: Screen, flow | Trigger: a product illustration or demo on a page | both (no stage in the fixture)
 forbid build-design              # row: Screen, flow | Trigger: a Figma file or a design image is the source | builder (DESIGN.md is the source)
-forbid pencil-design             # row: Screen, flow | Trigger: a .pen or .lib.pen file is the source | builder (no .pen file)
 
 # Verify and Any rows.
 must design-qa                   # row: Verify | Pass: every part | both

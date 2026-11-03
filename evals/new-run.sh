@@ -43,6 +43,14 @@ FIXTURE="$HERE/$FIX"
 mkdir -p "$ROOT"
 if [ -n "$FROM" ]; then
   PREV="$ROOT/$FROM"
+  # The source must be a real run: a directory directly inside the physical runs root, not a symlink,
+  # and the root of its own git repository (a plain folder would archive an ancestor repository's HEAD).
+  [ -L "$PREV" ] && { echo "new-run: $PREV is a symlink; refusing" >&2; exit 1; }
+  [ -d "$PREV" ] || { echo "new-run: $PREV is no run directory" >&2; exit 1; }
+  ROOT_REAL=$(cd "$ROOT" && pwd -P); PREV_REAL=$(cd "$PREV" && pwd -P)
+  [ "$(dirname "$PREV_REAL")" = "$ROOT_REAL" ] || { echo "new-run: $PREV resolves outside $ROOT_REAL; refusing" >&2; exit 1; }
+  [ "$(git -C "$PREV_REAL" rev-parse --show-toplevel 2>/dev/null)" = "$PREV_REAL" ] || { echo "new-run: $PREV_REAL is not its own git repository" >&2; exit 1; }
+  PREV=$PREV_REAL
   PREV_SHA=$(git -C "$PREV" rev-parse --short HEAD 2>/dev/null) || { echo "new-run: $PREV is no run with a commit" >&2; exit 1; }
   [ -d "$PREV/node_modules" ] || { echo "new-run: $PREV/node_modules missing" >&2; exit 1; }
   mkdir "$RUN"

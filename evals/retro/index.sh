@@ -12,6 +12,7 @@ set -o pipefail
 OUT=${1:-$HOME/.pi/artifacts/retro/sessions.tsv}
 case $OUT in /*) ;; *) OUT=$PWD/$OUT;; esac
 SESSIONS=${PI_SESSIONS_DIR:-$HOME/.pi/agent/sessions}
+RETRO=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$(dirname "$OUT")" || exit 1
 cd "$SESSIONS" || exit 1
 LIST=$(mktemp) || exit 1
@@ -48,7 +49,8 @@ ref_skills() { # session file -> comma list of skills whose reference file conte
 while read -r f; do
   bytes=$(stat -f %z "$f")
   refs=$(ref_skills "$f")
-  jq -rs --arg f "$f" --arg bytes "$bytes" --arg refs "$refs" '
+  jq -L "$RETRO" -rs --arg f "$f" --arg bytes "$bytes" --arg refs "$refs" '
+    include "passes";
     def calls: [.[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="toolCall")];
     def results: [.[] | select(.type=="message" and .message.role=="toolResult")];
     def ok_results: [results[] | select(.message.isError != true)];
@@ -58,11 +60,6 @@ while read -r f; do
       | $h != null and (.[($h+1):] | any(test("\\S") and (test("^#{1,6} ") | not) and (. != "--")));
     # A report line "RESULT: X" with a filled value (a template line holds "|" alternatives).
     def result_of: [ split("\n")[] | select(test("^RESULT:") and (test("\\|") | not)) | capture("^RESULT:\\s*(?<r>[A-Z]+)").r ] | first // "none";
-    # PASSES entries "<pass> -> applied: <change>" or "<pass> -> n/a: <fact>", up to the next report field.
-    # An empty change or fact is an unfilled entry: the capture requires a non-space first character.
-    def passes_of: (split("\n") | (map(test("^PASSES:")) | index(true)) as $i
-      | if $i == null then [] else .[$i:] | (.[0] |= sub("^PASSES:\\s*";"")) | .[0:1] + (.[1:] | until(length==0 or (.[0]|test("^[A-Z]+:")); .[1:]) as $rest | .[0:(length - ($rest|length))]) end
-      | map(capture("^\\s*(?<pass>[^<>|\\s][^<>|]*?)\\s*->\\s*(?<status>applied|n/a):\\s*(?<change>[^<>|\\s][^<>|]*?)\\s*$")));
     (map(select(.customType=="pi-subagents_launch_metadata"))[0].data) as $m
     | (map(select(.type=="message" and .message.role=="assistant"))) as $a
     | (map(select(.type=="message" and .message.role=="user")) | length) as $u

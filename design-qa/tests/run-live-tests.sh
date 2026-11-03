@@ -115,6 +115,13 @@ want='{"rules":{"SECTION.one":1,"SECTION.two":1,"SECTION.three":1},"transitions"
 if printf '%s\n%s' "$out" "$want" | jq -se '.[0] == .[1]' >/dev/null; then
   PASS=$((PASS+1)); echo "ok   landing line shadows count as seams"
 else ko "landing-shadow: want $want, got $(printf '%s' "$out" | jq -c .)"; fi
+# a fully transparent line shadow ("rgba(0, 0, 0, 0) 0px 1px 0px 0px", or the word transparent) draws nothing: not a seam.
+ab open "file://$HERE/machine/landing-shadow-clear.html" >/dev/null
+out=$(ab eval --stdin < "$PROBES/landing.js")
+want='{"rules":{},"transitions":0}'
+if printf '%s\n%s' "$out" "$want" | jq -se '.[0] == .[1]' >/dev/null; then
+  PASS=$((PASS+1)); echo "ok   landing transparent line shadows are no seams"
+else ko "landing-shadow-clear: want $want, got $(printf '%s' "$out" | jq -c .)"; fi
 echo "----"
 echo "probe tests: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

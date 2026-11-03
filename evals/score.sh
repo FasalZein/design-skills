@@ -8,12 +8,17 @@
 #   decision    its final message or written report holds a DECISION NEEDED block with a Q1 line, and
 #               the block names the open part (the "open" word of the .expected file)
 #   children    the number of child design-builder sessions: sessions under PI_SESSIONS_DIR (default
-#               ~/.pi/agent/sessions) whose header line names this session as parentSession
-#   open_built  no child brief has a Part line that names the open part without "without", "except",
-#               "excluding", "not" or "open" (the open part was not sent to a builder)
+#               ~/.pi/agent/sessions) whose launch metadata names agent design-builder and whose header
+#               parentSession has this session's file name (the scored file may be a copy). FAIL when the
+#               search fails or finds no builder child.
+#   open_built  every child brief has exactly one nonempty Part line, and its included part (the text before
+#               "without", "except", "excluding", "but not" and the like) does not name the open part.
+#               FAIL without child evidence.
 # Each child then gets its own line "<run>/<n> <child part> <model> ...", scored against the builder
 # .expected of its level: the child's WORK line, else its brief's "Scope level" line (primitive,
-# component group or section, component, screen or page), on the design run's product.
+# component group or section, component, screen or page), on the design run's product. A marketing
+# section is mkt-section when its surface is illustration or its included part is the demo (builds_demo),
+# else mkt-copy-section.
 # Per run it reports:
 #   text        every "must" skill and every applied pass skill came back as text in a tool result
 #   unexpected  no other skill came back: not a forbidden one, not an n/a pass, not one the expected file omits
@@ -53,14 +58,13 @@ score_one() {
   if [ -z "$row" ]; then echo "$run $part $model FAIL: session not in $TSV"; FAILED_RUNS=$((FAILED_RUNS+1)); return 0; fi
   returned=$(col "$row" skills_returned); passes=$(col "$row" passes); result=$(col "$row" result)
   cost=$(col "$row" cost); peak=$(col "$row" peak_ctx)
-  # A run stopped before its final RESULT message has no PASSES in the index: read the last written report.
-  [ -n "$passes" ] || passes=$(jq -rs '[ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]?
+  # A run stopped before its final RESULT message has no PASSES in the index: read the last written report,
+  # with the index's own entry check (evals/retro/passes.jq), so an unfilled entry does not count here either.
+  [ -n "$passes" ] || passes=$(jq -L "$HERE/retro" -rs 'include "passes";
+    [ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]?
       | select(.type=="toolCall" and .name=="write") | .arguments.content // ""
       | select(test("(^|\n)RESULT:") and test("(^|\n)PASSES:")) ] | last // ""
-    | split("\n") as $l | ($l | map(test("^PASSES:")) | index(true)) as $i
-    | if $i == null then "" else
-        ([ $l[$i] | sub("^PASSES:\\s*";"") ] + ($l[($i+1):] | (map(test("^[A-Z]+:")) | index(true)) as $j | if $j == null then . else .[0:$j] end))
-        | map(select(test("\\S"))) | join("; ") end' "$session")
+    | [ passes_of[] | "\(.pass) -> \(.status): \(.change)" ] | join("; ")' "$session")
 
   # Pass outcomes: "<pass> -> applied|n/a: <change>" entries; the pass names its skill.
   applied=""; na=""; missing_pass=""
@@ -115,10 +119,61 @@ final_text() { jq -rs '([ .[] | select(.type=="message" and .message.role=="assi
      | .arguments.content // "" | select(test("(^|\n)RESULT:")) ] | last // "")' "$1"; }
 # The brief: the first user message.
 brief_text() { jq -rs '[ .[] | select(.type=="message" and .message.role=="user") | .message.content[]? | select(.type=="text") | .text ] | first // ""' "$1"; }
-# Child sessions whose header line names $1 as parentSession, oldest first.
-children_of() { rg -l -F -g '*.jsonl' "\"parentSession\":\"$1\"" "$SESSIONS_DIR" 2>/dev/null | while read -r f; do
-    head -n1 "$f" | jq -r --arg p "$1" --arg f "$f" 'select(.type=="session" and .parentSession==$p) | "\(.timestamp)\t\($f)"'
-  done | sort | cut -f2; }
+# Design-builder child sessions of $1, oldest first: the header's parentSession names $1 and the launch metadata
+# names agent design-builder (scout and researcher children are allowed, not builders). The scorer reads a copy of
+# the design session (owner decision 14) while a child keeps the original parentSession path, so the match is on
+# the session file name, which pi makes unique. Returns 2 when the search fails (for example no folder) or when any
+# candidate file cannot be read or parsed: an unreadable child could hide the open part, so it is no evidence.
+children_of() {
+  local base list f row rc=0 rows=""
+  base=$(basename "$1")
+  list=$(rg -l -F -g '*.jsonl' -- "/$base\"" "$SESSIONS_DIR" 2>/dev/null); [ $? -le 1 ] || return 2
+  while read -r f; do
+    [ -n "$f" ] || continue
+    row=$(jq -rs --arg b "$base" --arg f "$f" 'select(.[0].type=="session" and ((.[0].parentSession // "") | split("/") | last) == $b
+      and ([ .[] | select(.customType=="pi-subagents_launch_metadata") | .data.agent ][0] == "design-builder"))
+      | "\(.[0].timestamp)\t\($f)"' "$f" 2>/dev/null) || { rc=2; continue; }
+    [ -z "$row" ] || rows="$rows$row"$'\n'
+  done <<< "$list"
+  [ -z "$rows" ] || printf '%s' "$rows" | sort | cut -f2
+  return $rc
+}
+# Whether a child brief builds the open part $2: "yes", "no", or "unclear" (no Part line, or more than one).
+# Only the included part counts: the Part text is cut at its first exclusion word, so "the Shipments table,
+# without the Docks section" is no, while "the Docks section with annotations" and "the open Docks section" are yes.
+# An empty or whitespace-only Part is unclear too: it gives no evidence of the assigned part.
+builds_open() {
+  local inc
+  inc=$(included_part "$1") || { echo unclear; return; }
+  if grep -qiF -- "$2" <<< "$inc"; then echo yes; else echo no; fi
+}
+# The included part of a child brief, lowercased: the text of its one Part line, cut at its first exclusion word.
+# Exit 1 and print nothing when there is no Part line, more than one, or no letter or digit is left.
+included_part() {
+  local parts inc
+  parts=$(brief_text "$1" | sed 's/\*\*//g' | grep -iE '^[[:space:]*-]*part:')
+  [ -n "$parts" ] && [ "$(wc -l <<< "$parts" | tr -d ' ')" -eq 1 ] || return 1
+  inc=$(tr 'A-Z' 'a-z' <<< "${parts#*:}" | sed -E 's/(without|except|excluding|but not|not including|apart from|other than)([^a-z].*)?$//')
+  [[ $inc =~ [a-z0-9] ]] || return 1
+  printf '%s\n' "$inc"
+}
+# The surface a child brief names: the first word after "Surface:" (else the first field of its WORK line), lowercased.
+surface_of() {
+  local sf
+  sf=$(brief_text "$1" | sed 's/\*\*//g' | grep -ioE 'surface:[[:space:]]*[a-z-]+' | head -1 | sed -E 's/^[^:]*:[[:space:]]*//')
+  [ -n "$sf" ] || sf=$(final_text "$1" | sed -n 's/^WORK:[[:space:]]*\([^,]*\),.*/\1/p' | head -1)
+  tr 'A-Z' 'a-z' <<< "$sf"
+}
+# Whether a marketing section child builds the illustration demo: its surface is illustration, or the head of its
+# included part (before the first ":", ",", ";", "(", or "with", "that", "which", "and", "linking") names the demo,
+# an illustration or a stage. "the hero section with a link to the demo" and "the pricing section, excluding the
+# demo" are ordinary sections; "the product-demo section: an animated illustration ..." is the demo.
+builds_demo() {
+  local head
+  [ "$(surface_of "$1")" = illustration ] && return 0
+  head=$(included_part "$1" | sed -E 's/[:,;(].*//; s/[[:space:]](with|that|which|and|linking)[[:space:]].*//') || return 1
+  grep -qE 'illustration|demo|stage' <<< "$head"
+}
 # The builder part of a child: its level on the design run's product (prefix "mkt-" for marketing).
 child_part() {
   local lvl prefix=$2
@@ -126,7 +181,11 @@ child_part() {
   [ -n "$lvl" ] || lvl=$(brief_text "$1" | grep -i 'scope level' | head -1 | sed 's/.*[Ss]cope level:[*]*[[:space:]]*//')
   lvl=$(printf '%s' "$lvl" | tr 'A-Z' 'a-z')
   case "$lvl" in
-    *group*|*section*) echo "${prefix}section";;
+    # On the marketing product, only the illustration demo part takes mkt-section (it requires stageshow);
+    # an ordinary page section (hero, features, pricing, footer) takes mkt-copy-section, with its marketing-copy trigger.
+    *group*|*section*) if [ -z "$prefix" ]; then echo section
+      elif builds_demo "$1"; then echo mkt-section
+      else echo mkt-copy-section; fi;;
     primitive*) echo "${prefix}primitive-set";;
     component*) echo "${prefix}component";;
     screen*|page*|flow*) if [ -n "$prefix" ]; then echo "${prefix}page"; else echo screen; fi;;
@@ -150,15 +209,17 @@ while IFS=$'\t' read -r run part model session; do
       elif ! grep -q '^Q1:' <<< "$fin"; then dec="FAIL(no Q1)"
       elif ! grep -qiF -- "$open" <<< "$blk"; then dec="FAIL(block names no $open)"
       else dec=ok; fi
-      kids=$(children_of "$session"); nk=0; built=""; i=0
+      kids=$(children_of "$session"); kst=$?; nk=0; built=""; i=0
       [ -n "$kids" ] && nk=$(printf '%s\n' "$kids" | wc -l | tr -d ' ')
       while read -r k; do
         [ -n "$k" ] || continue; i=$((i+1))
-        hit=$(brief_text "$k" | grep -i 'part:' | grep -iF -- "$open")
-        [ -n "$hit" ] && grep -qviE 'without|except|excluding|not|open' <<< "$hit" && built="$built,$run/$i"
+        case $(builds_open "$k" "$open") in yes) built="$built,$run/$i";; unclear) built="$built,$run/$i:part-unclear";; esac
       done <<< "$kids"
-      if [ -z "$built" ]; then ob=ok; else ob="FAIL(${built#,})"; fi
-      EXTRA=" decision=$dec children=$nk open_built=$ob"
+      # Missing child evidence is a FAIL: a failed search or no builder child at all cannot show the open part stayed unbuilt.
+      if [ "$kst" -ne 0 ]; then nkf="FAIL(child search failed in $SESSIONS_DIR)"; ob="FAIL(no child evidence)"
+      elif [ "$nk" -eq 0 ]; then nkf="FAIL(none found)"; ob="FAIL(no child evidence)"
+      else nkf=$nk; if [ -z "$built" ]; then ob=ok; else ob="FAIL(${built#,})"; fi; fi
+      EXTRA=" decision=$dec children=$nkf open_built=$ob"
       score_one "$run" "$part" "$model" "$session" || exit 1
       EXTRA=""; i=0
       while read -r k; do
