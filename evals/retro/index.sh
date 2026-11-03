@@ -17,6 +17,8 @@ LIST=$(mktemp) || exit 1
 trap 'rm -f "$LIST"' EXIT
 rg -l -m1 '"customType":"pi-subagents_launch_metadata".*"agent":"design(-builder)?"' -g '*.jsonl' . > "$LIST"
 [ $? -le 1 ] || { echo "index: session search failed in $SESSIONS" >&2; exit 1; }
+# rg walks folders in parallel, so its file order changes between runs. Sort for a stable row order.
+sort -o "$LIST" "$LIST"
 printf 'start\tagent\tmodel\tbytes\tturns\tuser_msgs\tpeak_ctx\tout_tok\tcost\tdur_min\terrors\tbrowser_cmds\tskills_returned\tskill_count\tasks\tpasses_applied\tpasses_na\tpasses\tresult\ttitle\tfile\n' > "$OUT" \
   || { echo "index: cannot write $OUT" >&2; exit 1; }
 PARSE_FAILS=0
