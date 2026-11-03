@@ -1,0 +1,7 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-03T05:01:00.000Z","data":{"agent":"design-builder","model":"cpa/test-model","modelRef":"cpa/test-model:high","title":"score no report"}}
+{"type":"message","timestamp":"2026-11-03T05:02:00.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}
+{"type":"message","timestamp":"2026-11-03T05:03:00.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"c1","name":"read","arguments":{"path":"/Users/x/.agents/skills/shadcn/SKILL.md"}}],"usage":{"input":1000,"output":10,"cost":{"total":0.25}}}}
+{"type":"message","timestamp":"2026-11-03T05:04:00.000Z","message":{"role":"toolResult","toolCallId":"c1","toolName":"read","isError":false,"content":[{"type":"text","text":"---\nname: shadcn\ndescription: test skill shadcn\n---\n\n# shadcn\n\nBody."}]}}
+{"type":"message","timestamp":"2026-11-03T05:05:00.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"c2","name":"bash","arguments":{"command":"bash design-qa/scripts/design-scan.sh src"}}],"usage":{"input":1000,"output":10,"cost":{"total":0.25}}}}
+{"type":"message","timestamp":"2026-11-03T05:06:00.000Z","message":{"role":"toolResult","toolCallId":"c2","toolName":"bash","isError":false,"content":[{"type":"text","text":"exit 0"}]}}
+{"type":"message","timestamp":"2026-11-03T05:07:00.000Z","message":{"role":"assistant","content":[{"type":"text","text":"Stopped early."}],"usage":{"input":1000,"output":10,"cost":{"total":0.5}}}}
