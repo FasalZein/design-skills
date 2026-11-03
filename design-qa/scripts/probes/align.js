@@ -30,33 +30,38 @@
   const out = {fail: [], judge: []};
   const grade = (d, row, judgeOnly) => { d = Math.round(d * 10) / 10; if (d <= TOL) return;
     (d < STEP || judgeOnly ? out.judge : out.fail).push({...row, off: d}); };
-  for (const p of document.querySelectorAll('body, body *')) {
-    if (!vis(p)) continue;
-    const s = getComputedStyle(p), cs = kids(p); if (cs.length < 2) continue;
-    if (/flex/.test(s.display) && !/column/.test(s.flexDirection)) for (let i = 1; i < cs.length; i++) {
-      const [a, b] = [cs[i - 1], cs[i]]; if (!sameRow(a, b)) continue;
-      const icon = isIcon(a) ? a : isIcon(b) ? b : null, text = icon === a ? b : a;
-      if (icon && text.textContent.trim()) { const l = firstLine(text); if (!l) continue;
-        const ic = cy(icon.getBoundingClientRect()), multi = lineCount(text) > 1;
-        if (multi && Math.abs(ic - cy(text.getBoundingClientRect())) <= TOL) continue;
-        grade(Math.abs(ic - cy(l)), {kind: 'icon-text', a: name(icon), b: name(text)}, multi); }
-      else if (!icon && isLabel(a) && isLabel(b) && lineCount(a) === 1 && lineCount(b) === 1) {
-        const x = baseline(a), y = baseline(b); if (!x || !y) continue;
-        grade(Math.abs(x.y - y.y), {kind: 'label-value', a: name(a), b: name(b)}, x.fs !== y.fs); }
-    }
-    const stack = (/flex/.test(s.display) && /column/.test(s.flexDirection)) || s.display === 'block';
-    const labels = stack ? cs.filter(c => isLabel(c) && !/^inline/.test(getComputedStyle(c).display)) : [];
-    if (labels.length >= 2) { const lefts = labels.map(c => Math.round(c.getBoundingClientRect().left));
-      const count = {}; lefts.forEach(l => count[l] = (count[l] || 0) + 1);
-      const mode = +Object.keys(count).sort((x, y) => count[y] - count[x])[0];
-      const pr = p.getBoundingClientRect();
-      labels.forEach((c, i) => { const r = c.getBoundingClientRect(), d = Math.abs(lefts[i] - mode);
-        const centred = Math.abs((r.left - pr.left) - (pr.right - r.right)) <= TOL && r.width < pr.width - TOL;
-        const moving = getComputedStyle(c).transform !== 'none' || s.transform !== 'none';
-        grade(d, {kind: 'stack-left', a: name(c), b: name(p)}, centred || moving || d % STEP === 0); });
-    }
-  }
+  // Flex rows: an icon centres on the first line of its text; two one-line labels share a baseline.
+  const flexRow = s => /flex/.test(s.display) && !/column/.test(s.flexDirection);
+  const iconOf = (a, b) => isIcon(a) ? a : isIcon(b) ? b : null;
+  const iconText = (icon, text) => { const l = firstLine(text); if (!l) return;   // no rendered text line
+    const ic = cy(icon.getBoundingClientRect()), multi = lineCount(text) > 1;
+    if (multi && Math.abs(ic - cy(text.getBoundingClientRect())) <= TOL) return;
+    grade(Math.abs(ic - cy(l)), {kind: 'icon-text', a: name(icon), b: name(text)}, multi); };
+  const oneLineLabel = c => isLabel(c) && lineCount(c) === 1;
+  const labelPair = (a, b) => { if (!oneLineLabel(a) || !oneLineLabel(b)) return;
+    const x = baseline(a), y = baseline(b); if (!x || !y) return;
+    grade(Math.abs(x.y - y.y), {kind: 'label-value', a: name(a), b: name(b)}, x.fs !== y.fs); };
+  const checkPair = (a, b) => { if (!sameRow(a, b)) return;
+    const icon = iconOf(a, b);
+    if (icon) iconText(icon, icon === a ? b : a); else labelPair(a, b); };
+  const checkRow = cs => { for (let i = 1; i < cs.length; i++) checkPair(cs[i - 1], cs[i]); };
+  // Stacks: block labels share one left edge, the most common one.
+  const stacked = s => (/flex/.test(s.display) && /column/.test(s.flexDirection)) || s.display === 'block';
+  const blockLabels = cs => cs.filter(c => isLabel(c) && !/^inline/.test(getComputedStyle(c).display));
+  const modeOf = lefts => { const count = {}; lefts.forEach(l => count[l] = (count[l] || 0) + 1);
+    return +Object.keys(count).sort((x, y) => count[y] - count[x])[0]; };
+  const checkStack = (p, s, labels) => { if (labels.length < 2) return;
+    const lefts = labels.map(c => Math.round(c.getBoundingClientRect().left)), mode = modeOf(lefts), pr = p.getBoundingClientRect();
+    labels.forEach((c, i) => { const r = c.getBoundingClientRect(), d = Math.abs(lefts[i] - mode);
+      const centred = Math.abs((r.left - pr.left) - (pr.right - r.right)) <= TOL && r.width < pr.width - TOL;
+      const moving = getComputedStyle(c).transform !== 'none' || s.transform !== 'none';
+      grade(d, {kind: 'stack-left', a: name(c), b: name(p)}, centred || moving || d % STEP === 0); }); };
+  const checkParent = p => { if (!vis(p)) return;
+    const s = getComputedStyle(p), cs = kids(p); if (cs.length < 2) return;
+    if (flexRow(s)) checkRow(cs);
+    if (stacked(s)) checkStack(p, s, blockLabels(cs)); };
   // Counts per tier and every FAIL row; JUDGE rows only when the caller sets DQ_JUDGE=1 first.
-  return {tier: out.fail.length ? 'FAIL' : out.judge.length ? 'JUDGE' : 'PASS',
-    counts: {fail: out.fail.length, judge: out.judge.length}, fail: out.fail,
-    ...(globalThis.DQ_JUDGE ? {judge: out.judge} : {})}; })()
+  const report = () => { const tier = out.fail.length ? 'FAIL' : out.judge.length ? 'JUDGE' : 'PASS';
+    return {tier, counts: {fail: out.fail.length, judge: out.judge.length}, fail: out.fail, ...(globalThis.DQ_JUDGE ? {judge: out.judge} : {})}; };
+  for (const p of document.querySelectorAll('body, body *')) checkParent(p);
+  return report(); })()

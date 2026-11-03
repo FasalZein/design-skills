@@ -21,8 +21,8 @@
   const checked = e => vis(e) && !!e.offsetHeight && !e.closest('.ss-stage');   // stageshow stage content: film.mjs owns it
   // text: any element with a direct text node; placeholders for inputs
   const isField = e => e.matches('input,textarea');
-  const textOf = e => isField(e) ? e.placeholder
-    : ([...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) ? e.textContent : '');
+  const ownText = e => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+  const textOf = e => { return isField(e) ? e.placeholder : (ownText(e) ? e.textContent : ''); };
   const textColor = (e, st) => isField(e) ? (getComputedStyle(e,'::placeholder').color || st.color) : st.color;
   const floorOf = st => { const px = parseFloat(st.fontSize), bold = parseInt(st.fontWeight) >= 700;   // large text: 24px, or 18.66px bold
     return (px >= 24 || (px >= 18.66 && bold)) ? 3 : 4.5; };
@@ -31,8 +31,8 @@
     const bg = bgOf(e), r = ratio(over(fg, bg), bg), floor = floorOf(st);   // element's own background sits behind its text
     return r < floor ? {t:text.slice(0,30), r:+r.toFixed(2), need:floor} : null; };
   // non-text: control borders need 3:1 against the surrounding surface
-  const borderedControl = (e, st) => e.matches('input,select,textarea,button,[role=button]') && parseFloat(st.borderTopWidth) > 0
-    && st.borderTopStyle !== 'none' && !/rgba\(0, 0, 0, 0\)|transparent/.test(st.borderTopColor);
+  const borderedControl = (e, st) => { return e.matches('input,select,textarea,button,[role=button]') && parseFloat(st.borderTopWidth) > 0
+    && st.borderTopStyle !== 'none' && !/rgba\(0, 0, 0, 0\)|transparent/.test(st.borderTopColor); };
   const controlName = e => e.name || e.type || e.tagName;
   const borderFail = (e, st) => { if (!borderedControl(e, st)) return null;
     const bc = parse(st.borderTopColor), bg = bgOf(e.parentElement || e); if (!bc) return null;

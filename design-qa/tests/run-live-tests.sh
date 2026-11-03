@@ -68,6 +68,14 @@ if printf '%s\n%s' "$out" "$want" | jq -se '.[0] as $g | .[1] as $w | ($g | leng
       and (if $d < 0 then -$d else $d end) <= 0.02] | all)' >/dev/null; then
   PASS=$((PASS+1)); echo "ok   contrast rows match the WCAG ratios"
 else ko "contrast rows: want $(printf '%s' "$want" | jq -c .), got $(printf '%s' "$out" | jq -c .)"; fi
+# landing rules: section-level seams (border, hr, thin wide pseudo-element line) counted per tag.class; a sticky bar,
+# a list row and a narrow box are skipped. Transitions: background changes between wide bands in document order.
+ab open "file://$HERE/machine/landing.html" >/dev/null
+out=$(ab eval --stdin < "$PROBES/landing.js")
+want='{"rules":{"HEADER.top":1,"HR.rule":2,"SECTION.faq":1},"transitions":3}'
+if printf '%s\n%s' "$out" "$want" | jq -se '.[0] == .[1]' >/dev/null; then
+  PASS=$((PASS+1)); echo "ok   landing seams and transitions match"
+else ko "landing: want $want, got $(printf '%s' "$out" | jq -c .)"; fi
 echo "----"
 echo "probe tests: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
