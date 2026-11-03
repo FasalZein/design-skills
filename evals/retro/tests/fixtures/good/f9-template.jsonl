@@ -1,0 +1,3 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-03T05:00:00.000Z","data":{"agent":"design-builder","model":"cpa/test-model","modelRef":"cpa/test-model:high","title":"f9 template copy"}}
+{"type":"message","timestamp":"2026-11-03T05:00:01.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}
+{"type":"message","timestamp":"2026-11-03T05:10:00.000Z","message":{"role":"assistant","content":[{"type":"text","text":"RESULT: DONE | PARTIAL (time | gate-open | decision | scope) | BLOCKED\nWORK: <surface>, <scope level>, <attended | headless>\nPASSES: <pass> -> applied: <change> | n/a: <fact>, one per line\nARTIFACT: <absolute path>"}],"usage":{"input":20,"output":5,"cost":{"total":0.01}}}}

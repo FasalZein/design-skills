@@ -1,128 +1,161 @@
 ---
 name: design-craft
-description: Phase router for UI design work (intake, direction, build, refine, verify, report); app-UI craft rules live in reference/app-ui.md.
+description: "Design workflow for UI work: sort the work, grill the design with prototype rounds, build the decided parts bottom-up, verify each part, report."
 globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.html", "**/*.css", "**/*.scss"]
 disable-model-invocation: true
 ---
 
 # Design workflow
 
-Work the phases in order. Load a phase's skills when the phase starts: read the skill's SKILL.md at its path in the Skill map below. A skill from an earlier phase stays done; reload it only for a new question.
+**Design grilling** turns the open decisions into an approved DESIGN.md, with the owner, in rounds of prototypes. The **bottom-up build** then builds the decided parts, primitives first; each part passes Verify before a higher level uses it. Every run starts with Sort and ends with the Report.
 
-The app-UI craft rules (Hard Guardrails, Project Context Scan, Design Decision Gate, References, Type, Color Kernel, Spacing Kernel, Symptom → Correction, Conflict Priority) live in [reference/app-ui.md](reference/app-ui.md).
+## Sort the work
 
-## Skill map
-Read each SKILL.md whole (no offset or limit) with the read tool at the path below. A skill appears at its first phase; later phases name it only. Paths inside a skill (reference/, scripts/) are relative to its SKILL.md folder; use them as absolute paths. A skill that is not in the map: use the skill registry (in pi, the path that <available_skills> lists), or record it as missing.
+1. **Surface.** Read the surface file of each surface in the work, once; a surface file names the parts that wait for a trigger. A public page with a product demo slot has two surfaces. A Figma file, a design image or a .pen file is a source, not a surface: its Routing table row applies.
 
-| Phase | Skill | SKILL.md |
+| Surface | When | Surface file |
 |---|---|---|
-| 0 Intake | design-md | ~/.agents/skills/design-md/SKILL.md |
-| | shadcn | ~/.agents/skills/shadcn/SKILL.md |
-| | coss | ~/.agents/skills/coss/SKILL.md |
-| | coss-particles | ~/.agents/skills/coss-particles/SKILL.md |
-| | agent-browser | ~/.agents/skills/agent-browser/SKILL.md |
-| 1 Direction | design-taste-frontend | ~/.agents/skills/design-taste-frontend/SKILL.md |
-| | grill-design | ~/.agents/skills/grill-design/SKILL.md |
-| | prototype | ~/.agents/skills/prototype/SKILL.md |
-| | variant | ~/.agents/skills/variant/SKILL.md |
-| | state-machine | ~/.agents/skills/state-machine/SKILL.md |
-| | laws-of-ux | ~/.agents/skills/laws-of-ux/SKILL.md |
-| | impeccable | ~/.pi/agent/skills/impeccable/SKILL.md |
-| | explain-interface | ~/.agents/skills/explain-interface/SKILL.md |
-| 2 Build | better-layout | ~/.agents/skills/better-layout/SKILL.md |
-| | better-typography | ~/.agents/skills/better-typography/SKILL.md |
-| | better-colors | ~/.agents/skills/better-colors/SKILL.md |
-| | better-ui | ~/.agents/skills/better-ui/SKILL.md |
-| | better-accessibility | ~/.agents/skills/better-accessibility/SKILL.md |
-| | better-writing | ~/.agents/skills/better-writing/SKILL.md |
-| | copywriting | ~/.agents/skills/copywriting/SKILL.md |
-| | animate | ~/.agents/skills/animate/SKILL.md |
-| | apple-design | ~/.agents/skills/apple-design/SKILL.md |
-| | emil-design-eng | ~/.agents/skills/emil-design-eng/SKILL.md |
-| | make-interfaces-feel-better | ~/.agents/skills/make-interfaces-feel-better/SKILL.md |
-| | animation-vocabulary | ~/.agents/skills/animation-vocabulary/SKILL.md |
-| | ask-sonner | ~/.agents/skills/ask-sonner/SKILL.md |
-| | mobile-native | ~/.agents/skills/mobile-native/SKILL.md |
-| | also: laws-of-ux, variant | |
-| 3 Refine | find-animation-opportunities | ~/.agents/skills/find-animation-opportunities/SKILL.md |
-| | improve-animations | ~/.agents/skills/improve-animations/SKILL.md |
-| | better-interface | ~/.agents/skills/better-interface/SKILL.md |
-| | also: impeccable | |
-| 4 Verify | design-qa | ~/.agents/skills/design-qa/SKILL.md |
-| | break-ui | ~/.agents/skills/break-ui/SKILL.md |
-| | break | ~/.agents/skills/break/SKILL.md |
-| | review-animations | ~/.agents/skills/review-animations/SKILL.md |
-| | also: impeccable, design-taste-frontend, state-machine, agent-browser | |
+| app-screen | A screen people work in: dashboard, admin, settings, form, inbox, editor | [surfaces/app-screen.md](surfaces/app-screen.md) |
+| public-page | A page people read and scroll: landing, marketing, pricing, docs home | [surfaces/public-page.md](surfaces/public-page.md) |
+| illustration | Faux product UI for a page slot, still or animated | [surfaces/illustration.md](surfaces/illustration.md) |
+| library | A design system or component library build | None: stop and report it; the owner starts build-design-library |
 
-## Rules for every phase
-- **Direction before the first edit.** Phase 1 ends with a DIRECTION line. No file changes before it.
-- **Let the UI explain itself:** never add text that says what a screen, section or control is (subtitles that restate the heading, "This shows..." intros, filler CardDescription); add text only for information the UI cannot show.
-- **Tokens are material, not a direction.** Existing tokens and components are what you build with. The direction comes from DESIGN.md, the brief or phase 1; the Project Context Scan in reference/app-ui.md grades tokens as owned or stock, and stock tokens never count as a direction.
-- **One rule set per surface.** Precedence: DESIGN.md, the brief, then design-taste-frontend's house rules (public pages) or reference/app-ui.md (app UI), then the domain skills.
+2. **Scope level.** The level of the largest unit the work asks for: product, screen or flow, component group, component, or primitive (color, type, spacing, radius, motion tokens). A section of a page is a component group. A component group runs the Screen and the Component passes; a pass that does not fit records n/a.
+3. **Mode.** **Attended**: the owner answers in this session through ask_user. **Headless**: no one answers; the brief is the owner's word.
+4. **Report draft.** Write it under your artifact directory in the Report format.
 
-## 0 Intake (read only)
-1. Every path under "Read first" in the brief.
-2. DESIGN.md anywhere in the repo (`rg --files -g DESIGN.md`), docs/design/, UX or UI specs. When DESIGN.md exists or phase 1 must write one, load design-md.
-3. Tokens: Tailwind theme or `@theme`, global CSS custom properties, token files. Grade them owned, stock, or none with the Project Context Scan in [reference/app-ui.md](reference/app-ui.md).
-4. Component layer: components.json -> shadcn. coss or Base UI in package.json -> coss (coss-particles is its example index).
-5. The two nearest sibling screens and the gallery route, if the repo has one. When the app runs, screenshots of the current UI with a browser that renders pixels (agent-browser-chrome in pi).
+Done when the draft holds the WORK line, the surface files are read, and LOADED lists every fired trigger as `(pending)`.
 
-Done when you can name the direction source, the token grade, the tokens and components you reuse, and the screens you mirror.
+## Loading a skill
 
-## 1 Direction
-Take the first branch that fits:
-- **Approved direction exists** (DESIGN.md, the brief, or the brief scopes a slice of an approved system): adopt it. DIRECTION: its source. When the user is present and the brief leaves one piece's look open, run grill-design for that piece only, starting at its level of the design tree.
-- **User present** (an attended session, such as the design agent in its pi pane): run grill-design before any file edit; it is the entry point for every open look or flow. It drives grilling with prototype rounds (the prototype skill's UI branch). Seed and extend it:
-  1. Overall look: deal directions with design-taste-frontend's draw (its section "3. Draw the direction"). Page: `--options 5`. App screen: `--app --kind <kind>`, plus `--keep palette,type` when the brand fixes colors or fonts. Build each dealt direction as one prototype behind one picker: inside the app when it runs, otherwise one standalone HTML file under your artifact directory, opened with `open <file>`.
-  2. Zoom in, one level per verdict: component groups -> variant (one axis per round). One component's states -> state-machine. Flow questions -> laws-of-ux. A critique of the leading option -> impeccable critique. A site the user names as a reference -> explain-interface.
-  3. Every verdict is the user's: ask it as a structured question (ask_user in pi). The step is done when the user approves the overall look and each group they raised.
-  4. Write the approved direction into DESIGN.md with design-md: the dealt sheet, the verdicts, the tokens. Remove the prototype harness on the user's word.
-- **No user, new or restyled surface**: deal with design-taste-frontend's draw as above and choose per its step 3. An unattended builder (design-builder in pi) builds the choice and reports `DIRECTION: self-picked <id>`. An attended designer (the design agent in pi) renders the options as prototypes, reports them with screenshots and stops with a DECISION NEEDED block.
+- **Your rows.** Both agents see the whole Routing table and act only on the rows whose Agent cell names them or reads `both`.
+- **Passes and triggers.** A **pass** row is a lens every part of its level gets (Craft passes). A **trigger** row fires when its condition is observable in the brief, the repo or the part you build. Load a skill when the step that needs it starts, and only then; a pass that does not apply loads nothing.
+- **Lookup by name.** Take the first hit: the harness skill list (in pi, the location in available_skills); then `<root>/<name>/SKILL.md` for the roots ~/.pi/agent/skills, ~/.agents/skills, ~/.claude/skills, ~/.codex/skills, in that order. No hit: write `<name> (missing)` in LOADED and continue the step.
+- **One skill per read call**, whole, unless the row's Notes name sections. A batch read loses text to the tool-result cap.
+- **Paths inside a skill** (references/, scripts/) resolve against the folder of its SKILL.md.
+- **Headless runs skip** every skill's "Initial Response" and every reply-and-wait step. The brief is the question; continue.
 
-Done when the DIRECTION line is written.
+## Time
 
-## 2 Build
-1. Rules: app UI -> [reference/app-ui.md](reference/app-ui.md) (its Project Context Scan, its Design Decision Gate within DIRECTION, and each reference file whose trigger fires in its References section). Public page -> the dealt sheet plus design-taste-frontend's "6. Build it, still" and "House rules".
-2. Before the first edit, load the skill for each signal in the brief or in the files you change:
+The report draft exists from the end of Sort and is updated after each step. When time runs short, cut scope (fewer parts, states or viewports), never steps: the static checks and the Report run in every run. A PARTIAL result carries one reason: time, gate-open, decision or scope.
 
-| Signal | Skill |
+## Craft floor
+
+Every part meets this floor. Precedence, highest first: DESIGN.md, the brief, the surface file, this floor, then a routed skill's values where the floor is silent. Inside an illustration stage, its surface file decides window chrome, placeholders, colors and data.
+
+- **Let the UI explain itself.** Add text only for information the UI cannot show. A subtitle that restates its heading, a "This page shows..." intro and a filler description slot each fail. A heading carries a description only when the description adds such information.
+- **Wrap before truncating.** Titles, money and metric labels wrap or stay whole. Button and other control labels stay on one line. Truncate only in a cell whose width the design fixes (a table cell, a list row), and keep the full text reachable.
+- **One card system per screen**: one radius, border, padding and shadow set for every card.
+- **Height from content.** A block is as tall as its content plus its padding; `min-height` with vertical centering is for a full-viewport hero only. Empty bands between blocks within one surface: ≤64px app/data, ≤128px marketing. Stacked section paddings may total ~192px on marketing pages; >256px is dead air anywhere. Pull the next block up or give the band content.
+- **Tracking floor -0.03em** on every surface; `tracking-tighter` fails. Body text keeps 0.
+
+| Reflex | Build instead |
 |---|---|
-| navigation, forms, multi-step flows, CTAs, feedback, error recovery | laws-of-ux |
-| grouping, responsive structure, breakpoints, safe areas, RTL, translated text | better-layout |
-| type scale, font loading, wrapping, truncation | better-typography |
-| palette, semantic tokens, contrast, dark mode | better-colors |
-| radius, shadows, borders, icons, enter and exit | better-ui |
-| custom controls, dialogs, focus, keyboard, screen reader, reduced motion | better-accessibility |
-| labels, errors, empty states, confirmations | better-writing |
-| marketing page copy | copywriting |
-| a new animation | animate; springs, gestures, sheets -> apple-design; feel and polish calls -> emil-design-eng, make-interfaces-feel-better; naming an effect -> animation-vocabulary |
-| toasts | ask-sonner |
-| web UI used on phones | mobile-native |
-| one piece whose form is still open | variant: build its variants on the real page, take the one that fits DIRECTION, promote it, delete the rest |
+| Purple, violet or indigo to pink gradients, gradient text, blurred gradient orbs | One flat committed surface, real media, or a tonal step from your own scale |
+| Glass, glow or blur on static surfaces | Named elevation (tint + shadow); glass only on overlays with a readable fallback |
+| Centered hero + identical card grid; 3-4 equal big-number cards; colored boxes or icon grids as the hero visual | A content-driven composition: an asymmetric anchor with supporting cells, or one prominent metric with context |
+| Fake proof: "Trusted by 10,000+", logo marquees, "John Doe", "Acme Corp", round metrics (99.99%), fake terminal, browser or mac-window chrome | Real customers, real numbers, the real product surface, or no section |
+| Colored left-border stripes on cards, callouts, schedule items, alerts | One cue: a tinted surface, or a leading dot, chip or time column (prose blockquotes pass) |
+| Stock stack: chroma-0 library neutrals, `--radius` 0.5-0.625rem, Inter or Geist as the only face | Owned tokens: change neutral hue, radius and type in the token layer before composing |
+| Dead controls: `href="#"`, empty onClick, toggles that do not persist | The real behavior, or no control |
+| Pulse or ping on CTAs; one fade-in-up on every section | Motion that shows feedback, state or a spatial relation, bounded to its role |
+| Template copy: "Seamlessly", "Effortlessly", "Streamline", "Unlock", "It's not just X, it's Y", "Welcome to our platform" | The concrete claim: what the product does, for whom, in specific verbs |
 
-3. Implement. Run the typecheck (project script or `tsc --noEmit`). Before renaming a component or prop, find every use with `rg -n -w`.
+A context-sensitive treatment (warm neutrals, texture, large radii, uppercase micro-labels, dark sections) passes when it carries state, hierarchy, information or brand meaning and stays bounded to a named role. Two or more of these together are a tell: eyebrows on several sections, numbered markers outside a real sequence, radius 24px or more outside a declared soft direction, cards nested in cards, identical icon-heading-line cells, a new background color per section.
 
-Done when the typecheck passes and the skill of every fired signal is read.
+## Design grilling (attended)
 
-## 3 Refine
-One whole-screen pass against DIRECTION with an impeccable sub-command. Read impeccable's SKILL.md and run its Setup with the playbook for one sub-command: polish (details), distill (too busy), quieter or bolder (wrong volume for DIRECTION), harden (edge cases, errors, i18n), clarify (copy), delight (one authored moment), typeset, colorize or layout (one domain is off). The direction is set, so skip impeccable's new-work playbook. Missing motion -> find-animation-opportunities. Existing motion code -> improve-animations. A review across the better-* domains -> better-interface.
+The owner decides; you find the facts and build the prototypes. Headless runs take step 1 alone, reading the facts themselves, then go to the build; an open decision there follows "Open parts".
 
-Done when the pass is applied, or you record "no pass needed" with the reason.
+1. **Gather facts.** Read the brief and every file it names; DESIGN.md anywhere in the repo (`rg --files -g DESIGN.md`), docs/design/ and UX or UI specs; the token layer and the component layer; the two nearest sibling screens and the gallery route, if one exists. Send each fact you cannot read to a child: scout for the existing code, researcher for reference products, competitors and domain data. When the part changes an existing screen and a browser is allowed, take the intake screenshots now, before the first edit: step 1 of "Before and after" in the Verify row's "## Live checks". Done when the draft lists the sources read and each child's question, the intake shots exist in before/ or the draft reads `before-and-after: N-A — <reason>`, and no project file has changed.
+2. **Map the design tree.** The root is the scope level; below it come the lower levels of Sort step 2. A decision is closed when DESIGN.md, an approved token or an existing component settles it; note that source. Go down only through levels that hold an open decision. Your surface file adds the decisions its surface needs. Done when every decision in the draft's tree reads `open` or `closed: <source>`.
+3. **Ask a round.** The **frontier** is every open decision whose parent decisions are closed. Run the design agent's passes and triggers of the frontier's levels; for an open overall look, the Product direction pass deals the options and supplies the house rules. Build, check and ask the round with [direction.md](direction.md). A question that waits on a running child waits; ask the rest now. Done when the owner has answered every question of the round.
+4. **Record each verdict** in DESIGN.md as the owner makes it, with the template in direction.md, then recompute the frontier. Repeat from step 3 until the frontier is empty. A small section can finish in one round; a whole page usually takes the page, its sections, its open components, and a primitives sheet when it adds tokens. Done when every decision in the tree is closed.
+5. **Approve.** Ask the owner to approve DESIGN.md as written. Done when the owner approved it and DIRECTION in the draft names its path.
 
-## 4 Verify
-1. Mechanical checks. Load design-qa and run its scanner; exit 2 means QA is incomplete. Run impeccable detect: `<impeccable skill dir>/scripts/impeccable detect --json <changed files>`, and on the running URL with `--viewport 390x844` and `--viewport 1440x900`. Public pages: also design-taste-frontend's lint and inspect scripts (its section "7. Gate").
-2. States. A component with data, account or feature states -> state-machine page; every state becomes a `?__state=` URL.
-3. Worst-case data. Every component you built or changed that renders data (names, emails, counts, lists, tables, cards, badges, timestamps) gets a break-ui pass: its worst-case, empty, one and huge fixtures behind its toggle, checked at the real container width, 320px and 200% zoom. An unattended builder (design-builder in pi) runs it in its `<component> + fix` form: apply every fix outside "Decisions for you", then list those decisions in the report. An attended designer reports the breaks and waits for the user. All scenarios on one page for a single look -> break.
-4. Gate 12 per design-qa's live-verification runbook, in a browser that renders pixels for every command. In pi, set `AB="agent-browser-chrome --session <app>-qa"`; plain agent-browser renders no pixels. Shoot every state at every viewport. Motion code -> review-animations.
-5. Read every screenshot against DIRECTION: the alignment of each lockup (icon and text, label and value, date blocks), spacing rhythm, hierarchy, and every visible sentence. Delete each sentence that restates what the UI shows. Fix, then re-shoot.
-6. Harnesses (state-machine, break, variant): an unattended builder (design-builder in pi) removes them before it reports, unless the brief keeps them; the break-ui worst-case fixture stays as the component's regression data. An attended designer (the design agent in pi) removes them on the user's word.
+## Bottom-up build
 
-Done when the scanner exits 0, each detect finding is fixed or justified in the report, every data component had its break-ui pass, and every state-by-viewport screenshot was read after the last fix. The repair-attempt limit in your inherited rules is the ceiling.
+1. **Order the parts.** List the parts DESIGN.md (or the brief) names, by level: primitives, then components, then screens. A part is **decided** when every decision it needs is closed, else **open**. Done when the draft lists each part with its level, decided or open, and the parts it uses.
+2. **Send or take.** The design agent sends each decided part whose lower-level parts passed Verify to a design-builder, with the DESIGN.md path and the part's name; independent parts go in parallel. A design-builder builds the parts in its brief. Done when every decided part is sent or built, and every open part is in OPEN or a DECISION NEEDED block.
+3. **Build a part.** Load the fired triggers of the part's level and the Any rows. Implement within DESIGN.md, the surface file and the floor, with the project's tokens and components. Before renaming a component or prop, find every use with `rg -n -w`. Run the typecheck (the project script, or `tsc --noEmit`). Done when the typecheck passes and every fired trigger in LOADED is read or `(missing)`.
+4. **Craft passes.** Run each of your pass rows of the part's level (a component group: the Screen and the Component rows), one skill per pass, as a lens on the part. Done when every pass of the level has a result in PASSES: `applied: <what changed>` with the skill loaded, or `n/a: <observable fact>` ("no motion in the part", "no strings changed"). A pass that loads and changes nothing reads `applied: no change, <why>`.
+5. **Verify the part** (next section). Done when the part passed Verify; only then does a higher level use it.
+6. **Screen review (design agent).** After a screen passes Verify, run the design agent's Screen passes. A motion pass becomes a round: the owner picks proposals, and builders apply them with the Primitive motion pass. Done when every design-agent Screen pass has a result in PASSES.
 
-## 5 Report lines
+**Open parts.** A builder never decides an open part, and there is no self-picked direction. Build the decided parts, then stop on the open part with this block in the report; the parent asks the owner.
+
 ```
-DIRECTION: <DESIGN.md path | brief | self-picked <id>> - one line
-SKILLS: loaded <names>; skipped <names, one reason each>
-REFS: reference files read and the trigger that fired, or "none triggered"
-QA: scanner score, detect findings, gates run, screenshot folder
+DECISION NEEDED
+Q1: <question>
+- <label> | value: <machine-value> | <one-line consequence>
+- <label> | value: <machine-value> | <one-line consequence>
+RECOMMEND: <machine-value> - <reason>
 ```
+
+## Verify
+
+Run each Verify row for the part. The static checks need no browser and run on every part. The live checks run when the brief allows a browser; take every screenshot with agent-browser-chrome. Read each screenshot against DESIGN.md and the floor: lockup alignment (icon and text, label and value), spacing rhythm, hierarchy, every visible sentence. Delete each sentence that restates what the UI shows; fix, then re-shoot.
+
+Harness pages (pickers, state switchers, scenario pages): attended, remove them on the owner's word; headless, remove them before the report. A worst-case data fixture stays as the component's regression data.
+
+Done when the static checks' exit codes are in the draft, the live checks ran or the draft quotes the brief line that rules out a browser, and every screenshot was read after the last fix. The repair-attempt limit in your inherited rules is the ceiling.
+
+## Report
+
+Fill the draft in this format. Stop every process you started.
+
+```
+RESULT: DONE | PARTIAL (time | gate-open | decision | scope) | BLOCKED
+WORK: <surface>, <scope level>, <attended | headless>
+DIRECTION: <DESIGN.md path> | <open parts sent to the owner>
+LOADED: <trigger> -> <skill>, one per line, or "none fired"
+PASSES: <pass> -> applied: <change> | n/a: <fact>, one per line
+VERIFY: static <scanner exit, typecheck>; live <gates, screenshot folder> | not allowed: <brief line>
+FILES: <changed paths>
+OPEN: <items> | none
+ARTIFACT: <absolute path>
+```
+
+Done when every field holds a value and no process you started is still running.
+
+## Routing table
+
+Each skill has one row. **Pass** rows run on every part of their level (Craft passes); **trigger** rows fire on their condition. Notes name the sections to read; an empty cell means the whole SKILL.md. An optional row loads only when its skill is installed. Install commands: [skills.md](skills.md).
+
+| Level | Pass or trigger | Skill | Agent | Notes |
+|---|---|---|---|---|
+| Product | Pass: which overall look and house rules? | design-taste-frontend | both | Public page: "3. Draw the direction" deals the options (design); Screen pass for both: "House rules", plus the sections in its surface file. App screen: references/app-screens.md whole, for its app draw, "13. House rules for app screens" and its table, KPI and chart rules; the page sections do not apply |
+| Product | Pass: reference products, competitors, domain data | researcher (child agent) | design | Spawn it; it returns facts, never decisions |
+| Product | Pass: how was a site the owner names built? | explain-interface | design | n/a when the owner names no site |
+| Screen, flow | Pass: navigation, forms, multi-step flows, destructive actions | laws-of-ux | both |  |
+| Screen, flow | Pass: what here should move? | find-animation-opportunities | design | After the screen passes Verify: a motion round; builders apply the picks |
+| Screen, flow | Pass: a review across domains | better-interface | builder | On the built screen |
+| Screen, flow | Trigger: a product illustration or demo on a page | stageshow | both | Through surfaces/illustration.md |
+| Screen, flow | Trigger: a state model or logic question is open | prototype (optional) | design | LOGIC branch only |
+| Screen, flow | Trigger: a Figma file or a design image is the source | build-design | builder | The file closes the decisions it shows; a value with no token is an open primitive decision. No Figma MCP: build from an exported image, else PARTIAL (scope) |
+| Screen, flow | Trigger: a .pen or .lib.pen file is the source | pencil-design (optional) | builder | Needs the Pen MCP server; the same rules as build-design |
+| Screen, flow | Trigger: the owner asks to improve existing motion | improve-animations | design | An audit plus plans; builders run the plans |
+| Component | Pass: structure, density, emphasis, type or voice, while the form is open | variant | design | In a round, the variants go into the round's prototype file; n/a once the form is decided |
+| Component | Pass: motion or interaction feel, while it is open | emil-prototype | design | n/a once the feel is decided |
+| Component | Pass: custom controls, dialogs, focus, keyboard | better-accessibility | builder |  |
+| Component | Pass: labels, errors, empty states, confirmations | better-writing | builder |  |
+| Component | Pass: states, one at a time | state-machine | both |  |
+| Component | Pass: renders data: worst-case fixtures and fixes | break-ui | builder | Headless: its "<component> + fix" form |
+| Component | Pass: changed motion code | review-animations | builder |  |
+| Component | Pass: the part changed existing UI | interface-review | builder | Review your own diff for regressions before the report |
+| Component | Trigger: every scenario on one page, for one look | break | design |  |
+| Component | Trigger: toasts with sonner | ask-sonner | builder | A coss project uses the coss toast instead |
+| Component | Trigger: the project uses shadcn (components.json) | shadcn (optional) | builder |  |
+| Component | Trigger: the project uses coss or Base UI | coss (optional) | builder |  |
+| Component | Trigger: a new UI library is needed | pick-ui-library | design | The pick goes to the owner |
+| Primitive | Pass: palette, semantic tokens, contrast, dark mode | better-colors | builder |  |
+| Primitive | Pass: type scale, font loading, wrapping | better-typography | builder |  |
+| Primitive | Pass: spacing, grouping, responsive, RTL | better-layout | builder |  |
+| Primitive | Pass: radius, shadow, border, icons | better-ui | builder | Its motion values (stagger, durations) yield to animate |
+| Primitive | Pass: motion tokens and new animations | animate | builder |  |
+| Primitive | Trigger: springs, gestures, drag, sheets | apple-design | builder |  |
+| Primitive | Trigger: a motion feel call | emil-design-eng | builder |  |
+| Any | Trigger: phone users | mobile-native | both |  |
+| Any | Trigger: marketing copy | copywriting (optional) | both |  |
+| Verify | Pass: every part | design-qa | both | "## Static checks" on every part; "## Live checks" on every part when a browser is allowed, its intake shots at Gather facts |
+| Verify | Trigger: any browser step | browser-checks | both | Before the first browser command (pi) |

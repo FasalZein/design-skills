@@ -1,0 +1,7 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-03T05:00:00.000Z","data":{"agent":"design-builder","model":"cpa/test-model","title":"f7 heading list"}}
+{"type":"message","timestamp":"2026-11-03T05:00:01.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}
+{"type":"message","timestamp":"2026-11-03T05:01:00.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"c1","name":"bash","arguments":{"command":"rg -n '^#' /home/u/.pi/agent/skills/design-qa/SKILL.md"}}],"usage":{"input":10,"output":5}}}
+{"type":"message","timestamp":"2026-11-03T05:01:01.000Z","message":{"role":"toolResult","toolCallId":"c1","toolName":"bash","isError":false,"content":[{"type":"text","text":"1:# Design QA\n120:## Static checks\n214:## Live checks\n"}]}}
+{"type":"message","timestamp":"2026-11-03T05:02:00.000Z","message":{"role":"assistant","content":[{"type":"toolCall","id":"c2","name":"bash","arguments":{"command":"D=~/.agents/skills/better-ui; sed -n 50,60p $D/SKILL.md"}}],"usage":{"input":10,"output":5}}}
+{"type":"message","timestamp":"2026-11-03T05:02:01.000Z","message":{"role":"toolResult","toolCallId":"c2","toolName":"bash","isError":false,"content":[{"type":"text","text":"## Stagger infrequent entrances by 100ms\n\nStagger list items.\n"}]}}
+{"type":"message","timestamp":"2026-11-03T05:10:00.000Z","message":{"role":"assistant","content":[{"type":"text","text":"RESULT: DONE\nARTIFACT: none"}],"usage":{"input":20,"output":5}}}
