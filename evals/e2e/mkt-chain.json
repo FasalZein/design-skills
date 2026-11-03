@@ -1,0 +1,8 @@
+[
+  ["set", "viewport", "1440", "900"],
+  ["open", "{URL}"],
+  ["wait", "#pricing"],
+  ["wait", "--fn", "getComputedStyle(document.documentElement).getPropertyValue('--chain-proof').trim() === 'committed'"],
+  ["wait", "--fn", "getComputedStyle(document.documentElement).getPropertyValue('--uncommitted-proof').trim() === ''"],
+  ["screenshot", "--full", "{SHOTS}/mkt-chain-1440.png"]
+]

@@ -22,7 +22,7 @@ must copywriting                   # row: Any | Trigger: marketing copy | both (
 ambiguous interface-review         # row: Component | Pass: the part changed existing UI | builder. The part changes existing UI (spec D21), but the row is a Component pass
 ambiguous shadcn                   # row: Component | Trigger: the project uses shadcn (components.json) | builder. Fires in this fixture (components.json), but the row is Component level and Build step 3 loads the triggers of the part's level only
 ambiguous design-taste-frontend    # row: Product | Pass: which overall look and house rules? | both. surfaces/public-page.md sends every public-page part to its sections while it gathers facts; the row level is Product
-ambiguous stageshow                # row: Screen, flow | Trigger: a product illustration or demo on a page | both. The page holds the demo slot (the trigger is observable), but the brief keeps the slot empty and out of scope
+ambiguous stageshow                # row: Screen, flow | Trigger: a product illustration or demo on a page | both. The page holds the demo slot (the trigger is observable), but the brief keeps the built #demo section out of scope
 
 # Unfired, other-level and other-agent rows, and skills out of the router.
 forbid better-accessibility        # row: Component | Pass: custom controls, dialogs, focus, keyboard | builder (another level)
@@ -32,7 +32,7 @@ forbid break-ui                    # row: Component | Pass: renders data: worst-
 forbid review-animations           # row: Component | Pass: changed motion code | builder (another level)
 forbid ask-sonner                  # row: Component | Trigger: toasts with sonner | builder (no sonner in package.json)
 forbid coss                        # row: Component | Trigger: the project uses coss or Base UI | builder (components.json style radix-nova; radix-ui, no @base-ui/react)
-forbid mobile-native               # row: Any | Trigger: phone users | both (DESIGN.md: no phone users)
+ambiguous mobile-native            # row: Any | Trigger: phone users | both. DESIGN.md names no phone users, but it designs a phone layout for every section at <= 720px (and the #demo compact design) and the brief checks 375 width
 forbid better-colors               # row: Primitive | Pass: palette, semantic tokens, contrast, dark mode | builder (another level)
 forbid better-typography           # row: Primitive | Pass: type scale, font loading, wrapping | builder (another level)
 forbid better-layout               # row: Primitive | Pass: spacing, grouping, responsive, RTL | builder (another level)

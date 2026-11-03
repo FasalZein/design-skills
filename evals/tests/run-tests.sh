@@ -21,7 +21,9 @@ printf '%s\t%s\t%s\t%s\n' "# run" part model session \
   good component opus "$FIX/score-good.jsonl" \
   bad component sonnet "$FIX/score-bad.jsonl" \
   norep component gpt "$FIX/score-no-report.jsonl" \
-  time component gpt "$FIX/score-time-limit.jsonl" > "$WORK/runs.tsv"
+  time component gpt "$FIX/score-time-limit.jsonl" \
+  svar component gpt "$FIX/score-shots-var.jsonl" \
+  svarp component gpt "$FIX/score-shots-var-plain.jsonl" > "$WORK/runs.tsv"
 bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/runs.tsv" > "$WORK/score.out" 2>&1; st=$?
 [ "$st" -eq 0 ] && ok "score exits 0 on scorable runs" || { no "score exit $st"; cat "$WORK/score.out"; }
 line() { grep "^$1 " "$WORK/score.out"; }
@@ -36,6 +38,10 @@ has bad 'unexpected=FAIL(better-colors,impeccable,review-animations)'
 has bad 'passes=FAIL(missing:break-ui)'
 has bad 'static=FAIL(scan=0'
 has bad 'shots=FAIL(chrome=0,plain=1,other=0)'
+# Retro candidate 2 (h-opus-2-comp): a variable that holds agent-browser-chrome (JS const in codemode, shell
+# assignment) counts its screenshot and batch calls as chrome; a literal plain agent-browser screenshot stays plain.
+has svar 'shots=ok(chrome=2)'
+has svarp 'shots=FAIL(chrome=1,plain=1,other=0)'
 has bad 'report=ok'
 # No final RESULT message and no written report.
 has norep 'report=FAIL'
@@ -43,7 +49,7 @@ has norep 'static=ok(scan=1'
 # Stopped by the time limit: the written draft is the report, and its PASSES entries count.
 has time 'report=ok'
 has time 'passes=FAIL(missing:better-accessibility,state-machine,break-ui,review-animations,interface-review)'
-grep -q '^score: 4 runs, 3 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing"
+grep -q '^score: 6 runs, 4 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing: $(tail -1 "$WORK/score.out")"
 
 # Design runs: the design session against its own expected file, its DECISION NEEDED block, and each child
 # design-builder session (found by its header's parentSession) against the expected file of its level.
@@ -158,9 +164,38 @@ if [ -d "$EVALS/fixture/node_modules" ]; then
 else echo "skip: evals/fixture/node_modules missing (npm ci --prefix evals/fixture)"; fi
 if [ -d "$EVALS/fixture-marketing/node_modules" ]; then
   check_run mkt-primitive-set src/sections/product-demo.tsx 'Open for the build: none'
-  check_run mkt-page src/components/pricing-card.tsx 'Open for the build: none'
-  grep -q 'IBM Plex Mono' "$WORK/runs/mkt-page/src/index.css" && ok "new-run mkt-page: primitives overlay applied" || no "new-run mkt-page: primitives overlay missing"
+  check_run mkt-page src/assets/photos/credits.json 'Open for the build: none'
+  # Marketing runs start from the stock fixture (direction A DESIGN.md, photos, shipment data); no old overlay.
+  [ ! -e "$WORK/runs/mkt-page/src/components/pricing-card.tsx" ] && cmp -s "$WORK/runs/mkt-page/src/index.css" "$EVALS/fixture-marketing/src/index.css" \
+    && ok "new-run mkt-page: no old-direction overlay" || no "new-run mkt-page: old overlay present"
+  grep -q "IN-20434', carrier: 'Nordwest Freight'" "$WORK/runs/mkt-page/src/data/shipments.ts" && ok "new-run mkt-page: shipment data present" || no "new-run mkt-page: shipment data missing"
+  grep -qF 'starts from the stock fixture' "$WORK/mkt-page.brief" && ok "new-run mkt-page: brief names the fixture start" || no "new-run mkt-page: start line"
   check_run design-marketing src/sections/faq.tsx 'Open for the build: the FAQ section'
+  DM="$WORK/runs/design-marketing/DESIGN.md"
+  ! grep -qE '^- FAQ index:|^- FAQ: questions in columns|^- FAQ: the first question' "$DM" && ok "new-run design-marketing: the FAQ form lines are open" || no "new-run design-marketing: FAQ form still decided"
+  grep -q '^- #demo script, played once' "$DM" && grep -q '^- #demo / approval' "$DM" && ok "new-run design-marketing: #demo stays decided" || no "new-run design-marketing: #demo not decided"
+  # Marketing chain mode: the same carry rules as Harbor, and a chain stays on one product.
+  CH="$WORK/runs"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" mkt-primitive-set mchain-p 5301 >/dev/null 2>&1 || no "mkt chain: first run failed"
+  echo ':root { --mkt-chain-mark: 1; }' >> "$CH/mchain-p/src/index.css"
+  git -C "$CH/mchain-p" -c user.name=t -c user.email=t@l commit -qam "primitives built"
+  echo 'scratch' > "$CH/mchain-p/uncommitted.txt"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" mkt-component mchain-c 5302 --from mchain-p > "$WORK/mchain-c.brief" 2>/dev/null && ok "mkt chain: --from exits 0" || no "mkt chain: --from failed"
+  grep -q -- '--mkt-chain-mark' "$CH/mchain-c/src/index.css" 2>/dev/null && ok "mkt chain: committed work carried over" || no "mkt chain: committed work missing"
+  [ ! -e "$CH/mchain-c/uncommitted.txt" ] && ok "mkt chain: uncommitted work left behind" || no "mkt chain: uncommitted work copied"
+  [ "$(git -C "$CH/mchain-c" rev-list --count HEAD 2>/dev/null)" = 1 ] && [ -z "$(git -C "$CH/mchain-c" status --porcelain)" ] && ok "mkt chain: one commit, clean tree" || no "mkt chain: commit count or dirty tree"
+  [ -d "$CH/mchain-c/node_modules/@fontsource/barlow-condensed" ] && ok "mkt chain: node_modules cloned" || no "mkt chain: node_modules missing"
+  sha=$(git -C "$CH/mchain-p" rev-parse --short HEAD)
+  grep -qF "result of run mchain-p (commit $sha)" "$WORK/mchain-c.brief" && ! grep -q '{[A-Z_]*}' "$WORK/mchain-c.brief" && ok "mkt chain: brief names the previous run" || no "mkt chain: brief start line"
+  for p in mkt-section mkt-page; do
+    EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" $p "mchain-$p" 5303 --from mchain-c >/dev/null 2>&1 && ok "mkt chain: --from on $p" || no "mkt chain: --from on $p failed"
+  done
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" design-marketing mchain-d 5303 --from mchain-c >/dev/null 2>&1 && no "mkt chain: --from on design-marketing accepted" || ok "mkt chain: --from refused on design-marketing"
+  if [ -d "$CH/chain-p" ]; then
+    EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" mkt-component mchain-x 5303 --from chain-p >/dev/null 2>&1 && no "mkt chain: a Harbor run accepted as previous run" || ok "mkt chain: a Harbor run refused as previous run"
+    [ ! -e "$CH/mchain-x" ] && ok "mkt chain: product refusal leaves no directory" || no "mkt chain: product refusal left a directory"
+    EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" component chain-x2 5303 --from mchain-p >/dev/null 2>&1 && no "chain: a marketing run accepted for Harbor" || ok "chain: a marketing run refused for Harbor"
+  fi
   # Default root: <repo root>/.eval-runs; then clean-run.sh saves the run and deletes it.
   bash "$EVALS/new-run.sh" mkt-component "$TAG-nr" 5301 >/dev/null 2>&1 && [ -d "$REPO/.eval-runs/$TAG-nr/.git" ] \
     && ok "new-run default root is <repo>/.eval-runs" || no "new-run default root"
@@ -171,9 +206,66 @@ brief_has() { grep -qF -- "$2" "$EVALS/briefs/$1.md" && ok "$1 brief: $2" || no 
 for b in primitive-set component section screen; do brief_has "$b" '{START}'; done
 for s in 'Geist' '44px' 'de-DE' '"48.210,50 €"' '.dark' 'Barlow Condensed' 'Newsreader' '--radius: 0' 'prefers-reduced-motion'; do brief_has primitive-set "$s"; done
 for s in 'StatusBadge' 'B3 Action first' 'Day line' '"<n> of 4 doors free"' 'At gate'; do brief_has component "$s"; done
+# Owner decision 30: levels 2 and 3 check the part alone at 375 px and the screens at 1440 and 1024; the whole screen
+# at 375 waits for level 4, which builds the 56px narrow shell (the 240px sidebar leaves 135px before it).
+brief_has component 'on their screens at 1440 and 1024 width'; brief_has section 'on #/overview at 1440 and 1024 width'
+for b in component section; do
+  brief_has "$b" 'alone at 375 width (a harness page or a narrow container'
+  grep -qE 'screens? at 1440 and 375|1440, 1024 and 375' "$EVALS/briefs/$b.md" && no "$b brief checks a whole screen at 375" || ok "$b brief: no whole screen at 375"
+done
 for s in 'Overview' '"No door" lane' 'Now line' '06:00 to 16:00' 'booked <time>' 'FLIP' 'door list'; do brief_has section "$s"; done
 for s in 'count tabs' 'door select' 'top bar' 'booked 08:00' "Couldn't change the door. Try again." '1440, 1024 and 375'; do brief_has screen "$s"; done
 for d in "$EVALS"/fixture/DESIGN.md; do grep -q '^Direction: Hi-vis' "$d" && ok "fixture DESIGN.md is the approved Hi-vis direction" || no "fixture DESIGN.md is not Hi-vis"; done
+# Marketing briefs follow the approved DESIGN.md (direction A "Board"): one brief per chain level, each naming its
+# chain start and decisions that DESIGN.md holds word for word.
+MD="$EVALS/fixture-marketing/DESIGN.md"
+brief_and_design() { brief_has "$1" "$2"; grep -qF -- "$2" "$MD" && ok "DESIGN.md holds [$2] ($1)" || no "DESIGN.md lacks [$2] that the $1 brief names"; }
+for b in mkt-primitive-set mkt-component mkt-section mkt-page; do brief_has "$b" '{START}'; brief_has "$b" 'direction A "Board"'; done
+for s in 'Geist' 'IBM Plex Sans' '"48.210,50 €"' '"290 €"' 'Barlow Condensed' 'Newsreader' '720px'; do brief_and_design mkt-primitive-set "$s"; done
+brief_has mkt-primitive-set '--radius: 0'
+for s in 'Pricing per site' 'By contract' 'signal-pale' 'scope attributes' '@media (hover: hover)' 'Not offered'; do brief_and_design mkt-component "$s"; done
+for s in 'stageshow' 'Send to door' 'IN-20434' 'One Tuesday, four doors' 'Bar length: 20 min + 1.7 min per pallet.' 'document.fonts.ready' '1170px' 'role="img"' 'src/components/demo/kit/' 'Stop/Replay'; do brief_and_design mkt-section "$s"; done
+for s in 'film.mjs --gate' 'rehearsal passed' 'played once'; do brief_has mkt-section "$s"; done
+grep -q 'as a loop' "$EVALS/briefs/mkt-section.md" && no "mkt-section brief still asks for a loop (DESIGN.md: played once)" || ok "mkt-section brief: no loop"
+for s in 'Europe/Berlin' 'src/assets/photos/' 'No top bar' 'mailto'; do brief_and_design mkt-page "$s"; done
+brief_has mkt-page '1440, 1024 and 375'
+for b in mkt-component mkt-page; do grep -q 'PricingCard' "$EVALS/briefs/$b.md" && no "$b brief names the old PricingCard" || ok "$b brief: no PricingCard"; done
+# The section level is the illustration: only its expected file requires stageshow.
+for e in mkt-primitive-set mkt-component mkt-page mkt-copy-section; do
+  awk '$1=="must" && $2=="stageshow"' "$EVALS/briefs/$e.expected" | grep -q . && no "$e.expected requires stageshow" || ok "$e.expected: no stageshow must"
+done
+awk '$1=="must" && $2=="stageshow"' "$EVALS/briefs/mkt-section.expected" | grep -q . && ok "mkt-section.expected requires stageshow" || no "mkt-section.expected lacks must stageshow"
+# Stage hand-off (review P1): the illustration briefs close every hand-off field of surfaces/illustration.md, so a
+# headless builder finds none open. Each field is a line "<n>. <field name>: <value>" (the name up to its first
+# ", " or ": "), with a value; the gold example and the reviewer are the approved rehearsal's.
+ILL="$REPO/design-craft/surfaces/illustration.md"
+HF=$(awk '/^## Hand-off fields/{f=1;next} /^## /{f=0} f && /^[0-9]+\. /' "$ILL" | sed -E 's/(: |, ).*//; s/\.$//')
+[ "$(printf '%s\n' "$HF" | grep -c .)" -ge 11 ] && ok "illustration.md lists $(printf '%s\n' "$HF" | grep -c .) hand-off fields" || no "illustration.md hand-off fields not found"
+for b in mkt-section design-marketing; do
+  while IFS= read -r k; do
+    awk -v k="$k: " 'index($0,k){ r=substr($0,index($0,k)+length(k)); if (r ~ /[^ ]/) f=1 } END{exit !f}' "$EVALS/briefs/$b.md" \
+      && ok "$b brief closes hand-off field [$k]" || no "$b brief lacks hand-off field [$k: <value>]"
+  done <<< "$HF"
+  brief_has "$b" '7. Nearest gold example: table-edit'
+  brief_has "$b" '11. Reviewer: none'
+done
+awk '$1=="open" && $2=="FAQ"' "$EVALS/briefs/design-marketing.expected" | grep -q . && ok "design-marketing.expected: open FAQ" || no "design-marketing.expected: open key"
+# The marketing fixture is direction A with its dependencies, photos and shipment data; the old overlays are gone.
+grep -q '^Direction: A "Board"' "$MD" && grep -q '^- #demo / approval' "$MD" && grep -qx 'Open for the build: none' "$MD" && ok "fixture-marketing DESIGN.md is direction A with #demo decided" || no "fixture-marketing DESIGN.md is not direction A"
+[ -s "$EVALS/fixture-marketing/.design-md/style-context.json" ] && jq -e . "$EVALS/fixture-marketing/.design-md/style-context.json" >/dev/null && ok "fixture-marketing has the DMD style context" || no "fixture-marketing style context missing"
+for p in @fontsource/barlow @fontsource/barlow-condensed @fontsource-variable/newsreader @fontsource/ibm-plex-mono; do
+  jq -e --arg p "$p" '.dependencies[$p]' "$EVALS/fixture-marketing/package.json" >/dev/null && jq -e --arg p "node_modules/$p" '.packages[$p]' "$EVALS/fixture-marketing/package-lock.json" >/dev/null \
+    && ok "fixture-marketing depends on $p (package.json and lock)" || no "fixture-marketing lacks $p"
+done
+PH="$EVALS/fixture-marketing/src/assets/photos"
+[ "$(jq length "$PH/credits.json" 2>/dev/null)" = 5 ] && ok "fixture-marketing credits.json lists 5 photos" || no "fixture-marketing credits.json count"
+for t in "Modern loading dock" "Ellerholzdamm, Pallets, WPAhoi, Hamburg (P1080334)" "Hafenkran Logport 2" "2024-01 Truck Queue on E372 near the Polish border point Hrebenne" "Modern warehouse with pallet rack storage system"; do
+  f=$(jq -r --arg t "$t" '.[] | select(.title==$t) | .file' "$PH/credits.json" 2>/dev/null)
+  [ -n "$f" ] && [ -s "$PH/$f" ] && grep -qF "\"$t\"" "$MD" && ok "photo [$t] in DESIGN.md, credits.json and src/assets/photos" || no "photo [$t] missing"
+done
+grep -q "newEta: '10:40'" "$EVALS/fixture-marketing/src/data/shipments.ts" && cmp -s "$EVALS/fixture-marketing/src/data/shipments.ts" "$EVALS/fixture/src/data/shipments.ts" \
+  && ok "fixture-marketing has the app's shipment fixture" || no "fixture-marketing shipment fixture differs or is missing"
+[ ! -e "$EVALS/overlays/mkt-primitives" ] && [ ! -e "$EVALS/overlays/mkt-components" ] && ok "old marketing overlays removed" || no "old marketing overlays still present"
 for p in @fontsource/barlow @fontsource/barlow-condensed @fontsource-variable/newsreader; do
   jq -e --arg p "$p" '.dependencies[$p]' "$EVALS/fixture/package.json" >/dev/null && ok "fixture depends on $p" || no "fixture lacks $p"
 done
@@ -273,6 +365,12 @@ bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/f7/runs.tsv" 2>&1 | grep '^f7
 # F8: the design-marketing Done keeps the existing FAQ section and does not ask to remove it.
 grep -q 'nowhere in the code' "$EVALS/briefs/design-marketing.md" && no "F8 design-marketing Done still demands the FAQ be gone" || ok "F8 no removal demand"
 brief_has design-marketing 'the existing FAQ section stays as it is'
+# Retro candidate 1 (h-opus-2-comp): the written-report fallback keeps an entry whose change holds < and >.
+mkdir -p "$WORK/lt" && sed 's/better-writing -> applied: empty copy/better-writing -> applied: a <ul aria-label=\\"Today\\"> list/' "$FIX/score-time-limit.jsonl" > "$WORK/lt/score-time-limit.jsonl"
+grep -q 'a <ul aria-label' "$WORK/lt/score-time-limit.jsonl" || no "lt fixture edit failed"
+printf 'lt\tcomponent\tgpt\t%s\n' "$WORK/lt/score-time-limit.jsonl" > "$WORK/lt/runs.tsv"
+bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/lt/runs.tsv" 2>&1 | grep '^lt ' | grep -o 'passes=[^ ]*' | grep -q 'better-writing' \
+  && no "fallback drops a change with < and >" || ok "fallback keeps a change with < and >"
 # F1: --from refuses a symlinked source and a source that is not its own repository root, before creating the run.
 F1="$WORK/f1runs"; mkdir -p "$F1" "$WORK/f1ext/node_modules" && git -C "$WORK/f1ext" init -q && echo x > "$WORK/f1ext/x" \
   && git -C "$WORK/f1ext" add x && git -C "$WORK/f1ext" -c user.name=t -c user.email=t@l commit -qm x && ln -s "$WORK/f1ext" "$F1/lnk"
