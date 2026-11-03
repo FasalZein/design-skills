@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>clip fail (stageshow stage content is out of host scope; only the host violation fails)</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card"><div style="width:80px; overflow:hidden; white-space:nowrap" data-fail="Host label cut hard">Host label cut hard</div></div>
+<!-- Stage markup as stageshow kit/Stage.tsx renders it. Every probe skips its descendants; film.mjs owns the stage pixels. -->
+<div class="ss-fit"><div class="ss-stage" style="width:320px; height:200px; transform:scale(1)">
+  <div style="width:60px; overflow:hidden; white-space:nowrap">Stage label cropped</div>
+  <button type="button" style="width:16px; height:16px; padding:0">x</button>
+  <button type="button" style="width:70px">Stage book on WhatsApp</button>
+  <div><button type="button" style="width:80px; height:40px">Stage one</button><button type="button" style="width:80px; height:40px; margin-left:-20px">Stage two</button></div>
+  <div><p style="margin:0">Stage stack one</p><p style="margin:0">Stage stack two</p><p style="margin:0 0 0 7px">Stage stack off</p></div>
+</div></div>
+</body></html>

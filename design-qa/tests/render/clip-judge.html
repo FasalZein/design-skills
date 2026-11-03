@@ -6,7 +6,7 @@
   .row { display: flex; gap: 8px; }
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   table { table-layout: fixed; width: 360px; border-collapse: collapse; } td { border: 1px solid #ccc; padding: 4px 8px; }</style></head><body>
-<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
 <table><colgroup><col style="width:160px"><col style="width:200px"></colgroup>
-<tr><td class="truncate" title="Islamic Investors Feeder Fund II">Islamic Investors Feeder Fund II</td><td>Closed</td></tr></table>
+<tr><td class="truncate" data-judge="Islamic Investors Feeder Fund II" title="Islamic Investors Feeder Fund II">Islamic Investors Feeder Fund II</td><td>Closed</td></tr></table>
 </body></html>

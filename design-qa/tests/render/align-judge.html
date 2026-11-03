@@ -5,6 +5,6 @@
   .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
   .row { display: flex; gap: 8px; }
   .center { align-items: center; }</style></head><body>
-<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
-<div class="card"><div class="row center"><span style="font-size:12px">AUM</span><span style="font-size:32px">$12.0M</span></div></div>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card"><div class="row center"><span style="font-size:12px" data-judge="AUM | $12.0M">AUM</span><span style="font-size:32px">$12.0M</span></div></div>
 </body></html>

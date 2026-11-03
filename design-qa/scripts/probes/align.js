@@ -1,8 +1,16 @@
 // design-qa render probe: align. Output {tier, counts, fail[, judge]}; see reference/live-verification.md.
 (() => { const TOL = 1, STEP = 4;
   const vis = e => e.checkVisibility ? e.checkVisibility({checkOpacity:true, visibilityProperty:true}) : e.offsetHeight > 0;
-  const kids = p => [...p.children].filter(c => { const r = c.getBoundingClientRect();
-    return vis(c) && r.width > TOL && r.height > TOL && !/absolute|fixed/.test(getComputedStyle(c).position); });
+  const clipBox = n => { let c = null;   // visible area: intersect EVERY clipping ancestor, per clipped axis
+    for (let a = n.parentElement; a && a !== document.body; a = a.parentElement) { const s = getComputedStyle(a);
+      const x = s.overflowX !== 'visible', y = s.overflowY !== 'visible'; if (!x && !y) continue;
+      const r = a.getBoundingClientRect(); c = c || {left: -Infinity, right: Infinity, top: -Infinity, bottom: Infinity};
+      if (x) { c.left = Math.max(c.left, r.left); c.right = Math.min(c.right, r.right); }
+      if (y) { c.top = Math.max(c.top, r.top); c.bottom = Math.min(c.bottom, r.bottom); } }
+    return c; };
+  const shown = (r, c) => !c || (Math.min(r.bottom, c.bottom) - Math.max(r.top, c.top) > TOL && Math.min(r.right, c.right) - Math.max(r.left, c.left) > TOL);
+  const kids = p => [...p.children].filter(c => { const r = c.getBoundingClientRect();   // stage content (film.mjs owns it) and boxes hidden by a clipping ancestor are skipped
+    return !p.closest('.ss-stage') && vis(c) && r.width > TOL && r.height > TOL && shown(r, clipBox(c)) && !/absolute|fixed/.test(getComputedStyle(c).position); });
   const inlineOnly = e => [...e.querySelectorAll('*')].every(d => /^inline|contents|none/.test(getComputedStyle(d).display));
   const isLabel = c => !c.matches('svg,img') && c.textContent.trim() && inlineOnly(c);
   const isIcon = c => c.matches('svg,img') || (c.children.length === 1 && c.children[0].matches('svg,img') && !c.textContent.trim());

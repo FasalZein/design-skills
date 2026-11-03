@@ -16,7 +16,8 @@
   const MEDIA = 'img,svg,video,canvas', BOX = 'button,input,select,textarea,[role=button],' + MEDIA;
   const items = [];
   for (const e of document.querySelectorAll('body *')) {
-    if (!vis(e)) continue;
+    if (e.parentElement?.closest('.ss-stage') || !vis(e)) continue;   // stageshow stage content: film.mjs owns it
+    if (e.matches('.ss-stage')) { const r = cut(e.getBoundingClientRect(), clipBox(e)); if (r.width > TOL && r.height > TOL) items.push({e, r}); continue; }   // the stage box still meets its host siblings
     if (e.matches(BOX) && !e.parentElement.closest('button,svg,[role=button]')) {
       const r = cut(e.getBoundingClientRect(), clipBox(e)); if (r.width > TOL && r.height > TOL) items.push({e, r, media: e.matches(MEDIA)}); continue; }
     if (e.closest('button,svg,[role=button]')) continue;
@@ -36,7 +37,7 @@
     const w = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);
     const h = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
     if (w <= TOL || h <= TOL) continue;
-    if (/^inline/.test(getComputedStyle(a.e).display) && /^inline/.test(getComputedStyle(b.e).display) && block(a.e) === block(b.e)) continue;
+    if (a.text && b.text && getComputedStyle(a.e).display === 'inline' && getComputedStyle(b.e).display === 'inline' && block(a.e) === block(b.e)) continue;   // text runs in one line box; inline-block, control and media boxes still collide
     const key = [all.indexOf(a.e), all.indexOf(b.e)].sort((x, y) => x - y).join('-');
     if (seen.has(key)) continue; seen.add(key);
     let common = a.e.parentElement; while (common && !common.contains(b.e)) common = common.parentElement;

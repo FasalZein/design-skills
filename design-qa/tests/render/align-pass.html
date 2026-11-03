@@ -6,7 +6,7 @@
   .row { display: flex; gap: 8px; }
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   svg { width: 16px; height: 16px; flex: none; } .center { align-items: center; } .base { align-items: baseline; }</style></head><body>
-<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
 <div class="card">
   <div class="row center"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="8"/></svg><span>Activity row with a centred icon</span></div>
   <div class="row base"><span style="font-size:12px">AUM</span><span style="font-size:24px">$12.0M</span></div>

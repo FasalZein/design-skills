@@ -6,6 +6,6 @@
   .row { display: flex; gap: 8px; }
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .avatar { position: relative; width: 48px; height: 48px; } .avatar img { width: 48px; height: 48px; display: block; } .badge { position: absolute; right: -4px; bottom: -4px; font-size: 12px; background: #fff; }</style></head><body>
-<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
-<div class="card"><div class="avatar"><img alt="Avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' height='48' fill='%23bbb'/%3E%3C/svg%3E"><span class="badge">3</span></div></div>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card"><div class="avatar"><img alt="Avatar" data-judge="IMG | 3" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' height='48' fill='%23bbb'/%3E%3C/svg%3E"><span class="badge">3</span></div></div>
 </body></html>

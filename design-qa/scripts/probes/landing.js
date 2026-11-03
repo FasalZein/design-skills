@@ -16,14 +16,14 @@
     const r = e.getBoundingClientRect(); if (r.width < vw*0.6) return false;
     const s = getComputedStyle(e);
     if (s.position === 'sticky' || s.position === 'fixed') return false;
-    if (e.closest('table,thead,tbody,ul,ol')) return false;
+    if (e.closest('table,thead,tbody,ul,ol,.ss-stage')) return false;   // .ss-stage: stageshow stage content, film.mjs owns it
     if (!sectionLevel(e)) return false;   // component-internal seams are anatomy; screenshot is the backstop
     return seam(e, s, r);
   }).map(e => e.tagName + '.' + String(e.className).split(' ')[0]);
   const rules = {}; names.forEach(n => rules[n] = (rules[n]||0) + 1);
   // background TRANSITIONS in document order (not distinct colors)
   const bands = [...document.querySelectorAll('body > *, main > *, main section')]
-    .filter(e => { const r = e.getBoundingClientRect(); return r.width >= vw*0.6 && r.height > 120; })
+    .filter(e => { const r = e.getBoundingClientRect(); return r.width >= vw*0.6 && r.height > 120 && !e.parentElement?.closest('.ss-stage'); })
     .sort((a,b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
     .map(e => getComputedStyle(e).backgroundColor);
   let transitions = 0;

@@ -57,7 +57,7 @@ A stage is a faux product UI built with the stageshow skill: its copied `kit/` f
   ```
 
 - The allowlist removes scanner findings inside a stage. Of the judgment rows, Gates 1, 3, 5, and 8 skip stage files; the other gates still apply.
-- Gate 12 checks the host page that shows the stage. The stage's own pixels belong to `film.mjs`.
+- Gate 12 checks the host page that shows the stage. The stage's own pixels belong to `film.mjs`: every probe in `scripts/probes/` skips the descendants of the stage root `.ss-stage`, and the overlap probe still checks the stage box against its host siblings.
 
 ---
 
@@ -236,7 +236,7 @@ Static gates read source; this gate checks the **rendered page**.
 
 **States:** loaded (both required viewports) — then empty, loading, error, long-content, interactive states at one representative viewport each; dark mode and reduced-motion when supported. Repeat a state at a second viewport only when responsive behavior could change its verdict.
 
-**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands above the runbook probe's fail tier at 1440px (judge-tier bands reviewed against Gate 4) · marketing: zero full-width section rules and ≤3 distinct section surfaces · reduced-motion emulation removes positional animation · render probes: no clipped or spilled text, no wrapped control labels or money, no overlapping boxes, lockups aligned (each FAIL row fails; each JUDGE row gets a verdict against the screenshot).
+**Machine probes (binary):** console/page/network errors = 0 · no horizontal overflow at 375px · one h1, ordered headings in the accessibility snapshot · rendered contrast meets Gate 3 floors · focus ring visible on every interactive element in a tab cycle · primary targets ≥44px at 375px · no dead-air bands above the runbook probe's fail tier at 1440px (judge-tier bands reviewed against Gate 4) · marketing: zero full-width section rules and ≤3 distinct section surfaces · reduced-motion emulation removes positional animation · render probes: no clipped or spilled text, no wrapped control labels or words broken mid-word, no overlapping boxes, lockups aligned (each FAIL row fails; each JUDGE row gets a verdict against the screenshot).
 
 **Screenshot review (judgment):** hierarchy, blank/thin sections, truncation recovery, empty-state usefulness, dark-mode quality, visible anti-slop regressions — against Gate 1 — and every render-probe JUDGE row.
 

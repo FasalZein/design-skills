@@ -6,8 +6,8 @@
   .row { display: flex; gap: 8px; }
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style></head><body>
-<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
-<div class="card"><div class="row"><span style="margin-right:-40px" data-expect="fail">Total AUM</span><span>$12.0M</span></div>
-  <h3 style="margin:0; height:12px">Label sits on top</h3><p style="margin:0">of the paragraph below it</p>
-  <button type="button" data-expect="fail">Save</button><button type="button" style="margin-left:-20px">Cancel</button></div>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card"><div class="row"><span style="margin-right:-40px" data-fail="Total AUM | $12.0M">Total AUM</span><span>$12.0M</span></div>
+  <h3 style="margin:0; height:12px" data-fail="Label sits on top | of the paragraph below it">Label sits on top</h3><p style="margin:0">of the paragraph below it</p>
+  <button type="button" data-fail="Save | Cancel">Save</button><button type="button" style="margin-left:-20px">Cancel</button></div>
 </body></html>

@@ -20,7 +20,7 @@
   const vis = e => e.checkVisibility ? e.checkVisibility({checkOpacity:true, visibilityProperty:true}) : e.offsetHeight > 0;
   const fails = [];
   for (const e of document.querySelectorAll('*')) {
-    if (!vis(e) || !e.offsetHeight) continue;
+    if (!vis(e) || !e.offsetHeight || e.closest('.ss-stage')) continue;   // stageshow stage content: film.mjs owns it
     const st = getComputedStyle(e);
     // text (any element with a direct text node; placeholders for inputs)
     const text = e.matches('input,textarea') ? e.placeholder

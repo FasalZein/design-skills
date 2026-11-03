@@ -5,7 +5,7 @@
       if (!t && e.id) t = document.querySelector(`label[for="${CSS.escape(e.id)}"]`);
       const own = e.getBoundingClientRect(), lab = t ? t.getBoundingClientRect() : own;
       return {e, r: (lab.width*lab.height > own.width*own.height) ? lab : own}; })
-    .filter(x=>x.r.width>0&&x.r.height>0);
+    .filter(x=>x.r.width>0&&x.r.height>0&&!x.e.closest('.ss-stage'));   // stageshow stage content: film.mjs owns it
   const name = x => (x.e.textContent?.trim() || x.e.getAttribute('aria-label') || x.e.tagName).slice(0,20);
   return { fail: els.filter(x=>x.r.width<24||x.r.height<24).map(name),
            judge44: els.filter(x=>(x.r.width<44||x.r.height<44)&&x.r.width>=24&&x.r.height>=24).map(name) }; })()

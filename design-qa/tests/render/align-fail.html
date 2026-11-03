@@ -6,9 +6,9 @@
   .row { display: flex; gap: 8px; }
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   svg { width: 16px; height: 16px; flex: none; } .start { align-items: flex-start; }</style></head><body>
-<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
 <div class="card">
-  <div class="row start"><svg viewBox="0 0 16 16" data-expect="fail"><circle cx="8" cy="8" r="8"/></svg><span style="line-height:32px">Activity row icon sits high</span></div>
-  <div class="row start"><span>Label</span><span style="padding-top:6px" data-expect="fail">Value</span></div>
-  <div><p style="margin:0">Stack child one</p><p style="margin:0">Stack child two</p><p style="margin:0 0 0 7px" data-expect="fail">Stack child off by 7px</p></div></div>
+  <div class="row start"><svg viewBox="0 0 16 16" data-fail="svg | Activity row icon sits hi"><circle cx="8" cy="8" r="8"/></svg><span style="line-height:32px">Activity row icon sits high</span></div>
+  <div class="row start"><span>Label</span><span style="padding-top:6px" data-fail="Label | Value">Value</span></div>
+  <div><p style="margin:0">Stack child one</p><p style="margin:0">Stack child two</p><p style="margin:0 0 0 7px" data-fail="Stack child off by 7px | Stack child oneStack chil">Stack child off by 7px</p></div></div>
 </body></html>

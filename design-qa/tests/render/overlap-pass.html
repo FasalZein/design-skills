@@ -6,7 +6,7 @@
   .row { display: flex; gap: 8px; }
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   h2 { line-height: 1; } .avatar { position: relative; width: 40px; height: 40px; background: #ddd; } .badge { position: absolute; top: 4px; left: 4px; font-size: 12px; background: #fff; }</style></head><body>
-<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
 <div class="card"><h2>Tight leading <em>inline runs</em> share one line box and <strong>wrap</strong> over lines</h2>
   <div class="row"><button type="button">Save</button><button type="button">Cancel</button></div>
   <p>Paragraph under the buttons.</p></div>

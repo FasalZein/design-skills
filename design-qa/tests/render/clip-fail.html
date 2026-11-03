@@ -6,10 +6,10 @@
   .row { display: flex; gap: 8px; }
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .narrow { width: 80px; }</style></head><body>
-<!-- Expected tier is in the file name. Elements marked data-expect="fail" are the rows the probe must report as FAIL. -->
-<h1 class="truncate" style="width:200px" data-expect="fail">A systematic engine designed to monetize volatility</h1>
-<div class="card"><span class="truncate narrow" style="display:block" title="$12.0M – $18.0M" data-expect="fail">$12.0M – $18.0M</span>
-  <div class="narrow" style="overflow:hidden; white-space:nowrap" data-expect="fail">Milestone cut hard</div>
-  <div class="truncate narrow" data-expect="fail">Islamic Investors Fund</div>
-  <div class="narrow" style="white-space:nowrap" data-expect="fail">Spills out of the box</div></div>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<h1 class="truncate" style="width:200px" data-fail="A systematic engine designed to monetize">A systematic engine designed to monetize volatility</h1>
+<div class="card"><span class="truncate narrow" style="display:block" title="$12.0M – $18.0M" data-fail="$12.0M – $18.0M">$12.0M – $18.0M</span>
+  <div class="narrow" style="overflow:hidden; white-space:nowrap" data-fail="Milestone cut hard">Milestone cut hard</div>
+  <div class="truncate narrow" data-fail="Islamic Investors Fund">Islamic Investors Fund</div>
+  <div class="narrow" style="white-space:nowrap" data-fail="Spills out of the box">Spills out of the box</div></div>
 </body></html>
