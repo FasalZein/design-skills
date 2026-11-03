@@ -65,12 +65,34 @@ grep -n 'MUST use .AlertDialog' "$ROOT/design-qa/SKILL.md" >/dev/null 2>&1 && ba
 # 7. laws-of-ux stands alone (no cross-skill file pointers; skill-name mention in frontmatter description is fine)
 grep -nE '(design-craft|design-qa)/|reference/[a-z-]+\.md' "$ROOT/laws-of-ux/SKILL.md" >/dev/null 2>&1 && bad "laws-of-ux points into another skill's files" || say "laws-of-ux is self-contained"
 
+# 7b. laws-of-ux decision-area sections exist in order (the router names them), followed by the Audit
+LUX_EXPECTED=$(printf '%s\n' "Navigation and information architecture" "Forms and data input" "Multi-step flows and progress" \
+  "Actions and calls to action" "Feedback and response time" "Grouping and layout" "Content and copy" "Errors and recovery" "Audit")
+LUX_ACTUAL=$(grep -E '^## ' "$ROOT/laws-of-ux/SKILL.md" | sed 's/^## //')
+[ "$LUX_ACTUAL" = "$LUX_EXPECTED" ] && say "laws-of-ux sections in order" || bad "laws-of-ux sections differ from the routed list"
+
 # 8. Gate count consistency: derive from design-qa, compare against every README claim
-GATES=$(grep -oE '^## Gate [0-9]+' "$ROOT/design-qa/SKILL.md" | awk '{print $3}' | sort -n | tail -1)
+GATES=$(grep -oE '^### Gate [0-9]+' "$ROOT/design-qa/SKILL.md" | awk '{print $3}' | sort -n | tail -1)
 [ -n "$GATES" ] || bad "could not derive gate count from design-qa/SKILL.md"
 CLAIMS=$(grep -oE '[0-9]+(-gate| gates)' "$ROOT/README.md" | grep -oE '^[0-9]+' | sort -u)
 for c in $CLAIMS; do [ "$c" = "$GATES" ] || bad "README claims $c gates; design-qa defines $GATES"; done
 say "gate count consistent ($GATES gates)"
+
+# 8a. design-qa Verify blocks: design-craft routes to these two headings by name
+for h in '## Static checks' '## Live checks'; do
+  grep -qx "$h" "$ROOT/design-qa/SKILL.md" || bad "design-qa/SKILL.md lacks heading '$h'"
+done
+# Every render probe file (first line names it a render probe) has a passing and a failing fixture
+PROBES=$(for f in "$ROOT"/design-qa/scripts/probes/*.js; do head -1 "$f" | grep -q 'render probe' && basename "$f" .js; done)
+[ -n "$PROBES" ] || bad "no render probes found in design-qa/scripts/probes"
+for f in "$ROOT"/design-qa/scripts/probes/*.js; do
+  name=$(basename "$f" .js); grep -qE "/$name\.js|\*\*$name\.js\*\*|for p in .*\b$name\b" "$ROOT/design-qa/reference/live-verification.md" \
+    || bad "probe file $name.js is not referenced in live-verification.md"
+done
+for p in $PROBES; do for tier in pass fail; do
+  [ -f "$ROOT/design-qa/tests/render/$p-$tier.html" ] || bad "render probe $p lacks fixture tests/render/$p-$tier.html"
+done; done
+say "design-qa verify blocks and probe fixtures present ($(echo $PROBES | wc -w | tr -d ' ') probes)"
 
 # 8b. Gate 12 viewport constants match between SKILL and runbook
 for vp in '375' '1440'; do

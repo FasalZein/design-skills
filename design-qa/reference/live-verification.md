@@ -13,6 +13,8 @@ AB="agent-browser-chrome --session <app>-qa" # ISOLATED session — parallel age
 # for every command of the session.
 # resolve the target: project dev/preview command (package.json scripts) or supplied URL
 # static single-file builds: file:///absolute/path/index.html works directly
+PROBES="$PI_SKILL_DIR/scripts/probes"         # design-qa's probe files; without PI_SKILL_DIR, the
+                                             # scripts/probes folder beside design-qa's SKILL.md
 ```
 
 Use `$AB` for every command below; `$AB close` when done. Run each Gate 12 session fresh — stale tabs carry console history that pollutes error capture.
@@ -60,6 +62,8 @@ Verify the emulation took: `$AB eval "matchMedia('(prefers-reduced-motion: reduc
 
 ## Machine probes (run via `$AB eval`)
 
+Each probe file in `$PROBES` is one JavaScript expression; `$AB eval` prints its result. Run the file; reading it is optional. The short overflow, request and dead-air probes stay inline here (dead air needs its `marketing` constant set per page).
+
 Horizontal overflow (at 375px):
 
 ```js
@@ -68,79 +72,24 @@ document.documentElement.scrollWidth <= window.innerWidth
 
 Heading order — first **visible** heading is an h1, exactly one visible h1, no forward skips (hidden headings don't exist for the accessibility tree):
 
-```js
-(() => { const vis = e => e.checkVisibility ? e.checkVisibility({checkOpacity:true, visibilityProperty:true}) : e.offsetHeight > 0;
-  const hs=[...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].filter(vis).map(h=>+h.tagName[1]);
-  return { startsAtH1: hs[0]===1, oneH1: hs.filter(l=>l===1).length===1,
-           noSkip: hs.every((l,i)=>i===0||l<=hs[i-1]+1) }; })()
+```bash
+$AB eval "$(cat "$PROBES/headings.js")"
 ```
 
 Cross-check against `$AB snapshot -i` — the accessibility tree is the authority.
 
 Rendered contrast — normalizes ANY color syntax (oklch/hsl/named) by drawing it to a 1×1 canvas and reading the pixel back (string parsing is unsafe: modern Chromium serializes `fillStyle` in the original color space). Enumerates EVERY element with direct text (no tag allowlist — `<div>` text counts), composites alpha through **all** ancestor layers, probes input borders for the 3:1 non-text floor, and applies the correct text tier (3:1 for ≥24px or ≥18.66px bold; 4.5:1 otherwise):
 
-```js
-(() => {
-  const cv = document.createElement('canvas'); cv.width = cv.height = 1;
-  const ctx = cv.getContext('2d', { willReadFrequently: true });
-  const parse = v => { if (!v) return null;
-    ctx.fillStyle = '#123456'; ctx.fillStyle = v;
-    if (ctx.fillStyle === '#123456' && v.replace(/\s/g,'').toLowerCase() !== '#123456') return null;
-    ctx.clearRect(0,0,1,1); ctx.fillRect(0,0,1,1);
-    const d = ctx.getImageData(0,0,1,1).data; return [d[0], d[1], d[2], d[3]/255]; };
-  const lum = ([r,g,b]) => { const f = v => { v/=255; return v<=.03928 ? v/12.92 : ((v+.055)/1.055)**2.4 };
-    return .2126*f(r)+.7152*f(g)+.0722*f(b); };
-  const over = (top, bot) => { const a = top[3] + bot[3]*(1-top[3]); if (!a) return [0,0,0,0];
-    return [0,1,2].map(i => (top[i]*top[3] + bot[i]*bot[3]*(1-top[3]))/a).concat([a]); };
-  const bgOf = el => { let acc = [0,0,0,0];
-    for (let n = el; n; n = n.parentElement) {
-      const c = parse(getComputedStyle(n).backgroundColor); if (!c || c[3] === 0) continue;
-      acc = over(acc, c); if (acc[3] >= 0.999) return acc;
-    } return over(acc, [255,255,255,1]); };
-  const ratio = (a, b) => { const L1 = lum(a), L2 = lum(b); return (Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05); };
-  const vis = e => e.checkVisibility ? e.checkVisibility({checkOpacity:true, visibilityProperty:true}) : e.offsetHeight > 0;
-  const fails = [];
-  for (const e of document.querySelectorAll('*')) {
-    if (!vis(e) || !e.offsetHeight) continue;
-    const st = getComputedStyle(e);
-    // text (any element with a direct text node; placeholders for inputs)
-    const text = e.matches('input,textarea') ? e.placeholder
-      : ([...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) ? e.textContent : '');
-    if (text?.trim()) {
-      const fg = parse(e.matches('input,textarea') ? (getComputedStyle(e,'::placeholder').color || st.color) : st.color);
-      if (!fg) fails.push({t:text.slice(0,30), r:'MANUAL — unparseable color'});
-      else { const bg = bgOf(e), c = over(fg, bg);   // element's own background sits behind its text
-        const px = parseFloat(st.fontSize), bold = parseInt(st.fontWeight) >= 700;
-        const floor = (px >= 24 || (px >= 18.66 && bold)) ? 3 : 4.5;
-        const r = ratio(c, bg);
-        if (r < floor) fails.push({t:text.slice(0,30), r:+r.toFixed(2), need:floor}); }
-    }
-    // non-text: control borders need 3:1 against the surrounding surface
-    if (e.matches('input,select,textarea,button,[role=button]') && parseFloat(st.borderTopWidth) > 0 && st.borderTopStyle !== 'none' && !/rgba\(0, 0, 0, 0\)|transparent/.test(st.borderTopColor)) {
-      const bc = parse(st.borderTopColor), bg = bgOf(e.parentElement || e);
-      if (bc) { const r = ratio(over(bc, bg), bg);
-        if (r < 3) fails.push({t:'border:' + (e.name || e.type || e.tagName), r:+r.toFixed(2), need:3}); }
-    }
-  }
-  return fails.slice(0,40);
-})()
+```bash
+$AB eval "$(cat "$PROBES/contrast.js")"
 ```
 
 Empty array = pass. Any `MANUAL` row means the probe could not measure — check that element in the screenshot, never assume it passed. Outside this probe's reach — judge in screenshot review: text over images/gradients, meaningful icons/SVG, focus-ring contrast.
 
 Target size (at 375px) — two buckets: below 24px fails outright (WCAG floor); interactive controls 24–43px are listed for the 44px product-target judgment in screenshot review:
 
-```js
-(() => { const els=[...document.querySelectorAll('button,a,[role=button],[role=link],input,select,textarea,[onclick]')]
-    .map(e=>{ // the real hit target: wrapping label, or the label[for] pointing at this control
-      let t = e.closest('label');
-      if (!t && e.id) t = document.querySelector(`label[for="${CSS.escape(e.id)}"]`);
-      const own = e.getBoundingClientRect(), lab = t ? t.getBoundingClientRect() : own;
-      return {e, r: (lab.width*lab.height > own.width*own.height) ? lab : own}; })
-    .filter(x=>x.r.width>0&&x.r.height>0);
-  const name = x => (x.e.textContent?.trim() || x.e.getAttribute('aria-label') || x.e.tagName).slice(0,20);
-  return { fail: els.filter(x=>x.r.width<24||x.r.height<24).map(name),
-           judge44: els.filter(x=>(x.r.width<44||x.r.height<44)&&x.r.width>=24&&x.r.height>=24).map(name) }; })()
+```bash
+$AB eval "$(cat "$PROBES/targets.js")"
 ```
 
 `fail` non-empty = probe failure. Every primary control appearing in `judge44` fails the review unless it is a genuinely secondary/inline control.
@@ -172,41 +121,45 @@ Set `marketing` from the declared archetype before running. `fail` non-empty = p
 
 Landing continuity (marketing pages, at 1440px) — render-level, so it catches every emission style (logical properties, arbitrary class names). Sticky/fixed bars are exempt (their seam is chrome, not a section boundary):
 
-```js
-(() => { const vw = innerWidth;
-  const sectionLevel = e => { const p = e.parentElement;
-    return e.matches('section,footer,header') || (p && (p === document.body || p.tagName === 'MAIN')); };
-  const seam = (e, s, r) => {
-    const top = parseFloat(s.borderTopWidth) > 0 && s.borderTopStyle !== 'none';
-    const bot = parseFloat(s.borderBottomWidth) > 0 && s.borderBottomStyle !== 'none';
-    const hr = e.tagName === 'HR' || (r.height <= 2 && !/rgba\(0, 0, 0, 0\)|transparent/.test(s.backgroundColor));
-    const shadow = /(^|,)\s*(inset\s+)?0(px)?\s+-?[12]px\s+0/.test(s.boxShadow || '');
-    let pseudo = false;
-    for (const which of ['::before','::after']) { const ps = getComputedStyle(e, which);
-      if (ps.content !== 'none' && parseFloat(ps.height) <= 2 && parseFloat(ps.width) > vw*0.5
-          && !/rgba\(0, 0, 0, 0\)|transparent/.test(ps.backgroundColor)) pseudo = true; }
-    return top || bot || hr || shadow || pseudo; };
-  const names = [...document.querySelectorAll('*')].filter(e => {
-    const r = e.getBoundingClientRect(); if (r.width < vw*0.6) return false;
-    const s = getComputedStyle(e);
-    if (s.position === 'sticky' || s.position === 'fixed') return false;
-    if (e.closest('table,thead,tbody,ul,ol')) return false;
-    if (!sectionLevel(e)) return false;   // component-internal seams are anatomy; screenshot is the backstop
-    return seam(e, s, r);
-  }).map(e => e.tagName + '.' + String(e.className).split(' ')[0]);
-  const rules = {}; names.forEach(n => rules[n] = (rules[n]||0) + 1);
-  // background TRANSITIONS in document order (not distinct colors)
-  const bands = [...document.querySelectorAll('body > *, main > *, main section')]
-    .filter(e => { const r = e.getBoundingClientRect(); return r.width >= vw*0.6 && r.height > 120; })
-    .sort((a,b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
-    .map(e => getComputedStyle(e).backgroundColor);
-  let transitions = 0;
-  for (let i = 1; i < bands.length; i++) if (bands[i] !== bands[i-1]) transitions++;
-  return { rules, transitions };
-})()
+```bash
+$AB eval "$(cat "$PROBES/landing.js")"
 ```
 
 Reading the result on a marketing page: any `rules` entry = a section-level seam — **fail** unless the screenshot proves it is component anatomy (repetition count is a hint, never proof — three bordered `<section>`s are three seams). A single non-sticky `HEADER`/`FOOTER` seam = judge. `transitions ≤ 2` in document order (base→emphasis and emphasis/base→footer); returning to base between bands counts as a transition. Sub-60vw seams and exotic emissions escape this probe — the full-page screenshot is the backstop. App shells are exempt — their seams are shell anatomy.
+
+## Render probes (overflow, wrapping, overlap, alignment)
+
+Run these four probes in every cell, after the machine probes above:
+
+```bash
+for p in clip wrap overlap align; do $AB eval "$(cat "$PROBES/$p.js")"; done   # tier, counts, FAIL rows
+$AB eval "DQ_JUDGE=1; $(cat "$PROBES/overlap.js")"                           # same, plus every JUDGE row
+```
+
+Each prints `{tier, counts: {fail, judge}, fail: [...]}`. Tier `FAIL`: each FAIL row fails Gate 12. Tier `JUDGE`: rerun that probe with `DQ_JUDGE=1` to get the `judge` rows, check each against the screenshot, and record the verdict. Tier `PASS`: nothing to review. Rows name the text (first 25–40 characters), so find each one in the screenshot. Shared terms:
+
+- **1px tolerance**: `scrollWidth`, `clientWidth` and `clientHeight` are integers, so a 1px difference is rounding, not a defect.
+- **4px step**: the Gate 4 grid unit. An offset of a full step is a visible misalignment; a smaller offset can be optical alignment and goes to JUDGE.
+- **Money or metric**: text that contains a currency sign next to a digit, or a number followed by %, k, M, B or a currency code.
+- **Visible text**: text whose box is wider and taller than 1px, inside the visible area that all its clipping ancestors leave (each clipped axis cuts it). Screen-reader-only text and hover-swap copies hidden by `overflow: hidden` are not visible.
+- **Stage**: every probe in `scripts/probes/` skips the descendants of a stageshow stage root (`.ss-stage`); `film.mjs` checks them. overlap.js still compares the stage box with its host siblings.
+- **Label**: an element whose descendants are all inline. A card link that holds headings and paragraphs is a container, not a label.
+
+**clip.js**: text overflow and clipping (Gate 8 wrap-first). Text is measured against its clip box: the nearest box, the element itself or an ancestor, with `overflow: hidden` or `clip`. FAIL: glyphs spill past the element's box; text cut by the clip box with no ellipsis or line clamp (a line the clip box shows only in part, or at least one font size of the element's own text hidden; glyphs past the line box are descender overflow, not a cut); a heading, money or metric truncated; a truncation with no recovery path. JUDGE: a truncation whose full value is in `title` or `aria-label` (confirm in the screenshot that the design fixes this cell's width); a truncation inside or around a link, button or tooltip trigger (`aria-describedby`, `data-tooltip`): open that detail or tooltip path and confirm it shows the full value. A scroll region (`overflow: auto` or `scroll`) and its direct child keep their content reachable and are skipped.
+
+**wrap.js**: unwanted wrapping. Counts the rendered lines of visible text. FAIL: a control label (button, tab, summary, or a link with its own background or border) on more than one line; one word broken across lines. A button, tab or summary label is measured as rendered, whatever wrapper element holds its one text; a control with several texts (a name over an email) holds fields, not one label. JUDGE: one number or money token split across lines (`$12,000,000` over two lines); a `label`, `th`, `dt` or `legend` on more than one line. Headings, titles, money and metric labels, prose and containers wrap freely between words (Gate 8 wrap-first).
+
+**overlap.js**: overlap of sibling boxes. Compares the visible line boxes of every text run (the glyph box trimmed to the computed `line-height`, so tight leading is not overlap) and the border boxes of controls and media, across elements where neither contains the other. Text runs of `display: inline` elements that share one block are skipped; inline-block, control and media boxes are always compared. FAIL: two in-flow boxes intersect by more than 1px on both axes. JUDGE: the intersection is a deliberate layer: it involves an `absolute`, `fixed` or `sticky` box (a badge on an avatar, a sticky bar) or a transformed box (a carousel slide, an animation mid-flight); the two boxes sit in grid items placed over each other (grid items overlap only by explicit placement); it is media on media (an avatar stack); or both runs hold the same text (a duplicated text effect).
+
+**align.js**: sibling alignment in lockups. Checks the visible children of every flex row and every vertical stack (a child that its clipping ancestors hide completely, such as a collapsed `height: 0; overflow: hidden` panel, is skipped):
+
+- **Icon and text**: an `svg` or `img` (alone or wrapped) beside a text sibling in the same row. Compares the icon's vertical centre with the centre of the text's first line.
+- **Label and value**: two one-line labels side by side in the same row. Compares their first baselines, measured with a zero-height inline-block marker. A label whose text sits directly in a flex or grid box is skipped: the marker would become a flex or grid item.
+- **Left edges of a stack**: the labels among the children of a block or column flex container. Compares each label's left edge with the most common left edge.
+
+Offset ≤ 1px: PASS. Above 1px and below 4px: JUDGE (optical alignment is possible). A full 4px step or more: FAIL. These cases go to JUDGE at any size: a multi-line text beside an icon (an avatar beside a name and a subtitle) when the icon is centred on neither the first line nor the whole block; label and value in different font sizes; a stack label offset by a whole multiple of 4px (a deliberate indent is possible); a stack label centred in its parent; a stack label or stack with a `transform` (an animation can be mid-flight).
+
+## Other render checks
 
 Focus visibility: key-tab through the page and screenshot mid-cycle — every stop shows a visible ring.
 
@@ -214,4 +167,4 @@ Layout shift: screenshot immediately after load and again after network idle; di
 
 ## Evidence
 
-Per cell (state × viewport), record: state name, how it was produced, viewport, screenshot path, errors/console/failed-request output, every probe result. Findings carry: gate check, severity, screenshot path, repro steps. Keep artifacts under one directory per run (`design-qa-live/<app>-<state>-<viewport>.png`).
+Per cell (state × viewport), record: state name, how it was produced, viewport, screenshot path, errors/console/failed-request output, every probe result. Findings carry: gate check, severity, screenshot path, repro steps. Keep artifacts under one directory per run (`design-qa-live/<app>-<state>-<viewport>.png`), with the before-and-after captures (SKILL.md "Before and after") in its `before/`, `after/`, and `diff/` folders. For each render probe, record the tier, the counts, every FAIL row, and a verdict per JUDGE row.

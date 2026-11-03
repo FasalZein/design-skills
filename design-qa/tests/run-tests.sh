@@ -203,6 +203,17 @@ printf 'BADROW-no-tabs\n' > "$AL"
 t "malformed allowlist exits 2"                 2 bash "$SCAN" "$ONE" --allowlist "$AL"
 rm -rf "$ONE" "$AL"
 
+# --- stageshow stage allowlist (SKILL.md "Stageshow stages"): kit/ and demo folder quiet, host still scanned ---
+D=$(mktemp -d); AL=$(mktemp)
+mkdir -p "$D/src/kit" "$D/src/demo"
+printf '.window { background: #1e1e1e; color: #e5e5e5; }\n' > "$D/src/kit/window.css"
+printf '.bar { background: #3a3a3a; }\n' > "$D/src/demo/hero.css"
+printf '.host { color: #ff0000; }\n' > "$D/src/host.css"
+printf '*\t(^|/)kit/\tstageshow stage: film.mjs gate owns it\n*\t(^|/)demo/\tstageshow stage: film.mjs gate owns it\n' > "$AL"
+FILES=$(bash "$SCAN" "$D" --json --allowlist "$AL" 2>/dev/null | jq -r '[.issues[].file] | unique | join(",")')
+[ "$FILES" = "src/host.css" ] && ok || ko "stage allowlist: want findings only in src/host.css, got '$FILES'"
+rm -rf "$D" "$AL"
+
 echo "----"
 echo "design-scan tests: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

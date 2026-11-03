@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>clip fail (text cut by a clipping ancestor; partial line cut vertically)</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card"><div style="width:80px; overflow:hidden; white-space:nowrap"><span data-fail="Long content hidden by ancestor">Long content hidden by ancestor</span></div>
+  <div style="height:10px; overflow:hidden; font:16px/24px Arial" data-fail="Partial line cut">Partial line cut</div></div>
+</body></html>

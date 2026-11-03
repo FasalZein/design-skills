@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>overlap fail</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card"><div class="row"><span style="margin-right:-40px" data-fail="Total AUM | $12.0M">Total AUM</span><span>$12.0M</span></div>
+  <h3 style="margin:0; height:12px" data-fail="Label sits on top | of the paragraph below it">Label sits on top</h3><p style="margin:0">of the paragraph below it</p>
+  <button type="button" data-fail="Save | Cancel">Save</button><button type="button" style="margin-left:-20px">Cancel</button></div>
+</body></html>
