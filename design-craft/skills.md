@@ -58,7 +58,6 @@ Load these only when installed and their trigger fires. A missing optional skill
 | coss | The project uses coss or Base UI | cosscom/ui | `npx skills add cosscom/ui -g -s coss` |
 | prototype | Does this state model or logic feel right? (LOGIC branch) | mattpocock/skills | `npx skills add mattpocock/skills -g -s prototype` |
 | copywriting | Marketing copy | coreyhaines31/marketingskills | `npx skills add coreyhaines31/marketingskills -g -s copywriting` |
-| pencil-design | A .pen or .lib.pen file is the source | edxeth/pencil-design | `npx skills add edxeth/pencil-design -g -s pencil-design` |
 | design-md | No DESIGN.md (create), or a weak direction (improve); design agent only | FasalZein/design-md, a private repo (skills/design-md; not in the lock file) | From a checkout of that repo: `npx skills@latest add ./skills/design-md`, then the dmd CLI with `bun install` and `bun link`. The style-vault folder of the checkout is the vault |
 
 ## Platform skills, not routed

@@ -134,7 +134,6 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 | Screen, flow | Trigger: a product illustration or demo on a page | stageshow | both | Through surfaces/illustration.md |
 | Screen, flow | Trigger: a state model or logic question is open | prototype (optional) | design | LOGIC branch only |
 | Screen, flow | Trigger: a Figma file or a design image is the source | build-design | builder | The file closes the decisions it shows; a value with no token is an open primitive decision. No Figma MCP: build from an exported image, else PARTIAL (scope) |
-| Screen, flow | Trigger: a .pen or .lib.pen file is the source | pencil-design (optional) | builder | Needs the Pen MCP server; the same rules as build-design |
 | Screen, flow | Trigger: the owner asks to improve existing motion | improve-animations | design | An audit plus plans; builders run the plans |
 | Component | Pass: structure, density, emphasis, type or voice, while the form is open | variant | design | In a round, the variants go into the round's prototype file; n/a once the form is decided |
 | Component | Pass: motion or interaction feel, while it is open | emil-prototype | design | n/a once the feel is decided |

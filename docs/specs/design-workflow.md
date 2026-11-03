@@ -39,7 +39,8 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D12 One skill per read call**, whole, unless the route names sections.
 - **D13 Install set.**
   - Core: FasalZein/design-skills (design-craft, design-qa, laws-of-ux), jakubkrehel/skills, emilkowalski/skill, benjitaylor/skills (stageshow), Leonxlnx/taste-skill (design-taste-frontend), and the agent-browser CLI on the Chrome engine.
-  - Optional, used only when installed and their trigger fires: shadcn and coss (the project uses them), mattpocock prototype (a logic question), copywriting (marketing copy), pencil-design (a .pen file), design-md (no DESIGN.md or a weak direction; needs the dmd CLI and its vault, D24).
+  - Optional, used only when installed and their trigger fires: shadcn and coss (the project uses them), mattpocock prototype (a logic question), copywriting (marketing copy), design-md (no DESIGN.md or a weak direction; needs the dmd CLI and its vault, D24).
+  - Dropped (owner, 2026-11-03): the pencil-design route. It needs a Pen MCP server that is not confirmed on this machine, and its skill update failed on 2026-11-03. It has no routing row, no skills.md row and no eval expectation.
   - Out of the router (stay installed for manual use): impeccable, grill-design (design-craft carries its own loop), the agent-browser skill stub, make-interfaces-feel-better, animation-vocabulary (owner choice), hallmark, coss-particles.
   - Platform skills, not routed: animate-expo and write-swift. The workflow verifies web UI only; they route when a native track with its own checks exists.
 - **D14 Design grilling (attended).** The design agent interviews the owner like grilling, with prototypes as the questions.
@@ -52,8 +53,8 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D15 Bottom-up build.** Primitives, then components, then screens. The design agent sends decided, independent parts to design-builders with the DESIGN.md path. Each part passes design-qa before a higher level uses it.
 - **D16 Open parts stop headless runs.** A builder never decides an open part. It stops on that part with a DECISION NEEDED block, and the parent asks the owner. There is no self-picked direction.
 - **D17 Children of the design agent:** scout, researcher, design-builder.
-- **D18 Surfaces.** The router sorts work by surface, so `design-craft/surfaces/` holds one file per surface: app-screen, public-page, illustration. A Figma file, a design image or a .pen file is a source, not a surface: build-design and pencil-design are trigger rows. The headings "Craft floor" (SKILL.md) and "Project Context Scan" (surfaces/app-screen.md) keep these names; design-qa scanner hints point to them.
-- **D19 One routing table with an agent column** (design | builder | both). Both agents see the whole table and act only on their rows. Each skill has one row; its meaning lives there.
+- **D18 Surfaces.** The router sorts work by surface, so `design-craft/surfaces/` holds one file per surface: app-screen, public-page, illustration. A Figma file or a design image is a source, not a surface: build-design is a trigger row. The headings "Craft floor" (SKILL.md) and "Project Context Scan" (surfaces/app-screen.md) keep these names; design-qa scanner hints point to them.
+- **D19 One routing table with an agent column** (design | builder | both). Both agents see the whole table and act only on their rows. Each skill has one row; its meaning lives there. The pencil-design row is dropped (D13, owner 2026-11-03).
 - **D20 Craft passes per level.** Each level has a fixed pass list; each pass is one skill used as a lens, run by the agent its row names. A part is done when every pass of its level has a result: applied (skill loaded; what changed) or n/a (an observable fact). A pass that does not apply loads nothing. A component group (for example, a page section) runs the Screen and the Component passes; a pass that does not fit records n/a. The report carries a PASSES line. No verify.sh coverage lint.
 - **D21 New routes:** interface-review (builder; the part changed existing UI: review its own diff for regressions before reporting); find-animation-opportunities (design; after a screen is built, a motion round: the owner picks proposals, builders apply them with animate); improve-animations (design; the owner asks to improve existing motion: an audit plus plans that builders run).
 - **D22 Outcome loop.** `evals/retro/index.sh` and `compliance.sh` index design and design-builder sessions. A skill counts as loaded when its text came back in a tool result (its frontmatter `name:` line), never by a path in call arguments. After each batch they report passes run, skills that changed results, cost, peak context and owner corrections.
@@ -80,7 +81,6 @@ Pass rows run on every part of their level; trigger rows fire on their condition
 | Screen, flow | Trigger: a product illustration or demo on a page | stageshow | both |
 | Screen, flow | Trigger: a state model or logic question is open | prototype (optional) | design |
 | Screen, flow | Trigger: a Figma file or a design image is the source | build-design | builder |
-| Screen, flow | Trigger: a .pen or .lib.pen file is the source | pencil-design (optional) | builder |
 | Screen, flow | Trigger: the owner asks to improve existing motion | improve-animations | design |
 | Component | Pass: structure, density, emphasis, type or voice, while the form is open | variant | design |
 | Component | Pass: motion or interaction feel, while it is open | emil-prototype | design |

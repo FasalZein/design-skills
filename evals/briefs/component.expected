@@ -40,7 +40,6 @@ forbid laws-of-ux                   # row: Screen, flow | Pass: navigation, form
 forbid better-interface            # row: Screen, flow | Pass: a review across domains | builder (another level)
 forbid stageshow                 # row: Screen, flow | Trigger: a product illustration or demo on a page | both (no stage in the fixture)
 forbid build-design              # row: Screen, flow | Trigger: a Figma file or a design image is the source | builder (DESIGN.md is the source)
-forbid pencil-design             # row: Screen, flow | Trigger: a .pen or .lib.pen file is the source | builder (no .pen file)
 forbid explain-interface         # row: Product | Pass: how was a site the owner names built? | design
 forbid find-animation-opportunities # row: Screen, flow | Pass: what here should move? | design
 forbid prototype                 # row: Screen, flow | Trigger: a state model or logic question is open | design
