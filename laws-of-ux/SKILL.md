@@ -1,159 +1,118 @@
 ---
 name: laws-of-ux
-description: User-psychology rules for UX decisions — cognitive load, attention, memory, mental models, motor cost, perception. Use when choosing nav structure, form length, decision flows, error recovery, onboarding, progress indicators, or microcopy, or when a flow feels confusing, overwhelming, or hard to complete. Complements design-craft (craft) with the WHY (psychology).
+description: User-psychology rules for UX decisions, one section per decision area (navigation, forms, flows, actions, feedback, layout, copy, errors), each rule tied to its law.
 globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.html"]
 disable-model-invocation: true
 ---
 
 # Laws of UX
 
-Psychology-driven constraints for interface decisions, organized by **engineering decision**. Rules lead; law names follow in parentheses as justification.
+Each rule states what to do. The law in parentheses is the reason, and the name to cite in the audit. Source: Laws of UX by Jon Yablonski (lawsofux.com).
 
----
+1. Pick every section below whose decision area the change touches. A form usually touches Forms and data input and Errors and recovery.
+2. Apply every rule of each picked section to every changed screen.
+3. Write the audit (last section). The work is done when the audit is complete.
 
-## Global Principles
+## Navigation and information architecture
 
-Apply these everywhere before category-specific rules.
+Applies to: primary navigation, menus, sidebars, site structure, breadcrumbs.
 
-- **Remove every element that doesn't serve comprehension.** After building, delete one element at a time — if the page still works and communicates clearly, leave it deleted. (Cognitive Load / Occam's Razor)
-- **Focus engineering on the 20% of features used by 80% of users.** The primary flow must be flawless; edge cases adequate. (Pareto / 80-20 Rule)
-- **Push complexity into the system, not onto the user.** Auto-detect timezones, infer file types, pre-fill from context. If the user configures something the system could detect, the system failed. (Tesler's Law)
+1. Show at most 7 primary navigation items, and mark the current one. Put the rest behind progressive disclosure: a "More" menu, grouped submenus, or search. (Hick's Law: decision time grows with the number of choices)
+2. Give the primary slots to the features most users use most. Everything else goes one level down. (Pareto Principle)
+3. Put wayfinding where the users' other products put it: the logo goes home, search sits in the header, account and settings sit in the same corner on every screen. Deviate only when the deviation itself carries product meaning. (Jakob's Law)
+4. Name three products your users already use for this task. Match the structure of at least two of them, not the structure of your data model. (Mental Model)
+5. Keep context on screen across views: breadcrumbs, persistent filters, side-by-side comparison. The user recognizes what is shown and never recalls a value from an earlier screen. (Working Memory)
+6. Put the most important items first and last in a navigation list or toolbar. (Serial Position Effect)
 
----
+## Forms and data input
 
-## 1. Navigation & Information Architecture
+Applies to: input forms, settings pages, data entry, search.
 
-Apply when: designing primary nav, menus, sidebars, site structure, breadcrumbs.
+1. Group related fields into named blocks (identity, address, payment) so each block reads as one unit. A block of about 7 fields or fewer is easy to scan; split a longer block where its topic splits. (Miller's Law; Chunking)
+2. Give every input a visible label. A placeholder disappears on focus, so it is only an example value. (Working Memory)
+3. Pre-fill every value the system can know or detect: the name from the session, country, timezone, file type. Each field the system could fill is work moved onto the user. (Tesler's Law)
+4. Pre-select the best default for every choice, and frame the options honestly. (Cognitive Bias: anchoring and status-quo bias)
+5. Accept every reasonable format for dates, phone numbers and names, and normalize it in the system: in an en-US form with a known year, "Jan 5", "1/5" and "2026-01-05" are one date. Parse in the user's locale. When a value can mean two things ("1/5" is 1 May in en-GB) or has no year to infer, show the parsed value before saving. Let the user type and paste freely; trim whitespace before checking. (Postel's Law)
+6. Check a field when the user leaves it with a value in it. Show the error inline, beside the field, as a rule the user can follow ("Use at least 8 characters"). Once a field shows an error, re-check it on every change so the error clears the moment it is fixed. Positive live feedback (password strength, name availability after a debounce) may run while the user types. (Working Memory: the error appears where and when attention is)
+7. Check every field again on submit. Keep the submit button enabled, run cross-field and server checks, and move focus to the first invalid field. An error summary may sit above the form in addition to the inline errors. (Working Memory)
 
-- **Limit primary nav to 5–7 items.** Highlight the single recommended/current path. Use progressive disclosure for anything beyond 7. (Hick's Law: decision time grows log-linearly with the number of choices)
-- **Match established mental models before innovating.** Users expect your product to work like the last 10 products they used: logo leading to home, search in the header, settings in a predictable place. These placements are the default because they are what users already know — deviate only when the deviation itself carries product meaning. Innovate on content, not on wayfinding. (Jakob's Law / Mental Model)
-- **Name 3 prior products your users use for this task. Your IA structure should match at least 2 of them.** If it doesn't, adapt to their model, not your data model. (Mental Model)
-- **Show breadcrumbs and persist context across screens.** Use comparison tables instead of asking users to remember screen 1. Never make users carry mental state across views. (Working Memory / Recognition over Recall)
-- **Place the most important nav items at the first and last positions.** Key toolbar actions belong at edges, not center. (Serial Position Effect: first and last positions are remembered best)
+## Multi-step flows and progress
 
----
+Applies to: onboarding, checkout, wizards, setup flows, long tasks.
 
-## 2. Forms & Data Input
+1. Show progress in every multi-step flow: "Step 3 of 5", or a segmented bar with completed segments filled. (Zeigarnik Effect; Goal-Gradient Effect)
+2. Split a long form into steps of one topic each. (Cognitive Load; Chunking)
+3. Count honest early progress for new users: "Profile 20% complete. Add a photo." (Goal-Gradient Effect)
+4. State the expected time at the start ("About 2 minutes"). Ask for short answers where a short answer does the job. (Parkinson's Law)
+5. Carry routine feedback inline: toasts, status banners, inline notices. Open a blocking dialog only for a decision the user must make before going on, such as an irreversible confirmation or a required choice. (Flow)
+6. End every flow on a screen that confirms the outcome in specific terms, summarizes what was done, and offers the next action. Give it the most design care of any screen in the flow. (Peak-End Rule)
 
-Apply when: building input forms, settings pages, data entry flows, search.
+## Actions and calls to action
 
-- **Group related fields into named blocks, not a flat list.** Address, payment, and identity fields should each form a distinct visual unit — never 12 flat fields. Aim for ≤7 items per group. (Miller's Law: working memory holds ~7±2 items)
-- **Accept every reasonable date, phone, and name format.** "Jan 5", "1/5", "2026-01-05" are all valid inputs. Normalize internally, display consistently, and never reject valid intent due to format — if the user types "555-867-5309" and your model wants "5558675309", convert silently. (Postel's Law)
-- **Validate a field when the user finishes it, not while they type.** Errors mid-keystroke punish incomplete input; errors deferred to submit arrive after the user has mentally left the field. Show the error inline, adjacent to the field, at field completion (blur); reserve submit-time validation for cross-field and server checks. (Postel's Law + Working Memory: put the error where and when the user is looking)
-- **Pre-fill every value the system can infer.** Name from session, country from IP, timezone from browser. Every field the user doesn't have to fill is friction removed. (Tesler's Law — see Global Principles)
-- **Pre-select the best default option.** Users anchor on the first value they see and default to pre-selected choices. Frame options to reduce regret. Never deceive, but never leave defaults unset. (Cognitive Bias: anchoring and status quo bias)
-- **Every text input must have a visible label, not just placeholder text.** Placeholder disappears on focus, leaving no memory aid mid-entry. (Working Memory)
+Applies to: buttons, action bars, toolbars, action menus, confirmation dialogs.
 
----
+1. Give each view exactly one visually distinct primary action. Make every other action quieter. (Von Restorff Effect)
+2. Make targets large and near where attention or the thumb rests: on phones, primary actions within thumb reach at the bottom; in toolbars, key actions at the ends. (Fitts's Law)
+3. Make destructive controls (Delete, Remove, Deactivate) quieter than the primary action and place them apart from it. (Fitts's Law: distance is a safety margin)
+4. Show at most 7 options in an action menu, and mark the recommended one. Longer lists get search or filters. (Hick's Law; Choice Overload)
+5. Make every primary action findable without a tutorial: its label and its place say what it does. (Paradox of the Active User)
 
-## 3. Multi-Step Flows & Progress
+## Feedback and response time
 
-Apply when: building onboarding, checkout, wizards, setup flows, long tasks.
+Applies to: async actions, loading states, submits, real-time updates.
 
-- **Every multi-step flow must show a step indicator or progress bar.** "Step 3 of 5" or a segmented bar with completed segments filled. Zero progress indicators on multi-step = fail. (Zeigarnik Effect: incomplete tasks stay top-of-mind; Goal-Gradient Effect: motivation increases near the goal)
-- **Show honest early progress for new users.** "Profile 20% complete — add a photo" increases completion. Use it to accelerate initial engagement, not to deceive. (Goal-Gradient Effect)
-- **Keep routine work inline; reserve blocking dialogs for decisions that must stop progress.** Toasts, banners, and inline notices carry routine feedback without breaking flow. A blocking dialog is justified only when the user must make a deliberate decision before continuing — an irreversible confirmation, a required choice. A modal that merely announces something mid-task kills flow. (Flow: optimal engagement requires no gratuitous interruption)
-- **Set time expectations explicitly.** "This takes about 2 minutes." Don't give open-ended inputs where 2-word answers will do. Autofill and smart defaults cut completion time. (Parkinson's Law: tasks expand to fill available time)
-- **Invest disproportionately in the final screen of every flow.** It should include: a summary of what was done, a clear next-action CTA, and a polished visual moment. The peak moment and the ending are what users remember; everything in between fades. (Peak-End Rule)
+1. Answer every user action with a visible response at once: a pressed control looks pressed, a running action shows that it runs. (Doherty Threshold; Flow)
+2. Match the treatment to the expected wait. (Doherty Threshold: a response under 400 ms keeps the user engaged)
 
----
+   | Wait | Treatment |
+   |---|---|
+   | Under 400 ms | The press state is enough. |
+   | 400 ms to 1 s | A pending state inside the control ("Saving…") or an optimistic update. No blocking spinner. |
+   | 1 to 4 s | A skeleton with the shape and count of the incoming content. |
+   | Over 4 s | Measurable progress ("3 of 12 files") when the work reports it. |
+   | Over 10 s | Status text and a way to cancel or leave. The work survives navigation. |
 
-## 4. CTAs & Action Hierarchy
+3. Update optimistically only for safe, reversible, frequent actions such as toggle, star or reorder. On failure, roll back visibly and offer a retry. (Doherty Threshold)
 
-Apply when: designing buttons, action bars, toolbars, confirmation dialogs.
+## Grouping and layout
 
-- **Exactly 1 visually distinct primary CTA per view.** Every other action must be visually quieter. If everything is emphasized, nothing is. (Von Restorff Effect: the distinct item gets remembered)
-- **Make targets easy to hit: large, and near the user's resting attention.** Primary actions near the resting thumb position on mobile (bottom of screen); destructive actions — Delete, Remove, Deactivate — visually quieter and physically distant from Save. (Fitts's Law: target acquisition time = f(distance, size))
-- **Limit visible options in any action menu to ≤7.** For large catalogs, use filters or search. Add "Recommended" badges to the best option. (Hick's Law / Choice Overload)
+Applies to: any layout, control groups, grids, cards.
 
----
+1. After building, remove one element at a time. Leave out every element whose removal leaves the screen as clear as before. (Occam's Razor; Cognitive Load)
+2. Group with spacing first: tight inside a group, wider between groups, widest between sections. (Law of Proximity)
+3. Add a background or border region only for a distinct container, such as a card, panel or dialog, that spacing alone cannot separate. (Law of Common Region)
+4. Give one function one look everywhere: buttons look like buttons, static text never looks clickable, links and headings differ in weight or color. (Law of Similarity)
+5. Draw a line or connector only for a relationship stronger than proximity can show: steps in a wizard, callouts on a diagram. (Law of Uniform Connectedness)
+6. Align every element to one grid and use one corner style across the screen, so whitespace forms clean rectangles. (Law of Prägnanz)
+7. Run every usability check even when the screen looks finished. Polish hides friction from the team as well as from users. (Aesthetic-Usability Effect)
 
-## 5. Feedback & Response Time
+## Content and copy
 
-Apply when: building async actions, loading states, real-time updates, async submits.
+Applies to: labels, headings, onboarding, tooltips, confirmations.
 
-- **Provide immediate visual feedback for every user action.** No silent-on-click interactions anywhere; a pressed control shows it was pressed, an async action shows it is working. (Doherty Threshold / Flow: clear feedback is required for optimal engagement)
-- **Response under 400ms keeps flow unbroken.** Past 400ms, show feedback in the control itself (pending state) or update optimistically; past ~1 second, show the content's shape (skeleton); past a few seconds, show measurable progress. (Doherty Threshold: sub-400ms keeps the user engaged; over 400ms breaks concentration)
+1. Use the words this reader uses for each thing (an investor, a clinic client, an operator). Keep internal names, code names and database terms out of the interface. (Mental Model)
+2. Show a requirement the user cannot see from the control itself (a password rule, a file size limit) as helper text before input. Users skip instructions, so the requirement sits where they act. (Paradox of the Active User)
+3. Present important content as part of the page. Users skip anything placed or styled like an advertisement, such as a full-width strip at the top or a promo-styled box. Guide the eye with size, weight and position. (Selective Attention: banner blindness)
 
----
+## Errors and recovery
 
-## 6. Visual Grouping & Layout
+Applies to: failed actions, page errors, destructive actions, empty states.
 
-Apply when: organizing any layout, grouping controls, building grids, designing cards.
+1. Show an error where the failed action happened: on the field, the row or the control. Say what happened and how to recover, offer a retry, and keep the user's input. A toast carries only an error tied to nothing on screen, and it stays until dismissed. (Working Memory: the error appears where attention is)
+2. Match the safety mechanism to reversibility. A reversible action (archive, remove from a list) runs at once and offers Undo that stays until the user dismisses it, or a lasting recovery path (an Archive or Trash view). An irreversible action, an action that affects other people, or one that destroys many items asks first, and its title names the object and the scale: "Delete 5 projects and their deployments?" (Habituation: confirmations users see often stop being read)
+3. Give each kind of empty state its own copy. First use: the fact, what will appear here, the next action. Cleared by the user: the fact and how it refills. No results: the fact, the query, a way to loosen it. Caused by an error: the error treatment of rule 1, never "No items". Offer a next action only when the user can take one. (Paradox of the Active User)
 
-- **Use spacing to signal grouping before using borders or backgrounds.** Tight within a group, generous between groups, largest between sections. Proximity is stronger than common region. (Gestalt Proximity)
-- **Identical visual style signals identical function.** Buttons look like buttons everywhere; static content never looks clickable. Don't make links and headings share the same weight at the same size. (Gestalt Similarity)
-- **Use a background or border region to group related controls only when spacing isn't enough.** Regions are heavier-handed than proximity — use them for genuinely distinct semantic containers (a card, a panel, a modal). (Gestalt Common Region)
-- **Use lines, arrows, or connectors when you need to express a relationship stronger than proximity or similarity can.** Step connectors in wizards, callout lines on diagrams. Connectedness overrides all other grouping cues. (Gestalt Connectedness)
-- **Align all elements to a visible grid. Use consistent shapes — all rounded or all sharp corners, not mixed.** Whitespace should form clean rectangles. If a layout looks messy, the shapes aren't resolving to simple forms. (Gestalt Prägnanz: people perceive the simplest possible form)
-- **Polish earns forgiveness — but only for minor friction.** Polished interfaces are perceived as more usable and buy patience for small flaws. Never skip usability checks because the surface looks good; the halo effect masks real problems. (Aesthetic-Usability Effect)
+## Audit
 
----
+The work is done when the audit has a row for every picked section. Put the table in the report or its artifact.
 
-## 7. Content & Copy
+- A rule that failed gets one row: the section, the rule number, and "fixed: <change>" or "exception: <reason>".
+- A section with no failed rule gets one row: rule "all", verdict "pass".
+- Two rules that pull one decision in opposite directions get one exception row that names both rules.
 
-Apply when: writing labels, empty states, onboarding copy, tooltips, confirmation messages.
-
-- **Make the primary action visible without scrolling and discoverable without a tutorial.** Every primary action needs an inline affordance — tooltip, empty-state next action, helper text. Design for the user who skipped every tutorial and never reads documentation. (Active User Paradox: users never read manuals)
-- **Never place important content in banner-like positions at top of page.** Users develop banner blindness and filter out anything resembling an advertisement in position and style. Use size contrast (2× difference between primary and secondary elements), weight, and left-alignment to guide the eye instead. (Selective Attention / Banner Blindness)
-
----
-
-## 8. Error Handling & Recovery
-
-Apply when: designing validation, error states, empty states, destructive action flows.
-
-- **Errors appear inline, adjacent to the field that caused them** — not in a toast, not in a banner at the top. Timing and format acceptance follow the Forms rules above. (Working Memory: put the error where the user is looking)
-- **Match the safety mechanism to reversibility.** A reversible destructive action gets immediate execution plus a visible undo window — confirmation dialogs for reversible actions train users to click through them. An irreversible or high-stakes action gets an explicit confirmation that names what is being destroyed and how much. In both cases the destructive control is visually quieter and physically distant from the primary action. (Fitts's Law: distance creates safety margin; habituation: repeated confirmations stop being read)
-- **An empty state explains itself and offers a way forward when one exists.** State the fact ("No deploys yet"), give context (why, or what this will show), and offer the next action when the user can actually take one. First-use, user-cleared, no-results, and error-caused empties are different states with different copy. (Active User Paradox: discoverable actions over passive dead ends)
-
----
-
-## Decision Matrix
-
-| Engineering decision | Rule | Laws |
+| Section | Rule | Verdict |
 |---|---|---|
-| How many nav items? | ≤7, highlight the recommended/current one | Hick + Miller |
-| Form feels too long? | Multi-step; push complexity into system; pre-fill what you can | Tesler + Miller + Chunking |
-| Where to place the CTA? | Big target, thumb-reachable on mobile, edge in toolbar | Fitts + Serial Position |
-| What to emphasize? | ONE element per view is visually distinct; everything else quieter | Von Restorff |
-| Multi-step flow stalling? | Show step indicator + honest early progress | Zeigarnik + Goal-Gradient |
-| Users confused by navigation? | Match the convention; match their existing mental model | Jakob + Mental Model |
-| Slow response (>400ms)? | Show the content's shape or optimistic update; then measurable progress | Doherty Threshold |
-| When to validate a field? | On field completion (blur), inline; submit only for cross-field/server | Postel + Working Memory |
-| Destructive action? | Undo for reversible; explicit confirmation for irreversible | Fitts + habituation |
-| Interrupt with a modal? | Only for decisions that must stop progress; routine feedback stays inline | Flow |
-| Users ignoring important content? | Avoid ad-like positions; use size contrast 2×+, not color alone | Selective Attention + Banner Blindness |
-| Low satisfaction after a flow? | Redesign the peak moment and the final screen | Peak-End Rule |
-| Too many options in a menu? | ≤7 visible; add filter/search for larger lists; pre-select best | Hick + Choice Overload |
-| Grouping visually unclear? | Spacing first → similarity → common region → connectedness | Gestalt (subtlety order) |
-| Accepting user input? | Accept any reasonable format, normalize on the back end | Postel's Law |
-| Users forgetting prior screen? | Breadcrumbs, persistent context, comparison views | Working Memory |
-| Where to invest engineering time? | Primary flow flawless; edge cases adequate | Pareto 80/20 |
+| Forms and data input | 6 | fixed: errors moved from a submit toast to the fields |
+| Navigation and information architecture | all | pass |
 
----
-
-## Decision Audit
-
-Before finishing any UX-significant work, audit each decision against the principle that governs it. Every UX-significant choice names its law; no two applied principles conflict.
-
-1. **Decision load** — exactly 1 primary action per view; ≤7 nav items; ≤7 visible menu options (or search/filter).
-2. **Familiarity** — wayfinding matches the user's prior products; deviations are deliberate and meaningful.
-3. **Feedback** — every action produces an immediate visible response; async work shows its state.
-4. **Recovery** — errors are inline and adjacent; formats are accepted and normalized; destructive actions match their reversibility.
-5. **State completeness** — every surface has a designed answer for empty, loading, and error, not just populated.
-6. **Motor cost** — targets are comfortably hittable; destructive controls sit away from primary ones.
-7. **End-state quality** — the final screen of each flow has a summary, a next action, and a polished moment.
-
----
-
-## Review Output Format
-
-When reviewing existing UX (rather than building), present findings as a markdown table — every violation, not a subset:
-
-| Violation | Law | Fix |
-|---|---|---|
-| 11 items in primary nav | Hick's Law | Keep 6, move the rest behind "More" with progressive disclosure |
-| Checkout has no step indicator | Zeigarnik / Goal-Gradient | Add "Step 2 of 4" segmented bar, completed segments filled |
-
-Cite file and component when not obvious from the row. If a category was checked and passed, omit it — silence = pass.
+When reviewing existing UX instead of building, write the same table with one row per violation, every violation found. Add its location (file and component), and write the verdict as "fix: <change>".

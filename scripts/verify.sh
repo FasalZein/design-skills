@@ -50,6 +50,12 @@ grep -n 'MUST use .AlertDialog' "$ROOT/design-qa/SKILL.md" >/dev/null 2>&1 && ba
 # 7. laws-of-ux stands alone (no cross-skill file pointers; skill-name mention in frontmatter description is fine)
 grep -nE '(design-craft|design-qa)/|reference/[a-z-]+\.md' "$ROOT/laws-of-ux/SKILL.md" >/dev/null 2>&1 && bad "laws-of-ux points into another skill's files" || say "laws-of-ux is self-contained"
 
+# 7b. laws-of-ux decision-area sections exist in order (the router names them), followed by the Audit
+LUX_EXPECTED=$(printf '%s\n' "Navigation and information architecture" "Forms and data input" "Multi-step flows and progress" \
+  "Actions and calls to action" "Feedback and response time" "Grouping and layout" "Content and copy" "Errors and recovery" "Audit")
+LUX_ACTUAL=$(grep -E '^## ' "$ROOT/laws-of-ux/SKILL.md" | sed 's/^## //')
+[ "$LUX_ACTUAL" = "$LUX_EXPECTED" ] && say "laws-of-ux sections in order" || bad "laws-of-ux sections differ from the routed list"
+
 # 8. Gate count consistency: derive from design-qa, compare against every README claim
 GATES=$(grep -oE '^## Gate [0-9]+' "$ROOT/design-qa/SKILL.md" | awk '{print $3}' | sort -n | tail -1)
 [ -n "$GATES" ] || bad "could not derive gate count from design-qa/SKILL.md"
