@@ -222,6 +222,20 @@ for e in mkt-primitive-set mkt-component mkt-page mkt-copy-section; do
   awk '$1=="must" && $2=="stageshow"' "$EVALS/briefs/$e.expected" | grep -q . && no "$e.expected requires stageshow" || ok "$e.expected: no stageshow must"
 done
 awk '$1=="must" && $2=="stageshow"' "$EVALS/briefs/mkt-section.expected" | grep -q . && ok "mkt-section.expected requires stageshow" || no "mkt-section.expected lacks must stageshow"
+# Stage hand-off (review P1): the illustration briefs close every hand-off field of surfaces/illustration.md, so a
+# headless builder finds none open. Each field is a line "<n>. <field name>: <value>" (the name up to its first
+# ", " or ": "), with a value; the gold example and the reviewer are the approved rehearsal's.
+ILL="$REPO/design-craft/surfaces/illustration.md"
+HF=$(awk '/^## Hand-off fields/{f=1;next} /^## /{f=0} f && /^[0-9]+\. /' "$ILL" | sed -E 's/(: |, ).*//; s/\.$//')
+[ "$(printf '%s\n' "$HF" | grep -c .)" -ge 11 ] && ok "illustration.md lists $(printf '%s\n' "$HF" | grep -c .) hand-off fields" || no "illustration.md hand-off fields not found"
+for b in mkt-section design-marketing; do
+  while IFS= read -r k; do
+    awk -v k="$k: " 'index($0,k){ r=substr($0,index($0,k)+length(k)); if (r ~ /[^ ]/) f=1 } END{exit !f}' "$EVALS/briefs/$b.md" \
+      && ok "$b brief closes hand-off field [$k]" || no "$b brief lacks hand-off field [$k: <value>]"
+  done <<< "$HF"
+  brief_has "$b" '7. Nearest gold example: table-edit'
+  brief_has "$b" '11. Reviewer: none'
+done
 awk '$1=="open" && $2=="FAQ"' "$EVALS/briefs/design-marketing.expected" | grep -q . && ok "design-marketing.expected: open FAQ" || no "design-marketing.expected: open key"
 # The marketing fixture is direction A with its dependencies, photos and shipment data; the old overlays are gone.
 grep -q '^Direction: A "Board"' "$MD" && grep -q '^- #demo / approval' "$MD" && grep -qx 'Open for the build: none' "$MD" && ok "fixture-marketing DESIGN.md is direction A with #demo decided" || no "fixture-marketing DESIGN.md is not direction A"
