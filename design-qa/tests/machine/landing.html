@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>landing continuity</title>
+<style>
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  main { background: #fff; }
+  section { height: 300px; }
+  hr { margin: 0; }
+  .faq::after { content: ''; display: block; width: 100%; height: 1px; background: #ccc; }
+</style></head><body>
+<!-- Section-level seams: header border, two hr rules, a thin wide pseudo-element line. Skipped: a sticky bar's border,
+     a border inside a list, a narrow box. Backgrounds in document order: white, grey, grey, white, dark = 3 transitions. -->
+<nav class="bar" style="position:sticky; top:0; border-bottom:1px solid #ccc">Sticky bar</nav>
+<header class="top" style="height:80px; border-bottom:1px solid #ddd">Brand</header>
+<main>
+  <section class="hero" style="background:#fff">Hero</section>
+  <hr class="rule">
+  <section class="proof" style="background:#f4f4f4">Proof
+    <ul><li style="border-bottom:1px solid #ccc">List rows keep their own lines</li></ul></section>
+  <section class="pricing" style="background:#f4f4f4">Pricing</section>
+  <hr class="rule">
+  <section class="faq" style="background:#fff">FAQ</section>
+  <section class="aside" style="width:400px; height:200px; border-top:1px solid #ccc">Narrow</section>
+</main>
+<footer class="foot" style="height:200px; background:#111; color:#fff">Footer</footer>
+</body></html>
