@@ -1,0 +1,4 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-04T06:30:00.000Z","data":{"agent":"design-builder","model":"m/ref","title":"c2 minimal"}}
+{"type":"message","timestamp":"2026-11-04T06:30:01.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}
+{"type":"message","timestamp":"2026-11-04T06:30:59.999Z","message":{"role":"assistant","content":[{"type":"text","text":"RESULT: DONE"}],"usage":{"input":500,"output":2,"cost":{"total":0.25}}}}
+{"type":"label","timestamp":1793600000}
