@@ -24,9 +24,14 @@
 #   unexpected  no other skill came back: not a forbidden one, not an n/a pass, not one the expected file omits
 #   passes      PASSES has a result for every "pass" line of the part's level
 #   static      the design-qa scanner (design-scan) ran
-#   report      a report exists: the final RESULT message, or a written report with RESULT and PASSES lines
+#   report      a report exists: the final RESULT message, or a written report with RESULT and PASSES lines.
+#               FAIL(final message not the report) when the final RESULT message holds no PASSES line but a written
+#               report exists (owner decision 31: format apart from routing); passes, text and unexpected are then
+#               scored from that written report.
 #   shots       screenshots came from agent-browser-chrome, none from plain agent-browser or another tool
 #   cost, peak_ctx, result  from the index; ambiguous = expected-file "ambiguous" skills that came back
+# A written report is the last text with RESULT and PASSES lines from a write tool call's content, or from the
+# content argument of a tools.write call in a codemode call's code (evals/retro/passes.jq written_reports).
 # Exit 0 when every run is scored (FAIL items included), 1 on unreadable input or an unknown part.
 set -o pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -58,13 +63,18 @@ score_one() {
   if [ -z "$row" ]; then echo "$run $part $model FAIL: session not in $TSV"; FAILED_RUNS=$((FAILED_RUNS+1)); return 0; fi
   returned=$(col "$row" skills_returned); passes=$(col "$row" passes); result=$(col "$row" result)
   cost=$(col "$row" cost); peak=$(col "$row" peak_ctx)
-  # A run stopped before its final RESULT message has no PASSES in the index: read the last written report,
-  # with the index's own entry check (evals/retro/passes.jq), so an unfilled entry does not count here either.
-  [ -n "$passes" ] || passes=$(jq -L "$HERE/retro" -rs 'include "passes";
-    [ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]?
-      | select(.type=="toolCall" and .name=="write") | .arguments.content // ""
-      | select(test("(^|\n)RESULT:") and test("(^|\n)PASSES:")) ] | last // ""
-    | [ passes_of[] | "\(.pass) -> \(.status): \(.change)" ] | join("; ")' "$session")
+  # The last written report (write, or codemode tools.write), and whether the final RESULT message holds PASSES.
+  written=$(jq -L "$HERE/retro" -rs 'include "passes"; written_reports | last // ""' "$session") \
+    || { echo "score: cannot parse session $session" >&2; return 2; }
+  final_passes=$(jq -rs '[ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="text") | .text
+    | select(test("(^|\n)RESULT:")) ] | last // "" | test("(^|\n)PASSES:")' "$session")
+  # A run stopped before its final RESULT message, or one whose final message is not the report, has no PASSES in
+  # the index: read the last written report, with the index's own entry check (evals/retro/passes.jq), so an
+  # unfilled entry does not count here either.
+  [ -n "$passes" ] || passes=$(jq -L "$HERE/retro" -rn --arg r "$written" 'include "passes";
+    $r | [ passes_of[] | "\(.pass) -> \(.status): \(.change)" ] | join("; ")')
+  # Owner decision 31: a final RESULT message without PASSES is a format miss when a written report exists.
+  apart=""; { [ "$result" != none ] && [ -n "$result" ] && [ "$final_passes" = false ] && [ -n "$written" ]; } && apart=1
 
   # Pass outcomes: "<pass> -> applied|n/a: <change>" entries; the pass names its skill.
   applied=""; na=""; missing_pass=""
@@ -86,7 +96,7 @@ score_one() {
   done
 
   # Checks from the session's own tool calls (bash commands and codemode code), split into shell segments.
-  read -r scan tsc chrome plain other report_written < <(jq -rs '
+  read -r scan tsc chrome plain other < <(jq -rs '
     [ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="toolCall") ] as $calls
     | [ $calls[] | select(.name=="bash" or .name=="codemode") | [.arguments | .. | strings] | join("\n")
         | split("\n")[] | splits("&&|\\|\\||;|\\|") ] as $seg
@@ -94,12 +104,10 @@ score_one() {
     # Names that hold agent-browser-chrome (a shell assignment or a JS const/let in codemode): ${AB} screenshot is chrome.
     ([ $seg[] | capture("(^|[^\\w$])(?<v>[A-Za-z_]\\w*)\\s*=\\s*[\"\u0027`]?agent-browser-chrome\\b") | .v ] | unique) as $cv
     | (if ($cv | length) > 0 then "\\$\\{?(" + ($cv | join("|")) + ")\\b\\}?\\s.*\\b(screenshot|batch)\\b" else null end) as $cvre
-    |
-    ([ $calls[] | select(.name=="write") | .arguments.content // "" | select(test("(^|\n)RESULT:") and test("(^|\n)PASSES:")) ] | length) as $rw
     | [ n("design-scan"), n("\\btsc\\b|typecheck|npm run build"),
         ([ $seg[] | select(test("agent-browser-chrome\\b.*\\b(screenshot|batch)\\b") or ($cvre != null and test($cvre))) ] | length),
         n("(^|[^-\\w/])agent-browser\\s.*\\bscreenshot\\b"),
-        n("screencapture|\\.screenshot\\(|playwright\\s+screenshot"), $rw ] | @tsv' "$session")
+        n("screencapture|\\.screenshot\\(|playwright\\s+screenshot") ] | @tsv' "$session")
   [ -n "$scan" ] || { echo "score: cannot parse session $session" >&2; return 2; }
 
   item() { if [ -z "$2" ]; then printf ' %s=ok' "$1"; else printf ' %s=FAIL(%s)' "$1" "$2"; fi; }
@@ -109,7 +117,8 @@ score_one() {
   line="$line$(item unexpected "${unexpected#,}")"
   line="$line$(item passes "$pf")"
   line="$line$( [ "$scan" -gt 0 ] && printf ' static=ok(scan=%s,tsc=%s)' "$scan" "$tsc" || printf ' static=FAIL(scan=0,tsc=%s)' "$tsc")"
-  line="$line$( { [ "$result" != none ] && [ -n "$result" ]; } || [ "$report_written" -gt 0 ] && printf ' report=ok' || printf ' report=FAIL')"
+  if [ -n "$apart" ]; then line="$line report=FAIL(final message not the report)"
+  else line="$line$( { [ "$result" != none ] && [ -n "$result" ]; } || [ -n "$written" ] && printf ' report=ok' || printf ' report=FAIL')"; fi
   line="$line$( [ "$chrome" -gt 0 ] && [ "$plain" -eq 0 ] && [ "$other" -eq 0 ] && printf ' shots=ok(chrome=%s)' "$chrome" || printf ' shots=FAIL(chrome=%s,plain=%s,other=%s)' "$chrome" "$plain" "$other")"
   line="$line${EXTRA:-} cost=\$$cost peak_ctx=$peak result=$result ambiguous=[${amb#,}]"
   echo "$line"

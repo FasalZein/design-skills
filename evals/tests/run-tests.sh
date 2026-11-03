@@ -23,7 +23,10 @@ printf '%s\t%s\t%s\t%s\n' "# run" part model session \
   norep component gpt "$FIX/score-no-report.jsonl" \
   time component gpt "$FIX/score-time-limit.jsonl" \
   svar component gpt "$FIX/score-shots-var.jsonl" \
-  svarp component gpt "$FIX/score-shots-var-plain.jsonl" > "$WORK/runs.tsv"
+  svarp component gpt "$FIX/score-shots-var-plain.jsonl" \
+  pw component opus "$FIX/score-prose-write.jsonl" \
+  pc component opus "$FIX/score-prose-codemode.jsonl" \
+  fr component opus "$FIX/score-final-report.jsonl" > "$WORK/runs.tsv"
 bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/runs.tsv" > "$WORK/score.out" 2>&1; st=$?
 [ "$st" -eq 0 ] && ok "score exits 0 on scorable runs" || { no "score exit $st"; cat "$WORK/score.out"; }
 line() { grep "^$1 " "$WORK/score.out"; }
@@ -42,14 +45,26 @@ has bad 'shots=FAIL(chrome=0,plain=1,other=0)'
 # assignment) counts its screenshot and batch calls as chrome; a literal plain agent-browser screenshot stays plain.
 has svar 'shots=ok(chrome=2)'
 has svarp 'shots=FAIL(chrome=1,plain=1,other=0)'
-has bad 'report=ok'
+# Its final message is a RESULT line and ARTIFACT, not the report (owner decision 31).
+has bad 'report=FAIL(final message not the report)'
 # No final RESULT message and no written report.
 has norep 'report=FAIL'
 has norep 'static=ok(scan=1'
 # Stopped by the time limit: the written draft is the report, and its PASSES entries count.
 has time 'report=ok'
 has time 'passes=FAIL(missing:better-accessibility,state-machine,break-ui,review-animations,interface-review)'
-grep -q '^score: 6 runs, 4 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing: $(tail -1 "$WORK/score.out")"
+# Owner decision 31 (h-opus-3-docks): format apart from routing. A final message that is prose, not the report,
+# fails report; passes, text and unexpected come from the written report, by write or by codemode tools.write.
+for r in pw pc; do for item in 'report=FAIL(final message not the report)' passes=ok text=ok unexpected=ok; do has $r "$item"; done; done
+# The final message is the report: unchanged; an older codemode draft with fewer passes does not replace it.
+for item in report=ok passes=ok text=ok unexpected=ok; do has fr "$item"; done
+# The content argument as a template literal in the tools.write call itself, not a name.
+mkdir -p "$WORK/inl" && jq -c 'if (.type=="message" and .message.content[0].id=="c13" and .message.role=="assistant") then .message.content[0].arguments.code |= (sub("^const rep = "; "await tools.write({path:\"/tmp/score-test/good.md\", content:") | sub(";\nawait tools.write[\\s\\S]*$"; "});")) else . end' "$FIX/score-prose-codemode.jsonl" > "$WORK/inl/score-prose-codemode.jsonl"
+jq -rs '[.[]|.message.content[]?|select(.id=="c13" and .type=="toolCall")|.arguments.code][0]' "$WORK/inl/score-prose-codemode.jsonl" | grep -q '^await tools.write({path:"/tmp/score-test/good.md", content:`RESULT: DONE' || no "inl fixture edit failed"
+printf 'inl\tcomponent\topus\t%s\n' "$WORK/inl/score-prose-codemode.jsonl" > "$WORK/inl/runs.tsv"
+got=$(bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/inl/runs.tsv" 2>&1 | grep '^inl ')
+case $got in *"passes=ok"*"report=FAIL(final message not the report)"*) ok "inline codemode literal is the written report";; *) no "inline codemode literal: [$got]";; esac
+grep -q '^score: 9 runs, 6 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing: $(tail -1 "$WORK/score.out")"
 
 # Design runs: the design session against its own expected file, its DECISION NEEDED block, and each child
 # design-builder session (found by its header's parentSession) against the expected file of its level.
