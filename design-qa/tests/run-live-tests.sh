@@ -56,6 +56,18 @@ for js in "$PROBES"/*.js; do
     && { PASS=$((PASS+1)); echo "ok   machine probe $name evaluates: $(printf '%s' "$out" | jq -c . | cut -c1-80)"; } \
     || ko "machine probe $name: $out"
 done
+# contrast rows: text floors 4.5 and 3 (24px, or 18.66px bold), placeholder colour, translucent background over white,
+# and control borders at 3:1. Expected ratios are WCAG values worked out by hand (tolerance 0.02).
+ab open "file://$HERE/machine/contrast.html" >/dev/null
+out=$(ab eval --stdin < "$PROBES/contrast.js")
+want='[{"t":"Gray body text","r":4.48,"need":4.5},{"t":"Large light heading","r":2.32,"need":3},
+  {"t":"Regular 19px fails","r":3.54,"need":4.5},{"t":"White on half black","r":4.0,"need":4.5},
+  {"t":"Email address","r":2.32,"need":4.5},{"t":"border:email","r":1.36,"need":3}]'
+if printf '%s\n%s' "$out" "$want" | jq -se '.[0] as $g | .[1] as $w | ($g | length) == ($w | length)
+    and ([range(0; $w | length) | ($g[.].r - $w[.].r) as $d | $g[.].t == $w[.].t and $g[.].need == $w[.].need
+      and (if $d < 0 then -$d else $d end) <= 0.02] | all)' >/dev/null; then
+  PASS=$((PASS+1)); echo "ok   contrast rows match the WCAG ratios"
+else ko "contrast rows: want $(printf '%s' "$want" | jq -c .), got $(printf '%s' "$out" | jq -c .)"; fi
 echo "----"
 echo "probe tests: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

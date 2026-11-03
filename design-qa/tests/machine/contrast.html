@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>contrast rows</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #111; background: #fff; }
+  input::placeholder { color: #aaa; }</style></head><body>
+<!-- Expected rows live in run-live-tests.sh. Ratios are WCAG 2 relative-luminance values worked out by hand against white. -->
+<p style="color:#777">Gray body text</p>
+<p style="color:#767676">Darker gray passes</p>
+<p style="color:#aaa; font-size:24px">Large light heading</p>
+<p style="color:#888; font-size:19px; font-weight:700">Bold large passes</p>
+<p style="color:#888; font-size:19px">Regular 19px fails</p>
+<div style="background:rgba(0,0,0,.5)"><span style="color:#fff">White on half black</span> <span style="color:#000">Black on half black</span></div>
+<input name="email" placeholder="Email address" style="border:1px solid #ddd; color:#111; background:#fff">
+<button type="button" style="border:1px solid #767676; color:#111; background:#fff">Go</button>
+</body></html>

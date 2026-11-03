@@ -1,12 +1,13 @@
 // design-qa render probe: overlap. Output {tier, counts, fail[, judge]}; see reference/live-verification.md.
 (() => { const TOL = 1;
   const vis = e => e.checkVisibility ? e.checkVisibility({checkOpacity:true, visibilityProperty:true}) : e.offsetHeight > 0;
+  const clipAxis = (c, r, on, lo, hi) => { if (on) { c[lo] = Math.max(c[lo], r[lo]); c[hi] = Math.min(c[hi], r[hi]); } };
+  const clipTo = (c, a) => { const s = getComputedStyle(a), x = s.overflowX !== 'visible', y = s.overflowY !== 'visible';
+    if (!x && !y) return c;   // this ancestor clips neither axis
+    c = c || {left: -Infinity, right: Infinity, top: -Infinity, bottom: Infinity};
+    const r = a.getBoundingClientRect(); clipAxis(c, r, x, 'left', 'right'); clipAxis(c, r, y, 'top', 'bottom'); return c; };
   const clipBox = n => { let c = null;   // visible area: intersect EVERY clipping ancestor, per clipped axis
-    for (let a = n.parentElement; a && a !== document.body; a = a.parentElement) { const s = getComputedStyle(a);
-      const x = s.overflowX !== 'visible', y = s.overflowY !== 'visible'; if (!x && !y) continue;
-      const r = a.getBoundingClientRect(); c = c || {left: -Infinity, right: Infinity, top: -Infinity, bottom: Infinity};
-      if (x) { c.left = Math.max(c.left, r.left); c.right = Math.min(c.right, r.right); }
-      if (y) { c.top = Math.max(c.top, r.top); c.bottom = Math.min(c.bottom, r.bottom); } }
+    for (let a = n.parentElement; a && a !== document.body; a = a.parentElement) c = clipTo(c, a);
     return c; };
   const cut = (q, c) => { if (!c) return q; const l = Math.max(q.left, c.left), r = Math.min(q.right, c.right), t = Math.max(q.top, c.top), b = Math.min(q.bottom, c.bottom);
     return {left: l, right: r, top: t, bottom: b, width: r - l, height: b - t}; };
