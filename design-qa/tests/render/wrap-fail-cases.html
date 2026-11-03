@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>wrap fail: styled links, wrapped labels with inline runs, long keys</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair); data-why = that row's reason. -->
+<div class="card">
+<!-- A link with its own border or background is a control (Gate 8): its label must not wrap -->
+<a href="#a" style="display:inline-block; width:60px; border:1px solid #ccc" data-fail="Bordered link wraps" data-why="control label wraps">Bordered link wraps</a>
+<a href="#b" style="display:inline-block; width:60px; background:#eee" data-fail="Filled link wraps" data-why="control label wraps">Filled link wraps</a>
+<!-- A broken word inside a button's own wrapper is reported once, with its control -->
+<button type="button" style="width:50px; overflow-wrap:anywhere" data-fail="Notifications" data-why="control label wraps"><span>Notifications</span></button>
+<!-- Row keys: whitespace collapses and the key keeps the first 40 characters -->
+<button type="button" style="width:90px" data-fail="Book a consultation on WhatsApp with our" data-why="control label wraps">Book a consultation
+    on WhatsApp with our team today</button>
+<!-- A label with inline runs on two lines -->
+<label style="display:block; width:60px" data-judge="Session type" data-why="label wraps">Session <b>type</b></label>
+</div>
+</body></html>

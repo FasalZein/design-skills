@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>clip pass: body overflow hidden is the viewport, not a clip box</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  html, body { overflow: hidden; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .narrow { width: 80px; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair); data-why = that row's reason. -->
+<!-- Overflow on body propagates to the viewport; text placed past the body box is not cut by a clip box -->
+<div style="width:2000px"><span style="margin-left:1500px">Beyond the body edge</span></div>
+<p>Plain paragraph in the body</p>
+</body></html>

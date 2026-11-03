@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>align judge: deliberate indents, centred and moving labels, multi-line text beside an icon, small offsets</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; } .start { align-items: flex-start; } .center { align-items: center; }
+  p { margin: 0; } svg { width: 16px; height: 16px; flex: none; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card">
+<div><p>Stack alpha</p><p>Stack beta</p><p style="margin-left:8px" data-judge="Indented by eight | Stack alphaStack betaInde">Indented by eight</p></div>
+<div><p>Left one</p><p>Left two</p><p style="width:100px; margin:0 auto" data-judge="Centred title | Left oneLeft twoCentred t">Centred title</p></div>
+<div><p>Move one</p><p>Move two</p><p style="margin-left:7px; transform:translateY(1px)" data-judge="Moving label | Move oneMove twoMoving la">Moving label</p></div>
+<div style="transform:translateY(1px)"><p>Slide one</p><p>Slide two</p><p style="margin-left:7px" data-judge="Slide off | Slide oneSlide twoSlide o">Slide off</p></div>
+<div class="row start" style="width:200px"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="8"/></svg><span data-judge="svg | Avatar nameSubtitle line">Avatar name<br>Subtitle line</span></div>
+<div class="row start"><span>Key two</span><span style="padding-top:2px" data-judge="Key two | Two px value">Two px value</span></div>
+</div>
+</body></html>
