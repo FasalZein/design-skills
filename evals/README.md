@@ -24,7 +24,7 @@ Two products, four part briefs each, run by three models, plus one headless desi
 3. Launch a design-builder per part brief and model, or the design agent with a design-* brief. Run one at a time.
 4. Index the sessions: `bash evals/retro/index.sh <sessions.tsv>`.
 5. Write a run map, one tab-separated line per run: run name, part, model, absolute session file.
-6. Score: `bash evals/score.sh <sessions.tsv> <runs.tsv>`. Each run line reports text, unexpected, passes, static, report and shots as ok or FAIL, plus cost, peak context and the ambiguous skills that came back. A design run adds decision, children and open_built, then one line per child design-builder session, scored against the part of its level.
+6. Score: `bash evals/score.sh <sessions.tsv> <runs.tsv>`. Each run line reports text, unexpected, passes, static, report and shots as ok or FAIL, plus cost, peak context and the ambiguous skills that came back. A design run adds decision, children and open_built, then one line per child design-builder session, scored against the part of its level (a marketing section: mkt-section for the illustration demo, mkt-copy-section for any other section). Scout and researcher children are not counted; a failed child search or no builder child is a FAIL. The marketing overlays have an end-to-end check in Chrome: `bash evals/e2e/mkt-page-overlay.sh <shots-dir>`.
 7. Save and delete the run: `bash evals/clean-run.sh <run-name> <artifact dir>` writes git-log.txt and run.diff (plus uncommitted.diff and status.txt when the run left changes) and deletes the run directory. It works only inside `<repo root>/.eval-runs`.
 
 Tests: `bash evals/tests/run-tests.sh` (scripts/verify.sh runs them).

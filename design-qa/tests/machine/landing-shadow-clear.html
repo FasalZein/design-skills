@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>landing: transparent line shadows</title>
+<style>
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  section { height: 300px; background: #fff; }
+</style></head><body>
+<!-- Full-width white sections (0 transitions). Each has a 1-2px unblurred line shadow with a fully transparent
+     color: nothing shows, so no section is a seam. Chrome computes them as "rgba(0, 0, 0, 0) 0px 1px 0px 0px". -->
+<section class="clear" style="box-shadow: 0 1px 0 rgba(0,0,0,0)">Clear</section>
+<section class="word" style="box-shadow: inset 0 -2px 0 transparent">Word</section>
+<section class="tinted" style="box-shadow: 0 1px 0 rgba(255,0,0,0)">Tinted</section>
+</body></html>
