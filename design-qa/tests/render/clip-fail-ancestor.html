@@ -6,6 +6,6 @@
   .row { display: flex; gap: 8px; }
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }</style></head><body>
 <!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
-<div class="card"><div style="width:80px; overflow:hidden; white-space:nowrap"><span data-fail="Long content hidden by ancestor">Long content hidden by ancestor</span></div>
-  <div style="height:10px; overflow:hidden; font:16px/24px Arial" data-fail="Partial line cut">Partial line cut</div></div>
+<div class="card"><div style="width:80px; overflow:hidden; white-space:nowrap"><span data-fail="Long content hidden by ancestor" data-why="cut without ellipsis">Long content hidden by ancestor</span></div>
+  <div style="height:10px; overflow:hidden; font:16px/24px Arial" data-fail="Partial line cut" data-why="cut without ellipsis">Partial line cut</div></div>
 </body></html>

@@ -1,0 +1,3 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-04T06:00:00.000Z","data":{"agent":"worker","model":"m/ref","title":"c3 worker"}}
+{"type":"message","timestamp":"2026-11-04T06:00:01.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}
+{"type":"message","timestamp":"2026-11-04T06:01:00.000Z","message":{"role":"assistant","content":[{"type":"text","text":"RESULT: DONE"}],"usage":{"output":2}}}

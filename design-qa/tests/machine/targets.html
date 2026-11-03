@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>target sizes</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 24px; font: 12px/1 system-ui, sans-serif; }
+  button, a, label, span, div, input { display: inline-block; margin: 4px; padding: 0; vertical-align: top; overflow: hidden; }
+</style></head><body>
+<!-- Expected buckets live in run-live-tests.sh. Contract (reference/live-verification.md, Target size): a side below 24px
+     fails; a target 24-43px on a side is listed for the 44px judgment; the hit target is the control's box, or its
+     wrapping or label[for] label when that box is larger; a row is named by text, then aria-label, then tag. -->
+<button style="width:20px; height:20px">Tiny</button>
+<button style="width:44px; height:20px">Flat</button>
+<button style="width:20px; height:44px">Thin</button>
+<button style="width:24px; height:24px">Edge24</button>
+<button style="width:44px; height:44px">Roomy</button>
+<button style="width:30px; height:50px">Narrow</button>
+<button style="width:50px; height:30px">Short</button>
+<a href="#close" style="width:30px; height:30px" aria-label="Close dialog"></a>
+<span role="button" style="width:30px; height:30px"></span>
+<button style="width:300px; height:30px">Subscribe to the weekly newsletter</button>
+<div onclick="" style="width:20px; height:20px">Tap</div>
+<label style="width:200px; height:30px"><input type="checkbox" id="accept" aria-label="Accept terms" style="margin:0"></label>
+<input type="checkbox" id="opt-in" aria-label="Opt in" style="margin:0"><label for="opt-in" style="width:200px; height:48px">Opt in to mail</label>
+<input type="text" id="tie" aria-label="Tie" style="width:40px; height:25px; border:0"><label for="tie" style="width:100px; height:10px"></label>
+<button style="width:100px; height:0; border:0">Zero high</button>
+<button style="width:0; height:40px; border:0">Zero wide</button>
+<button style="display:none">Gone</button>
+<div class="ss-stage"><button style="width:10px; height:10px">Stage</button></div>
+</body></html>

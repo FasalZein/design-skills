@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>align pass: icon centred on a multi-line block, wrapped labels, 1px offsets, inline-block pairs outside flex rows</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; } .start { align-items: flex-start; } .center { align-items: center; }
+  p { margin: 0; } svg { width: 16px; height: 16px; flex: none; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card">
+<div class="row center" style="width:200px"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="8"/></svg><span>Avatar name<br>Subtitle line</span></div>
+<div class="row start"><span>Key</span><span style="width:60px; padding-top:6px">Wrapped value text</span></div>
+<div class="row start"><span>Key one</span><span style="padding-top:1px">One px value</span></div>
+<div><span style="display:inline-block; vertical-align:top">Left</span><span style="display:inline-block; vertical-align:top; padding-top:6px">Right</span></div>
+</div>
+</body></html>

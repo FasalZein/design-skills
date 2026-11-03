@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en" role="button" style="border:4px solid #ddd"><head><meta charset="utf-8"><title>contrast on the bare canvas</title>
+<style> body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; } </style></head><body>
+<!-- No element paints an opaque background, so every layer composites over the white canvas.
+     The root element is a bordered role=button with no parent: its border is measured against white too.
+     Expected rows live in run-live-tests.sh (WCAG 2 ratios worked out by hand against white). -->
+<p style="color:#777">Gray on bare canvas</p>
+<div style="background:rgba(0,0,0,.5)"><span style="color:#fff">White on half black canvas</span></div>
+<div style="background:rgba(255,255,255,.5)"><span style="color:#999">Gray on half white</span></div>
+</body></html>

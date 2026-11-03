@@ -1,0 +1,2 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-02T09:00:00.000Z","data":{"agent":"design","title":"c4 old"}}
+{"type":"message","timestamp":"2026-11-02T09:00:01.000Z","message":{"role":"user","content":[{"type":"text","text":"brief"}]}}

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>align fail: wrapped and trailing icons, full step offsets, stack modes</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; } .start { align-items: flex-start; } .center { align-items: center; }
+  p { margin: 0; } svg { width: 16px; height: 16px; flex: none; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair). -->
+<div class="card">
+<div class="row start"><span><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="8"/></svg></span><span style="line-height:32px" data-fail="SPAN | Wrapped icon row text">Wrapped icon row text</span></div>
+<div class="row start"><span style="line-height:32px">Text before icon</span><svg viewBox="0 0 16 16" data-fail="svg | Text before icon"><circle cx="8" cy="8" r="8"/></svg></div>
+<div class="row start"><span>Key four</span><span style="padding-top:4px" data-fail="Key four | Four px value">Four px value</span></div>
+<div><p style="margin-left:-7px" data-fail="Off first | Off firstTwoThree">Off first</p><p>Two</p><p>Three</p></div>
+<div><p>Pair one</p><p style="margin-left:7px" data-fail="Pair two | Pair onePair two">Pair two</p></div>
+</div>
+</body></html>

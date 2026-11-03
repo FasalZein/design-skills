@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>clip pass: text that is not visible, not cut, or reachable</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .narrow { width: 80px; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair); data-why = that row's reason. -->
+<div class="card">
+<!-- Not visible text (live-verification "Visible text"): faded out, visibility hidden, a box 1px wide or 1px tall, a form field -->
+<div class="narrow" style="opacity:0; overflow:hidden; white-space:nowrap">Faded label cut hard</div>
+<div class="narrow" style="visibility:hidden; overflow:hidden; white-space:nowrap">Hidden label cut hard</div>
+<div style="width:1px; height:24px; overflow:hidden; white-space:nowrap">Zero width cut</div>
+<div style="width:200px; height:1px; overflow:hidden">Hairline text cut</div>
+<textarea style="overflow:hidden; white-space:pre; width:80px; height:24px; resize:none">Long field value that cannot fit</textarea>
+<!-- A scroll region keeps its content reachable, even inside a narrower hidden frame -->
+<div style="width:120px; overflow:hidden"><div style="overflow:auto; width:300px"><div><p style="white-space:nowrap; margin:0">Scrolled content past the frame</p></div></div></div>
+<!-- Hover-swap copy: one line fully shown, the other fully hidden; no line shows in part -->
+<div style="height:24px; overflow:hidden; line-height:24px"><span style="display:block">Shown copy</span><span style="display:block">Hidden copy</span></div>
+<div style="width:120px; overflow:hidden; white-space:nowrap"><span style="display:inline-block; width:130px"></span><span>Offscreen side copy</span></div>
+<!-- Tall leading: the glyph box sits inside the hidden box even though the line-height is taller than the box -->
+<div style="height:30px; line-height:40px; overflow:hidden">Tall leading fits</div>
+<!-- Tight leading in a hidden box: the glyphs pass the line box (descenders), the line box fits -->
+<h2 style="font-size:48px; line-height:0.9; margin:0; overflow:hidden">Gyp clipped tight</h2>
+<!-- A hidden box whose text fits, also with thick borders (the clip box is inside the border) -->
+<div style="overflow:hidden; width:200px">Fits inside its box</div>
+<div style="border:8px solid #ddd; height:24px; line-height:24px; width:150px; overflow:hidden; text-align:right">Bordered box fits</div>
+</div>
+</body></html>
