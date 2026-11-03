@@ -120,6 +120,20 @@ expect "" start 2026-11-01T10:00
 expect "" dur_min 0
 expect "" result none
 
+# README "What they count", fixtures/edges (retro index fixes, 2026-11-03): an entry with an empty change or fact
+# is an unfilled entry, not an outcome; a frontmatter block counts at any length.
+PI_SESSIONS_DIR="$FIX/edges" bash "$RETRO/index.sh" "$WORK/edges.tsv" >"$WORK/edges.log" 2>&1 && ok "index on edge fixtures exits 0" || { no "index on edge fixtures"; cat "$WORK/edges.log"; }
+TSV="$WORK/edges.tsv"
+expect "e1 empty pass" passes_applied 1
+expect "e1 empty pass" passes_na 0
+expect "e1 empty pass" passes "copy -> applied: shorter labels"
+expect "e2 60-line frontmatter" skills_returned psi
+expect "e2 60-line frontmatter" skill_count 1
+# A session whose only timestamp cannot be parsed is unreadable input: a PARSE_FAIL row and exit 1, not dur_min 0.
+PI_SESSIONS_DIR="$FIX/bad-timestamp" bash "$RETRO/index.sh" "$WORK/badts.tsv" >/dev/null 2>&1 && no "index with one unparseable timestamp exits 0" || ok "index with one unparseable timestamp exits nonzero"
+grep -q '^PARSE_FAIL	\./t1-one-bad-timestamp\.jsonl$' "$WORK/badts.tsv" 2>/dev/null && ok "one unparseable timestamp writes a PARSE_FAIL row" || no "one unparseable timestamp: no PARSE_FAIL row ($(tail -n +2 "$WORK/badts.tsv" 2>/dev/null))"
+TSV="$WORK/cols.tsv"
+
 # compliance: SINCE and agent filters, per-session checks, and the per agent+model summary.
 awk -F'\t' -v OFS='\t' '{print} $20=="c2 minimal" {$2="worker"; print}' "$TSV" > "$WORK/cols-worker.tsv"
 cmp_out() { # cmp_out name since; expected output on stdin
