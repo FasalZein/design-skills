@@ -28,11 +28,11 @@ Applies to: primary navigation, menus, sidebars, site structure, breadcrumbs.
 
 Applies to: input forms, settings pages, data entry, search.
 
-1. Group related fields into named blocks (identity, address, payment) of at most 7 fields each. (Miller's Law; Chunking)
+1. Group related fields into named blocks (identity, address, payment) so each block reads as one unit. A block of about 7 fields or fewer is easy to scan; split a longer block where its topic splits. (Miller's Law; Chunking)
 2. Give every input a visible label. A placeholder disappears on focus, so it is only an example value. (Working Memory)
 3. Pre-fill every value the system can know or detect: the name from the session, country, timezone, file type. Each field the system could fill is work moved onto the user. (Tesler's Law)
 4. Pre-select the best default for every choice, and frame the options honestly. (Cognitive Bias: anchoring and status-quo bias)
-5. Accept every reasonable format for dates, phone numbers and names, and normalize it in the system: "Jan 5", "1/5" and "2026-01-05" are one date. Let the user type and paste freely; trim whitespace before checking. (Postel's Law)
+5. Accept every reasonable format for dates, phone numbers and names, and normalize it in the system: in an en-US form with a known year, "Jan 5", "1/5" and "2026-01-05" are one date. Parse in the user's locale. When a value can mean two things ("1/5" is 1 May in en-GB) or has no year to infer, show the parsed value before saving. Let the user type and paste freely; trim whitespace before checking. (Postel's Law)
 6. Check a field when the user leaves it with a value in it. Show the error inline, beside the field, as a rule the user can follow ("Use at least 8 characters"). Once a field shows an error, re-check it on every change so the error clears the moment it is fixed. Positive live feedback (password strength, name availability after a debounce) may run while the user types. (Working Memory: the error appears where and when attention is)
 7. Check every field again on submit. Keep the submit button enabled, run cross-field and server checks, and move focus to the first invalid field. An error summary may sit above the form in addition to the inline errors. (Working Memory)
 
@@ -99,7 +99,7 @@ Applies to: labels, headings, onboarding, tooltips, confirmations.
 Applies to: failed actions, page errors, destructive actions, empty states.
 
 1. Show an error where the failed action happened: on the field, the row or the control. Say what happened and how to recover, offer a retry, and keep the user's input. A toast carries only an error tied to nothing on screen, and it stays until dismissed. (Working Memory: the error appears where attention is)
-2. Match the safety mechanism to reversibility. A reversible action (archive, remove from a list) runs at once and offers Undo for 5 to 10 seconds. An irreversible action, an action that affects other people, or one that destroys many items asks first, and its title names the object and the scale: "Delete 5 projects and their deployments?" (Habituation: confirmations users see often stop being read)
+2. Match the safety mechanism to reversibility. A reversible action (archive, remove from a list) runs at once and offers Undo that stays until the user dismisses it, or a lasting recovery path (an Archive or Trash view). An irreversible action, an action that affects other people, or one that destroys many items asks first, and its title names the object and the scale: "Delete 5 projects and their deployments?" (Habituation: confirmations users see often stop being read)
 3. Give each kind of empty state its own copy. First use: the fact, what will appear here, the next action. Cleared by the user: the fact and how it refills. No results: the fact, the query, a way to loosen it. Caused by an error: the error treatment of rule 1, never "No items". Offer a next action only when the user can take one. (Paradox of the Active User)
 
 ## Audit
