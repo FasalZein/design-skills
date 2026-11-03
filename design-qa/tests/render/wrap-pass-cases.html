@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>wrap pass: hidden controls, plain links, one-line labels</title>
+<style>
+  body { margin: 24px; font: 16px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  .card { width: 320px; padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }</style></head><body>
+<!-- Expected tier is in the file name. data-fail / data-judge on an element = the key of a row the probe must report (row t, or "a | b" for a pair); data-why = that row's reason. -->
+<div class="card">
+<!-- Not visible: a faded or hidden control that would wrap -->
+<button type="button" style="width:60px; opacity:0">Hidden wide label</button>
+<button type="button" style="width:60px; visibility:hidden">Invisible wide label</button>
+<!-- Links without their own background or border are prose, not controls: they wrap freely -->
+<div style="width:80px"><a href="#a" style="background:#eee">Inline link label wraps</a></div>
+<a href="#b" style="display:inline-block; width:60px">Plain block link wraps</a>
+<!-- Known behavior: a styled link with one block-wrapped label is not measured -->
+<a href="#c" style="display:block; background:#eee; width:60px"><span style="display:block">Block wrapped link label</span></a>
+<!-- One line: a short label, and a button whose label has several inline runs on one line -->
+<label>Name</label>
+<button type="button">Save <b>now</b></button>
+</div>
+</body></html>
