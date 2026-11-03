@@ -11,13 +11,14 @@
 #               ~/.pi/agent/sessions) whose launch metadata names agent design-builder and whose header
 #               parentSession has this session's file name (the scored file may be a copy). FAIL when the
 #               search fails or finds no builder child.
-#   open_built  every child brief has exactly one Part line, and its included part (the text before
+#   open_built  every child brief has exactly one nonempty Part line, and its included part (the text before
 #               "without", "except", "excluding", "but not" and the like) does not name the open part.
 #               FAIL without child evidence.
 # Each child then gets its own line "<run>/<n> <child part> <model> ...", scored against the builder
 # .expected of its level: the child's WORK line, else its brief's "Scope level" line (primitive,
 # component group or section, component, screen or page), on the design run's product. A marketing
-# section is mkt-section when its Part or Scope level line names an illustration or demo, else mkt-copy-section.
+# section is mkt-section when its surface is illustration or its included part is the demo (builds_demo),
+# else mkt-copy-section.
 # Per run it reports:
 #   text        every "must" skill and every applied pass skill came back as text in a tool result
 #   unexpected  no other skill came back: not a forbidden one, not an n/a pass, not one the expected file omits
@@ -121,27 +122,57 @@ brief_text() { jq -rs '[ .[] | select(.type=="message" and .message.role=="user"
 # Design-builder child sessions of $1, oldest first: the header's parentSession names $1 and the launch metadata
 # names agent design-builder (scout and researcher children are allowed, not builders). The scorer reads a copy of
 # the design session (owner decision 14) while a child keeps the original parentSession path, so the match is on
-# the session file name, which pi makes unique. Returns 2 when the search itself fails (for example no folder).
+# the session file name, which pi makes unique. Returns 2 when the search fails (for example no folder) or when any
+# candidate file cannot be read or parsed: an unreadable child could hide the open part, so it is no evidence.
 children_of() {
-  local base list
+  local base list f row rc=0 rows=""
   base=$(basename "$1")
   list=$(rg -l -F -g '*.jsonl' -- "/$base\"" "$SESSIONS_DIR" 2>/dev/null); [ $? -le 1 ] || return 2
   while read -r f; do
     [ -n "$f" ] || continue
-    jq -rs --arg b "$base" --arg f "$f" 'select(.[0].type=="session" and ((.[0].parentSession // "") | split("/") | last) == $b
+    row=$(jq -rs --arg b "$base" --arg f "$f" 'select(.[0].type=="session" and ((.[0].parentSession // "") | split("/") | last) == $b
       and ([ .[] | select(.customType=="pi-subagents_launch_metadata") | .data.agent ][0] == "design-builder"))
-      | "\(.[0].timestamp)\t\($f)"' "$f" 2>/dev/null
-  done <<< "$list" | sort | cut -f2
+      | "\(.[0].timestamp)\t\($f)"' "$f" 2>/dev/null) || { rc=2; continue; }
+    [ -z "$row" ] || rows="$rows$row"$'\n'
+  done <<< "$list"
+  [ -z "$rows" ] || printf '%s' "$rows" | sort | cut -f2
+  return $rc
 }
 # Whether a child brief builds the open part $2: "yes", "no", or "unclear" (no Part line, or more than one).
 # Only the included part counts: the Part text is cut at its first exclusion word, so "the Shipments table,
 # without the Docks section" is no, while "the Docks section with annotations" and "the open Docks section" are yes.
+# An empty or whitespace-only Part is unclear too: it gives no evidence of the assigned part.
 builds_open() {
+  local inc
+  inc=$(included_part "$1") || { echo unclear; return; }
+  if grep -qiF -- "$2" <<< "$inc"; then echo yes; else echo no; fi
+}
+# The included part of a child brief, lowercased: the text of its one Part line, cut at its first exclusion word.
+# Exit 1 and print nothing when there is no Part line, more than one, or no letter or digit is left.
+included_part() {
   local parts inc
   parts=$(brief_text "$1" | sed 's/\*\*//g' | grep -iE '^[[:space:]*-]*part:')
-  [ -n "$parts" ] && [ "$(wc -l <<< "$parts" | tr -d ' ')" -eq 1 ] || { echo unclear; return; }
+  [ -n "$parts" ] && [ "$(wc -l <<< "$parts" | tr -d ' ')" -eq 1 ] || return 1
   inc=$(tr 'A-Z' 'a-z' <<< "${parts#*:}" | sed -E 's/(without|except|excluding|but not|not including|apart from|other than)([^a-z].*)?$//')
-  if grep -qiF -- "$2" <<< "$inc"; then echo yes; else echo no; fi
+  [[ $inc =~ [a-z0-9] ]] || return 1
+  printf '%s\n' "$inc"
+}
+# The surface a child brief names: the first word after "Surface:" (else the first field of its WORK line), lowercased.
+surface_of() {
+  local sf
+  sf=$(brief_text "$1" | sed 's/\*\*//g' | grep -ioE 'surface:[[:space:]]*[a-z-]+' | head -1 | sed -E 's/^[^:]*:[[:space:]]*//')
+  [ -n "$sf" ] || sf=$(final_text "$1" | sed -n 's/^WORK:[[:space:]]*\([^,]*\),.*/\1/p' | head -1)
+  tr 'A-Z' 'a-z' <<< "$sf"
+}
+# Whether a marketing section child builds the illustration demo: its surface is illustration, or the head of its
+# included part (before the first ":", ",", ";", "(", or "with", "that", "which", "and", "linking") names the demo,
+# an illustration or a stage. "the hero section with a link to the demo" and "the pricing section, excluding the
+# demo" are ordinary sections; "the product-demo section: an animated illustration ..." is the demo.
+builds_demo() {
+  local head
+  [ "$(surface_of "$1")" = illustration ] && return 0
+  head=$(included_part "$1" | sed -E 's/[:,;(].*//; s/[[:space:]](with|that|which|and|linking)[[:space:]].*//') || return 1
+  grep -qE 'illustration|demo|stage' <<< "$head"
 }
 # The builder part of a child: its level on the design run's product (prefix "mkt-" for marketing).
 child_part() {
@@ -153,7 +184,7 @@ child_part() {
     # On the marketing product, only the illustration demo part takes mkt-section (it requires stageshow);
     # an ordinary page section (hero, features, pricing, footer) takes mkt-copy-section, with its marketing-copy trigger.
     *group*|*section*) if [ -z "$prefix" ]; then echo section
-      elif grep -iE '^[[:space:]*-]*(part|scope level):' <<< "$(brief_text "$1" | sed 's/\*\*//g')" | grep -qiE 'illustration|demo|stageshow'; then echo mkt-section
+      elif builds_demo "$1"; then echo mkt-section
       else echo mkt-copy-section; fi;;
     primitive*) echo "${prefix}primitive-set";;
     component*) echo "${prefix}component";;

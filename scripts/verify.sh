@@ -161,6 +161,11 @@ for name in $ROUTED; do
   echo "$PROSE" | grep -qE -- "(^|[^A-Za-z0-9-])$name([^A-Za-z0-9-]|\$)" && bad "design-craft names $name outside the Routing table and surface pointers"
 done
 say "skill names stay in the Routing table and surface pointers"
+# 12-r. Retired routes stay retired (owner decision 25): no live text names pencil-design or its .pen source.
+# The spec keeps the record of the drop (docs/specs is not checked).
+RETIRED=$(grep -rnE --exclude-dir=node_modules --exclude-dir=.eval-runs -- 'pencil-design|\.lib\.pen\b|\.pen\b' \
+  "$ROOT/design-craft" "$ROOT/design-qa" "$ROOT/evals/briefs" "$ROOT/evals/overlays" "$ROOT/README.md" 2>/dev/null)
+[ -z "$RETIRED" ] && say "retired pencil-design route and its .pen source are gone" || { bad "retired route pencil-design or its .pen source still named:"; echo "$RETIRED"; }
 
 # 12a. Retro scripts: fixture tests for index.sh and compliance.sh (D22)
 if RT=$(bash "$ROOT/evals/retro/tests/run-tests.sh" 2>&1); then say "retro fixture tests pass"

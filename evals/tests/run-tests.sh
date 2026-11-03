@@ -226,19 +226,45 @@ grep -q '^dmkt/2 mkt-section ' "$WORK/mscore.out" && ok "F5 demo illustration sc
 awk '$1=="must" && $2=="copywriting"' "$EVALS/briefs/mkt-copy-section.expected" 2>/dev/null | grep -q . && ! awk '$1=="must" && $2=="stageshow"' "$EVALS/briefs/mkt-copy-section.expected" | grep -q . \
   && ok "F5 mkt-copy-section keeps the marketing-copy trigger, no stageshow must" || no "F5 mkt-copy-section.expected profile"
 # F6: the included part, not its exclusions, decides open_built; a missing Part line does not pass.
-open_built_for() { # $1 Part line text (empty = no Part line) -> the dgood-copy open_built item
+open_built_for() { # $1 Part line text (empty = no Part line, unless $2 is "line") -> the dgood-copy open_built item
   local d="$WORK/f6-$RANDOM"; mkdir -p "$d"; cp "$FIX/design-good.jsonl" "$d/design-good.jsonl"
-  local t=$'# Build: x\n\n'; [ -n "$1" ] && t+="- **Part:** $1"$'\n'; t+="- **Scope level:** section."
+  local t=$'# Build: x\n\n'; { [ -n "$1" ] || [ "${2:-}" = line ]; } && t+="- **Part:**$1"$'\n'; t+="- **Scope level:** section."
   jq -c --arg p "$d/design-good.jsonl" --arg t "$t" \
     'if .type=="session" then .parentSession=$p elif (.type=="message" and .message.role=="user") then .message.content[0].text=$t else . end' "$FIX/child-open.jsonl" > "$d/child-f6.jsonl"
   printf '%s\t%s\t%s\t%s\n' f6 design-app opus "$d/design-good.jsonl" > "$d/runs.tsv"
   PI_SESSIONS_DIR="$d" bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$d/runs.tsv" 2>&1 | grep '^f6 ' | grep -o 'open_built=[^ ]*'
 }
-for p in "the Docks section with annotations." "the open Docks section." "the Docks section of the Overview screen."; do
+for p in " the Docks section with annotations." " the open Docks section." " the Docks section of the Overview screen."; do
   got=$(open_built_for "$p"); case $got in open_built=FAIL*) ok "F6 [$p] -> $got";; *) no "F6 [$p] -> [$got], want FAIL";; esac
 done
-got=$(open_built_for "the Shipments table, without the Docks section."); [ "$got" = open_built=ok ] && ok "F6 exclusion only -> ok" || no "F6 exclusion only -> [$got]"
+got=$(open_built_for " the Shipments table, without the Docks section."); [ "$got" = open_built=ok ] && ok "F6 exclusion only -> ok" || no "F6 exclusion only -> [$got]"
 got=$(open_built_for ""); case $got in open_built=FAIL*) ok "F6 no Part line -> $got";; *) no "F6 no Part line -> [$got], want FAIL";; esac
+# Round 2: an empty or whitespace-only Part value is no evidence of the assigned part.
+for p in "" "   "; do got=$(open_built_for "$p" line); case $got in open_built=FAIL*) ok "F6 empty Part [$p] -> $got";; *) no "F6 empty Part [$p] -> [$got], want FAIL";; esac; done
+# Round 2 (F3): a malformed matching child is a failed search, even when a valid sibling parses.
+d="$WORK/f3b"; mkdir -p "$d"; cp "$FIX/design-good.jsonl" "$d/design-good.jsonl"
+# The broken child sits between two valid siblings, so it is not the last file the search reads in any order rg uses here.
+sed "s|\"parentSession\":\"[^\"]*\"|\"parentSession\":\"$d/design-good.jsonl\"|" "$FIX/child-component.jsonl" > "$d/child-a-valid.jsonl"
+cp "$d/child-a-valid.jsonl" "$d/child-z-valid.jsonl"
+{ head -2 "$d/child-a-valid.jsonl"; echo '{"type":"message", broken'; } > "$d/child-m-broken.jsonl"
+printf '%s\t%s\t%s\t%s\n' f3b design-app opus "$d/design-good.jsonl" > "$d/runs.tsv"
+got=$(PI_SESSIONS_DIR="$d" bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$d/runs.tsv" 2>&1 | grep '^f3b ')
+case $got in *"children=FAIL("*"open_built=FAIL("*) ok "F3 malformed child plus valid sibling -> children FAIL";; *) no "F3 malformed child hidden: [$got]";; esac
+# Round 2 (F5): the profile comes from the included part and its surface, not any mention of the demo.
+mkt_part_for() { # $1 Part text, $2 Surface -> the child part the scorer picks
+  local d="$WORK/f5-$RANDOM"; mkdir -p "$d"; cp "$FIX/design-mkt.jsonl" "$d/design-mkt.jsonl"
+  local t="# Build: x"$'\n\n'"- **Part:** $1"$'\n'"- **Scope level:** component group (a section of a page). **Surface:** $2. **Mode:** headless."
+  jq -c --arg p "$d/design-mkt.jsonl" --arg t "$t" \
+    'if .type=="session" then .parentSession=$p elif (.type=="message" and .message.role=="user") then .message.content[0].text=$t else . end' "$FIX/child-mkt-hero.jsonl" > "$d/child.jsonl"
+  printf '%s\t%s\t%s\t%s\n' f5 design-marketing opus "$d/design-mkt.jsonl" > "$d/runs.tsv"
+  PI_SESSIONS_DIR="$d" bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$d/runs.tsv" 2>&1 | awk '$1=="f5/1" {print $2}'
+}
+for p in "the hero section with a link to the demo." "the pricing section, excluding the demo."; do
+  got=$(mkt_part_for "$p" public-page); [ "$got" = mkt-copy-section ] && ok "F5 [$p] -> $got" || no "F5 [$p] -> [$got], want mkt-copy-section"
+done
+got=$(mkt_part_for "the product-demo section: an animated illustration of the Harbor timetable in the empty slot #demo." "public-page, with the product-demo slot as an illustration")
+[ "$got" = mkt-section ] && ok "F5 demo part -> $got" || no "F5 demo part -> [$got], want mkt-section"
+got=$(mkt_part_for "the timetable stage." "illustration"); [ "$got" = mkt-section ] && ok "F5 illustration surface -> $got" || no "F5 illustration surface -> [$got], want mkt-section"
 # F7: the written-report fallback rejects an n/a entry with no fact, like the index.
 mkdir -p "$WORK/f7" && sed 's/better-writing -> applied: empty copy/better-writing -> n\/a: /' "$FIX/score-time-limit.jsonl" > "$WORK/f7/score-time-limit.jsonl"
 printf 'f7\tcomponent\tgpt\t%s\n' "$WORK/f7/score-time-limit.jsonl" > "$WORK/f7/runs.tsv"

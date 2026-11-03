@@ -51,7 +51,7 @@ Each surface has one file in `design-craft/surfaces/`:
 - `public-page.md`: a page people read and scroll (landing, marketing, pricing, docs home). It names the design-taste-frontend sections to read and when.
 - `illustration.md`: faux product UI for a page slot, still or animated. stageshow runs the stage; the file lists the hand-off fields and the rules inside the stage.
 
-A Figma file, a design image or a .pen file is a source, not a surface. Its routing table row applies.
+A Figma file or a design image is a source, not a surface. Its routing table row applies.
 
 ### The two agents
 

@@ -11,7 +11,7 @@ disable-model-invocation: true
 
 ## Sort the work
 
-1. **Surface.** Read the surface file of each surface in the work, once; a surface file names the parts that wait for a trigger. A public page with a product demo slot has two surfaces. A Figma file, a design image or a .pen file is a source, not a surface: its Routing table row applies.
+1. **Surface.** Read the surface file of each surface in the work, once; a surface file names the parts that wait for a trigger. A public page with a product demo slot has two surfaces. A Figma file or a design image is a source, not a surface: its Routing table row applies.
 
 | Surface | When | Surface file |
 |---|---|---|
