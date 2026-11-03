@@ -4,8 +4,8 @@ Headless design run on the Harbor marketing eval fixture. The brief and DESIGN.m
 
 - **Work:** build every decided part of DESIGN.md bottom-up through design-builders, and report the one open part to the owner.
 - **Scope level:** product. **Surface:** public-page, with the product-demo slot as an illustration. **Mode:** headless.
-- **DESIGN.md:** {RUN_DIR}/DESIGN.md. Its "Open for the build" line names the one open part; every other decision is closed.
-- **Parts:** the primitive set; PricingCard; the sections hero, product demo, features, pricing and footer call to action; the whole page.
+- **DESIGN.md:** {RUN_DIR}/DESIGN.md (the owner-approved direction A "Board"). Its "Open for the build" line names the one open part; every other decision is closed, including #demo as a stageshow illustration.
+- **Parts:** the primitive set; the page buttons and the pricing table; the sections hero, #demo (the stageshow illustration of the Docks board), features, pricing, call to action and footer; the whole page.
 - **Run directory:** {RUN_DIR}. You and every design-builder work only in this directory. It is a git repository on branch main. Start every shell command with `cd {RUN_DIR}`, run git as `git -C {RUN_DIR}`, and delete scratch files with `trash`.
 - **Browser:** allowed. Your own dev server: `npm run dev -- --port {PORT} --strictPort`. Give each design-builder its own port from {PORT}+1 to {PORT}+4 and the same command with that port. Dependencies are installed; add no package.
 - **Checks:** `npm run typecheck` and `npm run build`.

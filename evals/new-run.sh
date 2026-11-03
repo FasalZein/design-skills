@@ -6,11 +6,12 @@
 #             The brief is evals/briefs/<part>.md.
 #   run-name  letters, digits, dot, dash, underscore; the run directory name
 #   port      the dev-server port the run must use
-#   --from    Harbor builder parts only (a chain): start from the committed HEAD of that earlier run in the same
-#             runs folder, with its node_modules cloned. Without --from, a Harbor run starts from the stock fixture.
+#   --from    builder parts of either product (a chain): start from the committed HEAD of that earlier run in the
+#             same runs folder, with its node_modules cloned. The earlier run must be of the same product. Without
+#             --from, a builder run starts from the stock fixture.
 # The run directory is $EVAL_RUNS_ROOT/<run-name> (default <repo root>/.eval-runs, which git ignores).
-# Marketing overlays (evals/overlays/mkt-*) go in before the initial commit: higher marketing parts build on the
-# approved lower-level parts. The design-* parts get the product's DESIGN.md variant with one open part instead.
+# The design-* parts get the product's DESIGN.md variant with one open part (evals/overlays/design-*) before the
+# initial commit.
 # Every run gets one initial commit. Delete a run after scoring with evals/clean-run.sh.
 # Progress goes to stderr; stdout holds only the rendered brief. Exit 1 on bad input or an existing run.
 set -euo pipefail
@@ -25,9 +26,7 @@ fi
 case $PART in
   primitive-set|component|section|screen) FIX=fixture; OVERLAYS=""; CHAIN=yes;;
   design-app)        FIX=fixture;           OVERLAYS="design-app";;
-  mkt-primitive-set) FIX=fixture-marketing; OVERLAYS="";;
-  mkt-component|mkt-section) FIX=fixture-marketing; OVERLAYS="mkt-primitives";;
-  mkt-page)          FIX=fixture-marketing; OVERLAYS="mkt-primitives mkt-components";;
+  mkt-primitive-set|mkt-component|mkt-section|mkt-page) FIX=fixture-marketing; OVERLAYS=""; CHAIN=yes;;
   design-marketing)  FIX=fixture-marketing; OVERLAYS="design-marketing";;
   *) usage;;
 esac
@@ -53,6 +52,9 @@ if [ -n "$FROM" ]; then
   PREV=$PREV_REAL
   PREV_SHA=$(git -C "$PREV" rev-parse --short HEAD 2>/dev/null) || { echo "new-run: $PREV is no run with a commit" >&2; exit 1; }
   [ -d "$PREV/node_modules" ] || { echo "new-run: $PREV/node_modules missing" >&2; exit 1; }
+  # A chain stays on one product: the earlier run's committed package name must be its fixture's.
+  WANT=$(jq -r .name "$FIXTURE/package.json"); GOT=$(git -C "$PREV" show HEAD:package.json 2>/dev/null | jq -r .name 2>/dev/null || true)
+  [ "$GOT" = "$WANT" ] || { echo "new-run: $PREV is a run of another product ($GOT, want $WANT)" >&2; exit 1; }
   mkdir "$RUN"
   # Only committed work carries over: uncommitted changes and untracked files of the earlier run stay behind.
   git -C "$PREV" archive HEAD | tar -x -C "$RUN"

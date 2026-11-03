@@ -158,9 +158,38 @@ if [ -d "$EVALS/fixture/node_modules" ]; then
 else echo "skip: evals/fixture/node_modules missing (npm ci --prefix evals/fixture)"; fi
 if [ -d "$EVALS/fixture-marketing/node_modules" ]; then
   check_run mkt-primitive-set src/sections/product-demo.tsx 'Open for the build: none'
-  check_run mkt-page src/components/pricing-card.tsx 'Open for the build: none'
-  grep -q 'IBM Plex Mono' "$WORK/runs/mkt-page/src/index.css" && ok "new-run mkt-page: primitives overlay applied" || no "new-run mkt-page: primitives overlay missing"
+  check_run mkt-page src/assets/photos/credits.json 'Open for the build: none'
+  # Marketing runs start from the stock fixture (direction A DESIGN.md, photos, shipment data); no old overlay.
+  [ ! -e "$WORK/runs/mkt-page/src/components/pricing-card.tsx" ] && cmp -s "$WORK/runs/mkt-page/src/index.css" "$EVALS/fixture-marketing/src/index.css" \
+    && ok "new-run mkt-page: no old-direction overlay" || no "new-run mkt-page: old overlay present"
+  grep -q "IN-20434', carrier: 'Nordwest Freight'" "$WORK/runs/mkt-page/src/data/shipments.ts" && ok "new-run mkt-page: shipment data present" || no "new-run mkt-page: shipment data missing"
+  grep -qF 'starts from the stock fixture' "$WORK/mkt-page.brief" && ok "new-run mkt-page: brief names the fixture start" || no "new-run mkt-page: start line"
   check_run design-marketing src/sections/faq.tsx 'Open for the build: the FAQ section'
+  DM="$WORK/runs/design-marketing/DESIGN.md"
+  ! grep -qE '^- FAQ index:|^- FAQ: questions in columns|^- FAQ: the first question' "$DM" && ok "new-run design-marketing: the FAQ form lines are open" || no "new-run design-marketing: FAQ form still decided"
+  grep -q '^- #demo script, played once' "$DM" && grep -q '^- #demo / approval' "$DM" && ok "new-run design-marketing: #demo stays decided" || no "new-run design-marketing: #demo not decided"
+  # Marketing chain mode: the same carry rules as Harbor, and a chain stays on one product.
+  CH="$WORK/runs"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" mkt-primitive-set mchain-p 5301 >/dev/null 2>&1 || no "mkt chain: first run failed"
+  echo ':root { --mkt-chain-mark: 1; }' >> "$CH/mchain-p/src/index.css"
+  git -C "$CH/mchain-p" -c user.name=t -c user.email=t@l commit -qam "primitives built"
+  echo 'scratch' > "$CH/mchain-p/uncommitted.txt"
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" mkt-component mchain-c 5302 --from mchain-p > "$WORK/mchain-c.brief" 2>/dev/null && ok "mkt chain: --from exits 0" || no "mkt chain: --from failed"
+  grep -q -- '--mkt-chain-mark' "$CH/mchain-c/src/index.css" 2>/dev/null && ok "mkt chain: committed work carried over" || no "mkt chain: committed work missing"
+  [ ! -e "$CH/mchain-c/uncommitted.txt" ] && ok "mkt chain: uncommitted work left behind" || no "mkt chain: uncommitted work copied"
+  [ "$(git -C "$CH/mchain-c" rev-list --count HEAD 2>/dev/null)" = 1 ] && [ -z "$(git -C "$CH/mchain-c" status --porcelain)" ] && ok "mkt chain: one commit, clean tree" || no "mkt chain: commit count or dirty tree"
+  [ -d "$CH/mchain-c/node_modules/@fontsource/barlow-condensed" ] && ok "mkt chain: node_modules cloned" || no "mkt chain: node_modules missing"
+  sha=$(git -C "$CH/mchain-p" rev-parse --short HEAD)
+  grep -qF "result of run mchain-p (commit $sha)" "$WORK/mchain-c.brief" && ! grep -q '{[A-Z_]*}' "$WORK/mchain-c.brief" && ok "mkt chain: brief names the previous run" || no "mkt chain: brief start line"
+  for p in mkt-section mkt-page; do
+    EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" $p "mchain-$p" 5303 --from mchain-c >/dev/null 2>&1 && ok "mkt chain: --from on $p" || no "mkt chain: --from on $p failed"
+  done
+  EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" design-marketing mchain-d 5303 --from mchain-c >/dev/null 2>&1 && no "mkt chain: --from on design-marketing accepted" || ok "mkt chain: --from refused on design-marketing"
+  if [ -d "$CH/chain-p" ]; then
+    EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" mkt-component mchain-x 5303 --from chain-p >/dev/null 2>&1 && no "mkt chain: a Harbor run accepted as previous run" || ok "mkt chain: a Harbor run refused as previous run"
+    [ ! -e "$CH/mchain-x" ] && ok "mkt chain: product refusal leaves no directory" || no "mkt chain: product refusal left a directory"
+    EVAL_RUNS_ROOT="$CH" bash "$EVALS/new-run.sh" component chain-x2 5303 --from mchain-p >/dev/null 2>&1 && no "chain: a marketing run accepted for Harbor" || ok "chain: a marketing run refused for Harbor"
+  fi
   # Default root: <repo root>/.eval-runs; then clean-run.sh saves the run and deletes it.
   bash "$EVALS/new-run.sh" mkt-component "$TAG-nr" 5301 >/dev/null 2>&1 && [ -d "$REPO/.eval-runs/$TAG-nr/.git" ] \
     && ok "new-run default root is <repo>/.eval-runs" || no "new-run default root"
@@ -174,6 +203,42 @@ for s in 'StatusBadge' 'B3 Action first' 'Day line' '"<n> of 4 doors free"' 'At 
 for s in 'Overview' '"No door" lane' 'Now line' '06:00 to 16:00' 'booked <time>' 'FLIP' 'door list'; do brief_has section "$s"; done
 for s in 'count tabs' 'door select' 'top bar' 'booked 08:00' "Couldn't change the door. Try again." '1440, 1024 and 375'; do brief_has screen "$s"; done
 for d in "$EVALS"/fixture/DESIGN.md; do grep -q '^Direction: Hi-vis' "$d" && ok "fixture DESIGN.md is the approved Hi-vis direction" || no "fixture DESIGN.md is not Hi-vis"; done
+# Marketing briefs follow the approved DESIGN.md (direction A "Board"): one brief per chain level, each naming its
+# chain start and decisions that DESIGN.md holds word for word.
+MD="$EVALS/fixture-marketing/DESIGN.md"
+brief_and_design() { brief_has "$1" "$2"; grep -qF -- "$2" "$MD" && ok "DESIGN.md holds [$2] ($1)" || no "DESIGN.md lacks [$2] that the $1 brief names"; }
+for b in mkt-primitive-set mkt-component mkt-section mkt-page; do brief_has "$b" '{START}'; brief_has "$b" 'direction A "Board"'; done
+for s in 'Geist' 'IBM Plex Sans' '"48.210,50 €"' '"290 €"' 'Barlow Condensed' 'Newsreader' '720px'; do brief_and_design mkt-primitive-set "$s"; done
+brief_has mkt-primitive-set '--radius: 0'
+for s in 'Pricing per site' 'By contract' 'signal-pale' 'scope attributes' '@media (hover: hover)' 'Not offered'; do brief_and_design mkt-component "$s"; done
+for s in 'stageshow' 'Send to door' 'IN-20434' 'One Tuesday, four doors' 'Bar length: 20 min + 1.7 min per pallet.' 'document.fonts.ready' '1170px' 'role="img"' 'src/components/demo/kit/' 'Stop/Replay'; do brief_and_design mkt-section "$s"; done
+for s in 'film.mjs --gate' 'rehearsal passed' 'played once'; do brief_has mkt-section "$s"; done
+grep -q 'as a loop' "$EVALS/briefs/mkt-section.md" && no "mkt-section brief still asks for a loop (DESIGN.md: played once)" || ok "mkt-section brief: no loop"
+for s in 'Europe/Berlin' 'src/assets/photos/' 'No top bar' 'mailto'; do brief_and_design mkt-page "$s"; done
+brief_has mkt-page '1440, 1024 and 375'
+for b in mkt-component mkt-page; do grep -q 'PricingCard' "$EVALS/briefs/$b.md" && no "$b brief names the old PricingCard" || ok "$b brief: no PricingCard"; done
+# The section level is the illustration: only its expected file requires stageshow.
+for e in mkt-primitive-set mkt-component mkt-page mkt-copy-section; do
+  awk '$1=="must" && $2=="stageshow"' "$EVALS/briefs/$e.expected" | grep -q . && no "$e.expected requires stageshow" || ok "$e.expected: no stageshow must"
+done
+awk '$1=="must" && $2=="stageshow"' "$EVALS/briefs/mkt-section.expected" | grep -q . && ok "mkt-section.expected requires stageshow" || no "mkt-section.expected lacks must stageshow"
+awk '$1=="open" && $2=="FAQ"' "$EVALS/briefs/design-marketing.expected" | grep -q . && ok "design-marketing.expected: open FAQ" || no "design-marketing.expected: open key"
+# The marketing fixture is direction A with its dependencies, photos and shipment data; the old overlays are gone.
+grep -q '^Direction: A "Board"' "$MD" && grep -q '^- #demo / approval' "$MD" && grep -qx 'Open for the build: none' "$MD" && ok "fixture-marketing DESIGN.md is direction A with #demo decided" || no "fixture-marketing DESIGN.md is not direction A"
+[ -s "$EVALS/fixture-marketing/.design-md/style-context.json" ] && jq -e . "$EVALS/fixture-marketing/.design-md/style-context.json" >/dev/null && ok "fixture-marketing has the DMD style context" || no "fixture-marketing style context missing"
+for p in @fontsource/barlow @fontsource/barlow-condensed @fontsource-variable/newsreader @fontsource/ibm-plex-mono; do
+  jq -e --arg p "$p" '.dependencies[$p]' "$EVALS/fixture-marketing/package.json" >/dev/null && jq -e --arg p "node_modules/$p" '.packages[$p]' "$EVALS/fixture-marketing/package-lock.json" >/dev/null \
+    && ok "fixture-marketing depends on $p (package.json and lock)" || no "fixture-marketing lacks $p"
+done
+PH="$EVALS/fixture-marketing/src/assets/photos"
+[ "$(jq length "$PH/credits.json" 2>/dev/null)" = 5 ] && ok "fixture-marketing credits.json lists 5 photos" || no "fixture-marketing credits.json count"
+for t in "Modern loading dock" "Ellerholzdamm, Pallets, WPAhoi, Hamburg (P1080334)" "Hafenkran Logport 2" "2024-01 Truck Queue on E372 near the Polish border point Hrebenne" "Modern warehouse with pallet rack storage system"; do
+  f=$(jq -r --arg t "$t" '.[] | select(.title==$t) | .file' "$PH/credits.json" 2>/dev/null)
+  [ -n "$f" ] && [ -s "$PH/$f" ] && grep -qF "\"$t\"" "$MD" && ok "photo [$t] in DESIGN.md, credits.json and src/assets/photos" || no "photo [$t] missing"
+done
+grep -q "newEta: '10:40'" "$EVALS/fixture-marketing/src/data/shipments.ts" && cmp -s "$EVALS/fixture-marketing/src/data/shipments.ts" "$EVALS/fixture/src/data/shipments.ts" \
+  && ok "fixture-marketing has the app's shipment fixture" || no "fixture-marketing shipment fixture differs or is missing"
+[ ! -e "$EVALS/overlays/mkt-primitives" ] && [ ! -e "$EVALS/overlays/mkt-components" ] && ok "old marketing overlays removed" || no "old marketing overlays still present"
 for p in @fontsource/barlow @fontsource/barlow-condensed @fontsource-variable/newsreader; do
   jq -e --arg p "$p" '.dependencies[$p]' "$EVALS/fixture/package.json" >/dev/null && ok "fixture depends on $p" || no "fixture lacks $p"
 done
