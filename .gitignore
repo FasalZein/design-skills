@@ -13,3 +13,6 @@ node_modules/
 # Worktrees
 *-worktree/
 *.png
+
+# Eval run copies (evals/new-run.sh)
+.eval-runs/

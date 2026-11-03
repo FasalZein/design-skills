@@ -4,6 +4,16 @@
 #   sessions.tsv  the retro index (evals/retro/index.sh output)
 #   runs.tsv      one run per line: run<TAB>part<TAB>model<TAB>session file (absolute path); # starts a comment
 # Expected loads per part: evals/briefs/<part>.expected (EXPECTED_DIR overrides the folder).
+# A design-app or design-marketing run scores the design session against its own .expected, then adds:
+#   decision    its final message or written report holds a DECISION NEEDED block with a Q1 line, and
+#               the block names the open part (the "open" word of the .expected file)
+#   children    the number of child design-builder sessions: sessions under PI_SESSIONS_DIR (default
+#               ~/.pi/agent/sessions) whose header line names this session as parentSession
+#   open_built  no child brief has a Part line that names the open part without "without", "except",
+#               "excluding", "not" or "open" (the open part was not sent to a builder)
+# Each child then gets its own line "<run>/<n> <child part> <model> ...", scored against the builder
+# .expected of its level: the child's WORK line, else its brief's "Scope level" line (primitive,
+# component group or section, component, screen or page), on the design run's product.
 # Per run it reports:
 #   text        every "must" skill and every applied pass skill came back as text in a tool result
 #   unexpected  no other skill came back: not a forbidden one, not an n/a pass, not one the expected file omits
@@ -29,15 +39,18 @@ kind() { awk -v k="$2" '$1==k {print $2}' "$1"; }
 in_list() { case ",$2," in *",$1,"*) return 0;; esac; return 1; }
 join() { paste -sd, -; }
 
+SESSIONS_DIR=${PI_SESSIONS_DIR:-$HOME/.pi/agent/sessions}
 FAILED_RUNS=0; N=0
-while IFS=$'\t' read -r run part model session; do
-  case "$run" in ''|'#'*) continue;; esac
-  N=$((N+1))
+# Score one session against <part>.expected: one line, with EXTRA (set by the caller) before cost.
+# Returns 2 on an input error; the caller exits 1.
+score_one() {
+  local run=$1 part=$2 model=$3 session=$4 exp row returned passes result cost peak
   exp="$EXPECTED_DIR/$part.expected"
-  [ -r "$exp" ] || { echo "score: no expected file for part '$part' ($exp)" >&2; exit 1; }
-  [ -r "$session" ] || { echo "score: cannot read session $session" >&2; exit 1; }
+  [ -r "$exp" ] || { echo "score: no expected file for part '$part' ($exp)" >&2; return 2; }
+  [ -r "$session" ] || { echo "score: cannot read session $session" >&2; return 2; }
+  N=$((N+1))
   row=$(row_for "$session")
-  if [ -z "$row" ]; then echo "$run $part $model FAIL: session not in $TSV"; FAILED_RUNS=$((FAILED_RUNS+1)); continue; fi
+  if [ -z "$row" ]; then echo "$run $part $model FAIL: session not in $TSV"; FAILED_RUNS=$((FAILED_RUNS+1)); return 0; fi
   returned=$(col "$row" skills_returned); passes=$(col "$row" passes); result=$(col "$row" result)
   cost=$(col "$row" cost); peak=$(col "$row" peak_ctx)
   # A run stopped before its final RESULT message has no PASSES in the index: read the last written report.
@@ -79,7 +92,7 @@ while IFS=$'\t' read -r run part model session; do
         n("agent-browser-chrome\\b.*\\b(screenshot|batch)\\b"),
         n("(^|[^-\\w/])agent-browser\\s.*\\bscreenshot\\b"),
         n("screencapture|\\.screenshot\\(|playwright\\s+screenshot"), $rw ] | @tsv' "$session")
-  [ -n "$scan" ] || { echo "score: cannot parse session $session" >&2; exit 1; }
+  [ -n "$scan" ] || { echo "score: cannot parse session $session" >&2; return 2; }
 
   item() { if [ -z "$2" ]; then printf ' %s=ok' "$1"; else printf ' %s=FAIL(%s)' "$1" "$2"; fi; }
   pf=""; [ -n "$missing_pass" ] && pf="missing:${missing_pass#,}"
@@ -90,8 +103,68 @@ while IFS=$'\t' read -r run part model session; do
   line="$line$( [ "$scan" -gt 0 ] && printf ' static=ok(scan=%s,tsc=%s)' "$scan" "$tsc" || printf ' static=FAIL(scan=0,tsc=%s)' "$tsc")"
   line="$line$( { [ "$result" != none ] && [ -n "$result" ]; } || [ "$report_written" -gt 0 ] && printf ' report=ok' || printf ' report=FAIL')"
   line="$line$( [ "$chrome" -gt 0 ] && [ "$plain" -eq 0 ] && [ "$other" -eq 0 ] && printf ' shots=ok(chrome=%s)' "$chrome" || printf ' shots=FAIL(chrome=%s,plain=%s,other=%s)' "$chrome" "$plain" "$other")"
-  line="$line cost=\$$cost peak_ctx=$peak result=$result ambiguous=[${amb#,}]"
+  line="$line${EXTRA:-} cost=\$$cost peak_ctx=$peak result=$result ambiguous=[${amb#,}]"
   echo "$line"
   case "$line" in *FAIL*) FAILED_RUNS=$((FAILED_RUNS+1));; esac
+  return 0
+}
+
+# Text a session ends on: its final assistant text and its last written report.
+final_text() { jq -rs '([ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="text") | .text ] | last // ""),
+  ([ .[] | select(.type=="message" and .message.role=="assistant") | .message.content[]? | select(.type=="toolCall" and .name=="write")
+     | .arguments.content // "" | select(test("(^|\n)RESULT:")) ] | last // "")' "$1"; }
+# The brief: the first user message.
+brief_text() { jq -rs '[ .[] | select(.type=="message" and .message.role=="user") | .message.content[]? | select(.type=="text") | .text ] | first // ""' "$1"; }
+# Child sessions whose header line names $1 as parentSession, oldest first.
+children_of() { rg -l -F -g '*.jsonl' "\"parentSession\":\"$1\"" "$SESSIONS_DIR" 2>/dev/null | while read -r f; do
+    head -n1 "$f" | jq -r --arg p "$1" --arg f "$f" 'select(.type=="session" and .parentSession==$p) | "\(.timestamp)\t\($f)"'
+  done | sort | cut -f2; }
+# The builder part of a child: its level on the design run's product (prefix "mkt-" for marketing).
+child_part() {
+  local lvl prefix=$2
+  lvl=$(final_text "$1" | sed -n 's/^WORK:[[:space:]]*[^,]*,[[:space:]]*\([^,]*\),.*/\1/p' | head -1)
+  [ -n "$lvl" ] || lvl=$(brief_text "$1" | grep -i 'scope level' | head -1 | sed 's/.*[Ss]cope level:[*]*[[:space:]]*//')
+  lvl=$(printf '%s' "$lvl" | tr 'A-Z' 'a-z')
+  case "$lvl" in
+    *group*|*section*) echo "${prefix}section";;
+    primitive*) echo "${prefix}primitive-set";;
+    component*) echo "${prefix}component";;
+    screen*|page*|flow*) if [ -n "$prefix" ]; then echo "${prefix}page"; else echo screen; fi;;
+  esac
+}
+
+while IFS=$'\t' read -r run part model session; do
+  case "$run" in ''|'#'*) continue;; esac
+  EXTRA=""
+  case "$part" in
+    design-app|design-marketing)
+      exp="$EXPECTED_DIR/$part.expected"
+      [ -r "$exp" ] && [ -r "$session" ] || { echo "score: cannot read $exp or $session" >&2; exit 1; }
+      open=$(kind "$exp" open | head -1)
+      if [ "$part" = design-marketing ]; then prefix=mkt-; else prefix=""; fi
+      fin=$(final_text "$session")
+      if ! printf '%s\n' "$fin" | grep -q '^DECISION NEEDED'; then dec="FAIL(no block)"
+      elif ! printf '%s\n' "$fin" | grep -q '^Q1:'; then dec="FAIL(no Q1)"
+      elif ! printf '%s\n' "$fin" | sed -n '/^DECISION NEEDED/,/^RECOMMEND:/p' | grep -qiF -- "$open"; then dec="FAIL(block names no $open)"
+      else dec=ok; fi
+      kids=$(children_of "$session"); nk=0; built=""; i=0
+      [ -n "$kids" ] && nk=$(printf '%s\n' "$kids" | wc -l | tr -d ' ')
+      while read -r k; do
+        [ -n "$k" ] || continue; i=$((i+1))
+        brief_text "$k" | grep -i 'part:' | grep -iF -- "$open" | grep -qviE 'without|except|excluding|not|open' && built="$built,$run/$i"
+      done <<< "$kids"
+      if [ -z "$built" ]; then ob=ok; else ob="FAIL(${built#,})"; fi
+      EXTRA=" decision=$dec children=$nk open_built=$ob"
+      score_one "$run" "$part" "$model" "$session" || exit 1
+      EXTRA=""; i=0
+      while read -r k; do
+        [ -n "$k" ] || continue; i=$((i+1))
+        cpart=$(child_part "$k" "$prefix")
+        krow=$(row_for "$k"); kmodel="?"; [ -n "$krow" ] && kmodel=$(col "$krow" model)
+        if [ -z "$cpart" ]; then N=$((N+1)); FAILED_RUNS=$((FAILED_RUNS+1)); echo "$run/$i ? $kmodel FAIL: level unknown ($k)"; continue; fi
+        score_one "$run/$i" "$cpart" "$kmodel" "$k" || exit 1
+      done <<< "$kids";;
+    *) score_one "$run" "$part" "$model" "$session" || exit 1;;
+  esac
 done < "$RUNS"
 echo "score: $N runs, $FAILED_RUNS with a FAIL item"
