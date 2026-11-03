@@ -21,7 +21,9 @@ printf '%s\t%s\t%s\t%s\n' "# run" part model session \
   good component opus "$FIX/score-good.jsonl" \
   bad component sonnet "$FIX/score-bad.jsonl" \
   norep component gpt "$FIX/score-no-report.jsonl" \
-  time component gpt "$FIX/score-time-limit.jsonl" > "$WORK/runs.tsv"
+  time component gpt "$FIX/score-time-limit.jsonl" \
+  svar component gpt "$FIX/score-shots-var.jsonl" \
+  svarp component gpt "$FIX/score-shots-var-plain.jsonl" > "$WORK/runs.tsv"
 bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$WORK/runs.tsv" > "$WORK/score.out" 2>&1; st=$?
 [ "$st" -eq 0 ] && ok "score exits 0 on scorable runs" || { no "score exit $st"; cat "$WORK/score.out"; }
 line() { grep "^$1 " "$WORK/score.out"; }
@@ -36,6 +38,10 @@ has bad 'unexpected=FAIL(better-colors,impeccable,review-animations)'
 has bad 'passes=FAIL(missing:break-ui)'
 has bad 'static=FAIL(scan=0'
 has bad 'shots=FAIL(chrome=0,plain=1,other=0)'
+# Retro candidate 2 (h-opus-2-comp): a variable that holds agent-browser-chrome (JS const in codemode, shell
+# assignment) counts its screenshot and batch calls as chrome; a literal plain agent-browser screenshot stays plain.
+has svar 'shots=ok(chrome=2)'
+has svarp 'shots=FAIL(chrome=1,plain=1,other=0)'
 has bad 'report=ok'
 # No final RESULT message and no written report.
 has norep 'report=FAIL'
@@ -43,7 +49,7 @@ has norep 'static=ok(scan=1'
 # Stopped by the time limit: the written draft is the report, and its PASSES entries count.
 has time 'report=ok'
 has time 'passes=FAIL(missing:better-accessibility,state-machine,break-ui,review-animations,interface-review)'
-grep -q '^score: 4 runs, 3 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing"
+grep -q '^score: 6 runs, 4 with a FAIL item$' "$WORK/score.out" && ok "summary line" || no "summary line missing: $(tail -1 "$WORK/score.out")"
 
 # Design runs: the design session against its own expected file, its DECISION NEEDED block, and each child
 # design-builder session (found by its header's parentSession) against the expected file of its level.
