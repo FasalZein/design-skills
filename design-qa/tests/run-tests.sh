@@ -214,6 +214,15 @@ FILES=$(bash "$SCAN" "$D" --json --allowlist "$AL" 2>/dev/null | jq -r '[.issues
 [ "$FILES" = "src/host.css" ] && ok || ko "stage allowlist: want findings only in src/host.css, got '$FILES'"
 rm -rf "$D" "$AL"
 
+# --- fix hints point at real guidance: a cited "<skill> <path>.md" or "<skill>/<path>.md" exists in the repo ---
+REPO=$(cd "$HERE/../.." && pwd)
+HINTS=$(printf '%s' "$J" | jq -r '[.issues[].fix] | unique | .[]')
+CITED=$(printf '%s\n' "$HINTS" | grep -oE '\b[a-z][a-z-]+[ /][A-Za-z0-9._/-]+\.md\b' | tr ' ' '/' | sort -u)
+for p in $CITED; do [ -f "$REPO/$p" ] && ok || ko "fix hint cites missing file $p"; done
+for c in TRACKING_TIGHTER STOCK_TOKEN; do
+  printf '%s' "$J" | jq -e --arg c "$c" '[.issues[] | select(.category==$c) | .fix | test("design-craft")] | (length >= 1 and all)' >/dev/null && ok || ko "$c fix hint does not name design-craft"
+done
+
 echo "----"
 echo "design-scan tests: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

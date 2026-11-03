@@ -61,5 +61,118 @@ mkdir -p "$WORK/empty"
 PI_SESSIONS_DIR="$WORK/empty" bash "$RETRO/index.sh" "$WORK/empty.tsv" >/dev/null 2>&1 && ok "F12 valid empty index exits 0" || no "F12 valid empty index exits nonzero"
 PI_SESSIONS_DIR="$WORK/empty" bash "$RETRO/compliance.sh" 2026-11-03T05 "$WORK/empty.tsv" >/dev/null 2>&1 && ok "F12 compliance on a valid empty index exits 0" || no "F12 compliance on a valid empty index exits nonzero"
 
+# Every column of the README "What they count" contract, on fixtures/columns (hardener gate, 2026-11-03).
+# c1 exercises each counted signal; c2 is a minimal run with a numeric timestamp entry; c3 is a worker session;
+# c4 has no assistant turn; c7 is a single entry without title;
+# c5 holds tool results that are no skill load (no heading, no description, a heading list, two skill paths,
+# a "description:" line before an unfenced "name:" line, a frontmatter without name, a result without its call);
+# c6 holds a 40-line frontmatter block.
+COLS="$FIX/columns"
+PI_SESSIONS_DIR="$COLS" bash "$RETRO/index.sh" "$WORK/cols.tsv" >"$WORK/cols.log" 2>&1 && ok "index on column fixtures exits 0" || { no "index on column fixtures"; cat "$WORK/cols.log"; }
+grep -q '^index: 6 sessions -> ' "$WORK/cols.log" && ok "only design and design-builder sessions are indexed" || no "index session count: $(cat "$WORK/cols.log")"
+TSV="$WORK/cols.tsv"
+C1="c1 columns"   # the title's tab becomes a space
+expect "$C1" start 2026-11-04T06:00
+expect "$C1" agent design-builder
+expect "$C1" model m/ref:high
+expect "$C1" bytes "$(wc -c < "$COLS/c1-columns.jsonl" | tr -d ' ')"
+expect "$C1" turns 11
+expect "$C1" user_msgs 3
+expect "$C1" peak_ctx 2010
+expect "$C1" out_tok 39
+expect "$C1" cost 0.58
+expect "$C1" dur_min 42
+expect "$C1" errors 2
+expect "$C1" browser_cmds 3
+expect "$C1" skills_returned "alpha,beta,gamma"
+expect "$C1" skill_count 3
+expect "$C1" asks 3
+expect "$C1" passes_applied 2
+expect "$C1" passes_na 1
+expect "$C1" passes "copy -> applied: shorter labels; motion -> n/a: no animation; layout -> applied: tighter grid"
+expect "$C1" result PARTIAL
+expect "$C1" file ./c1-columns.jsonl
+expect "c2 minimal" model m/ref
+expect "c2 minimal" turns 1
+expect "c2 minimal" peak_ctx 500
+expect "c2 minimal" cost 0.25
+expect "c2 minimal" dur_min 0
+expect "c2 minimal" errors 0
+expect "c2 minimal" skill_count 0
+expect "c2 minimal" passes ""
+expect "c2 minimal" result DONE
+expect "c4 old" start 2026-11-02T09:00
+expect "c4 old" agent design
+expect "c4 old" model ""
+expect "c4 old" turns 0
+expect "c4 old" peak_ctx 0
+expect "c4 old" out_tok 0
+expect "c4 old" cost 0
+expect "c4 old" dur_min 0
+expect "c4 old" result none
+expect "c5 not loaded" skills_returned ""
+expect "c5 not loaded" skill_count 0
+expect "c5 not loaded" out_tok 0
+expect "c5 not loaded" peak_ctx 5
+expect "c5 not loaded" result DONE
+expect "c6 long frontmatter" skills_returned omega
+expect "" start 2026-11-01T10:00
+expect "" dur_min 0
+expect "" result none
+
+# README "What they count", fixtures/edges (retro index fixes, 2026-11-03): an entry with an empty change or fact
+# is an unfilled entry, not an outcome; a frontmatter block counts at any length.
+PI_SESSIONS_DIR="$FIX/edges" bash "$RETRO/index.sh" "$WORK/edges.tsv" >"$WORK/edges.log" 2>&1 && ok "index on edge fixtures exits 0" || { no "index on edge fixtures"; cat "$WORK/edges.log"; }
+TSV="$WORK/edges.tsv"
+expect "e1 empty pass" passes_applied 1
+expect "e1 empty pass" passes_na 0
+expect "e1 empty pass" passes "copy -> applied: shorter labels"
+expect "e2 60-line frontmatter" skills_returned psi
+expect "e2 60-line frontmatter" skill_count 1
+# A session whose only timestamp cannot be parsed is unreadable input: a PARSE_FAIL row and exit 1, not dur_min 0.
+PI_SESSIONS_DIR="$FIX/bad-timestamp" bash "$RETRO/index.sh" "$WORK/badts.tsv" >/dev/null 2>&1 && no "index with one unparseable timestamp exits 0" || ok "index with one unparseable timestamp exits nonzero"
+grep -q '^PARSE_FAIL	\./t1-one-bad-timestamp\.jsonl$' "$WORK/badts.tsv" 2>/dev/null && ok "one unparseable timestamp writes a PARSE_FAIL row" || no "one unparseable timestamp: no PARSE_FAIL row ($(tail -n +2 "$WORK/badts.tsv" 2>/dev/null))"
+TSV="$WORK/cols.tsv"
+
+# compliance: SINCE and agent filters, per-session checks, and the per agent+model summary.
+awk -F'\t' -v OFS='\t' '{print} $20=="c2 minimal" {$2="worker"; print}' "$TSV" > "$WORK/cols-worker.tsv"
+cmp_out() { # cmp_out name since; expected output on stdin
+  local want; want=$(cat)
+  local got; got=$(PI_SESSIONS_DIR="$COLS" bash "$RETRO/compliance.sh" "$2" "$WORK/cols-worker.tsv" 2>&1)
+  [ "$got" = "$want" ] && ok "$1" || { no "$1"; diff <(printf '%s\n' "$want") <(printf '%s\n' "$got"); }
+}
+cmp_out "compliance per-session lines and summary" 2026-11-04T06 <<'EOF'
+== sessions since 2026-11-04T06: 2
+2026-11-04T06:00 design-builder m/ref scan=1 shots=1 chrome=1 plainAB=1 tsc=1 followups=2 asks=3 passes=2 applied/1 n/a returned=[alpha,beta,gamma] claimed=[ alpha, beta]
+2026-11-04T06:30 design-builder m/ref scan=0 shots=0 chrome=0 plainAB=0 tsc=0 followups=0 asks=0 passes=0 applied/0 n/a returned=[-] claimed=[-]
+== summary by agent and model (skills = skill texts returned in tool results)
+design-builder m/ref: runs=2 cost=$0.83 peak_ctx_max=2010 skills_mean=1.5 zero_skill_runs=1 followups=2
+EOF
+cmp_out "compliance SINCE includes a session that starts at SINCE" 2026-11-04T06:30 <<'EOF'
+== sessions since 2026-11-04T06:30: 1
+2026-11-04T06:30 design-builder m/ref scan=0 shots=0 chrome=0 plainAB=0 tsc=0 followups=0 asks=0 passes=0 applied/0 n/a returned=[-] claimed=[-]
+== summary by agent and model (skills = skill texts returned in tool results)
+design-builder m/ref: runs=1 cost=$0.25 peak_ctx_max=500 skills_mean=0.0 zero_skill_runs=1 followups=0
+EOF
+# The first TSV line is the header, even when it reads like a design row.
+tail -n +2 "$WORK/cols-worker.tsv" > "$WORK/cols-noheader.tsv"
+PI_SESSIONS_DIR="$COLS" bash "$RETRO/compliance.sh" 2026-11-04T06 "$WORK/cols-noheader.tsv" 2>&1 | grep -q '^== sessions since 2026-11-04T06: 1$' && ok "compliance skips the TSV header line" || no "compliance header line read as a session"
+# An unreadable session file exits 1, also when the TSV already holds a PARSE_FAIL row.
+awk -F'\t' -v OFS='\t' 'NR==1 || $20=="c2 minimal" {if (NR>1) $21="./missing.jsonl"; print}' "$TSV" > "$WORK/cols-missing.tsv"
+PI_SESSIONS_DIR="$COLS" bash "$RETRO/compliance.sh" 2026-11-04T06 "$WORK/cols-missing.tsv" >/dev/null 2>&1 && no "compliance with a missing session file exits 0" || ok "compliance with a missing session file exits nonzero"
+{ cat "$WORK/cols-missing.tsv"; printf 'PARSE_FAIL\t./broken.jsonl\n'; } > "$WORK/cols-missing-pf.tsv"
+PI_SESSIONS_DIR="$COLS" bash "$RETRO/compliance.sh" 2026-11-04T06 "$WORK/cols-missing-pf.tsv" >/dev/null 2>&1 && no "compliance with a PARSE_FAIL row and a missing session file exits 0" || ok "compliance with a PARSE_FAIL row and a missing session file exits nonzero"
+# Input errors name their cause on stderr.
+mkdir -p "$WORK/tsvdir"
+PI_SESSIONS_DIR="$COLS" bash "$RETRO/compliance.sh" 2026-11-04T06 "$WORK/tsvdir" 2>&1 >/dev/null | grep -q "^compliance: cannot read $WORK/tsvdir$" && ok "compliance rejects a TSV path that is a folder" || no "compliance accepted a folder as TSV"
+PI_SESSIONS_DIR="$WORK/no-such-dir" bash "$RETRO/compliance.sh" 2026-11-04T06 "$TSV" >/dev/null 2>&1 && no "compliance with a missing sessions dir exits 0" || ok "compliance with a missing sessions dir exits nonzero"
+PI_SESSIONS_DIR="$FIX/bad" bash "$RETRO/index.sh" "$WORK/bad2.tsv" 2>&1 >/dev/null | grep -q '^index: 1 PARSE_FAIL row(s)$' && ok "index names the PARSE_FAIL count" || no "index PARSE_FAIL message"
+mkdir -p "$WORK/ro" && chmod 555 "$WORK/ro"
+PI_SESSIONS_DIR="$COLS" bash "$RETRO/index.sh" "$WORK/ro/x.tsv" 2>&1 >/dev/null | grep -q "^index: cannot write $WORK/ro/x.tsv$" && ok "index reports an unwritable OUT" || no "index unwritable OUT message"
+chmod 755 "$WORK/ro"
+mkdir -p "$WORK/unread" && cp "$COLS/c2-minimal.jsonl" "$WORK/unread/" && printf '{}\n' > "$WORK/unread/locked.jsonl" && chmod 000 "$WORK/unread/locked.jsonl"
+PI_SESSIONS_DIR="$WORK/unread" bash "$RETRO/index.sh" "$WORK/unread.tsv" 2>&1 >/dev/null | grep -q '^index: session search failed in ' && ok "index fails on an unreadable session file" || no "index ignored an unreadable session file"
+chmod 644 "$WORK/unread/locked.jsonl"
+
 echo "----"
 [ "$FAILS" -eq 0 ] && { echo "retro tests: PASS"; exit 0; } || { echo "retro tests: $FAILS failure(s)"; exit 1; }
