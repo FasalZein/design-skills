@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>heading order pass</title></head><body>
+<!-- Contract (reference/live-verification.md, Heading order): the first visible heading is an h1, exactly one visible h1,
+     no forward skip. Hidden headings (display:none, visibility:hidden, opacity:0) and stage content do not count.
+     Visible order 1 2 3 2 2 3: steps back and equal levels are allowed. Each hidden heading would break a rule if counted. -->
+<h1>Title</h1>
+<h2>Section</h2>
+<h3>Sub</h3>
+<h5 style="visibility:hidden">Hidden five</h5>
+<h2>Second section</h2>
+<h6 style="opacity:0">Faded six</h6>
+<h2>Third section</h2>
+<h1 style="display:none">Hidden title</h1>
+<div class="ss-stage"><h1>Stage title</h1></div>
+<h3>Sub again</h3>
+</body></html>

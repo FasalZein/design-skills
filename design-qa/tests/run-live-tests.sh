@@ -56,23 +56,49 @@ for js in "$PROBES"/*.js; do
     && { PASS=$((PASS+1)); echo "ok   machine probe $name evaluates: $(printf '%s' "$out" | jq -c . | cut -c1-80)"; } \
     || ko "machine probe $name: $out"
 done
+# target sizes (reference/live-verification.md): a side below 24px fails; 24-43px goes to judge44; the hit target is
+# the larger of the control box and its label; a row is named by text (20 chars), aria-label, then tag.
+ab open "file://$HERE/machine/targets.html" >/dev/null
+out=$(ab eval --stdin < "$PROBES/targets.js")
+want='{"fail":["Tiny","Flat","Thin","Tap"],
+  "judge44":["Edge24","Narrow","Short","Close dialog","SPAN","Subscribe to the wee","Accept terms","Tie"]}'
+if printf '%s\n%s' "$out" "$want" | jq -se '.[0] == .[1]' >/dev/null; then
+  PASS=$((PASS+1)); echo "ok   target sizes match the 24px and 44px buckets"
+else ko "targets: want $(printf '%s' "$want" | jq -c .), got $(printf '%s' "$out" | jq -c .)"; fi
+# heading order: first visible heading h1, one visible h1, no forward skip; hidden and stage headings do not count.
+for c in pass:true fail:false; do
+  ab open "file://$HERE/machine/headings-${c%%:*}.html" >/dev/null
+  out=$(ab eval --stdin < "$PROBES/headings.js"); v=${c#*:}
+  want="{\"startsAtH1\":$v,\"oneH1\":$v,\"noSkip\":$v}"
+  if printf '%s\n%s' "$out" "$want" | jq -se '.[0] == .[1]' >/dev/null; then
+    PASS=$((PASS+1)); echo "ok   headings-${c%%:*}: every rule is $v"
+  else ko "headings-${c%%:*}: want $want, got $(printf '%s' "$out" | jq -c .)"; fi
+done
 # contrast rows: text floors 4.5 and 3 (24px, or 18.66px bold), placeholder colour, translucent background over white,
-# and control borders at 3:1. Expected ratios are WCAG values worked out by hand (tolerance 0.02).
-ab open "file://$HERE/machine/contrast.html" >/dev/null
-out=$(ab eval --stdin < "$PROBES/contrast.js")
-want='[{"t":"Gray body text","r":4.48,"need":4.5},{"t":"Large light heading","r":2.32,"need":3},
+# and control borders at 3:1 against the surface around the control, named by name, type, then tag. Not checked:
+# text hidden by opacity or visibility, text owned only by a child, a zero-width border, a border on a non-control. Expected ratios are WCAG values worked out by hand (tolerance 0.02).
+contrast_rows() {   # $1 fixture name, $2 expected rows
+  ab open "file://$HERE/machine/$1.html" >/dev/null
+  local out; out=$(ab eval --stdin < "$PROBES/contrast.js")
+  if printf '%s\n%s' "$out" "$2" | jq -se '.[0] as $g | .[1] as $w | ($g | length) == ($w | length)
+      and ([range(0; $w | length) | ($g[.].r - $w[.].r) as $d | $g[.].t == $w[.].t and $g[.].need == $w[.].need
+        and (if $d < 0 then -$d else $d end) <= 0.02] | all)' >/dev/null; then
+    PASS=$((PASS+1)); echo "ok   $1 rows match the WCAG ratios"
+  else ko "$1 rows: want $(printf '%s' "$2" | jq -c .), got $(printf '%s' "$out" | jq -c .)"; fi
+}
+contrast_rows contrast '[{"t":"Gray body text","r":4.48,"need":4.5},{"t":"Large light heading","r":2.32,"need":3},
   {"t":"Regular 19px fails","r":3.54,"need":4.5},{"t":"White on half black","r":4.0,"need":4.5},
-  {"t":"Email address","r":2.32,"need":4.5},{"t":"border:email","r":1.36,"need":3}]'
-if printf '%s\n%s' "$out" "$want" | jq -se '.[0] as $g | .[1] as $w | ($g | length) == ($w | length)
-    and ([range(0; $w | length) | ($g[.].r - $w[.].r) as $d | $g[.].t == $w[.].t and $g[.].need == $w[.].need
-      and (if $d < 0 then -$d else $d end) <= 0.02] | all)' >/dev/null; then
-  PASS=$((PASS+1)); echo "ok   contrast rows match the WCAG ratios"
-else ko "contrast rows: want $(printf '%s' "$want" | jq -c .), got $(printf '%s' "$out" | jq -c .)"; fi
+  {"t":"Email address","r":2.32,"need":4.5},{"t":"border:email","r":1.36,"need":3},
+  {"t":"border:submit","r":1.36,"need":3},{"t":"border:SPAN","r":1.36,"need":3},
+  {"t":"Gray on near black","r":1.59,"need":4.5},{"t":"border:dark","r":1.36,"need":3}]'
+# no opaque background anywhere: layers composite over the white canvas; the parentless root control's border too
+contrast_rows contrast-canvas '[{"t":"border:HTML","r":1.36,"need":3},{"t":"Gray on bare canvas","r":4.48,"need":4.5},
+  {"t":"White on half black canvas","r":4.0,"need":4.5},{"t":"Gray on half white","r":2.85,"need":4.5}]'
 # landing rules: section-level seams (border, hr, thin wide pseudo-element line) counted per tag.class; a sticky bar,
-# a list row and a narrow box are skipped. Transitions: background changes between wide bands in document order.
+# a list row and a narrow box are skipped. Transitions: background changes between wide bands in top-to-bottom order.
 ab open "file://$HERE/machine/landing.html" >/dev/null
 out=$(ab eval --stdin < "$PROBES/landing.js")
-want='{"rules":{"HEADER.top":1,"HR.rule":2,"SECTION.faq":1},"transitions":3}'
+want='{"rules":{"HEADER.top":1,"HR.rule":2,"SECTION.faq":1,"DIV.band":1,"SECTION.cta":1,"SECTION.edge":1},"transitions":4}'
 if printf '%s\n%s' "$out" "$want" | jq -se '.[0] == .[1]' >/dev/null; then
   PASS=$((PASS+1)); echo "ok   landing seams and transitions match"
 else ko "landing: want $want, got $(printf '%s' "$out" | jq -c .)"; fi
