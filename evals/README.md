@@ -19,7 +19,7 @@ Two products, four part briefs each, run by three models, plus one headless desi
 
 ## Run
 
-1. Install each fixture once: `npm ci --prefix evals/fixture` and `npm ci --prefix evals/fixture-marketing`.
+1. Install each fixture: `npm ci --prefix evals/fixture` and `npm ci --prefix evals/fixture-marketing`. Run it again after a change to that fixture's package-lock.json; the eval tests fail with "node_modules missing" on a stale install.
 2. Set up one run; stdout is the rendered brief: `bash evals/new-run.sh <part> <run-name> <port> [--from <previous-run-name>] > <brief file>`. `--from` works on the four builder parts of each product. Clean a chain's runs only after the whole chain is built. Runs go to `<repo root>/.eval-runs/` (git ignores it; `EVAL_RUNS_ROOT` overrides). Use one port per run; a design run also uses the next four ports for its builders.
 3. Launch a design-builder per part brief and model, or the design agent with a design-* brief. Run one at a time.
 4. Index the sessions: `bash evals/retro/index.sh <sessions.tsv>`.
