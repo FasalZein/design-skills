@@ -16,7 +16,7 @@ forbid build-design              # row: Screen, flow | Trigger: a Figma file or 
 
 # Verify and Any rows.
 must design-qa                   # row: Verify | Pass: every part | both
-must browser-checks              # row: Verify | Trigger: any browser step | both (the brief allows a browser)
+must agent-browser              # row: Verify | Trigger: any browser step | both (the brief allows a browser)
 ambiguous mobile-native            # row: Any | Trigger: phone users | both. DESIGN.md names no phone users (desk office, wall screen, dock-door tablets), but it designs a narrow layout at <= 720px and the brief checks 375 width
 forbid copywriting               # row: Any | Trigger: marketing copy | both (app screen, no marketing copy)
 
@@ -51,7 +51,6 @@ forbid pick-ui-library           # row: Component | Trigger: a new UI library is
 forbid design-md                 # row: Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design (another agent's row; a builder with no DESIGN.md stops with DECISION NEEDED, D24)
 forbid impeccable                # out of router: spec D13
 forbid grill-design              # out of router: spec D13
-forbid agent-browser             # out of router: spec D13 (the skill stub; the CLI is used directly)
 forbid make-interfaces-feel-better # out of router: spec D13
 forbid animation-vocabulary      # out of router: spec D13
 forbid hallmark                  # out of router: spec D13
@@ -61,3 +60,4 @@ forbid animate-expo              # out of router: spec D13 platform skill
 forbid write-swift               # out of router: spec D13 platform skill
 allow design-craft               # injected workflow (agent file inject-skills); a re-read is not a routed load
 # Surface recipe (not a skill row, so not scored): the Charts recipe does not fire (no chart on Shipments).
+allow browser-checks             # optional local rules loaded by global AGENTS.md (D33)

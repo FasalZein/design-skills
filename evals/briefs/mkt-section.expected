@@ -21,7 +21,7 @@ pass better-interface              # row: Screen, flow | Pass: a review across d
 
 # Fired triggers and the Verify row.
 must design-qa                     # row: Verify | Pass: every part | both (every part)
-must browser-checks                # row: Verify | Trigger: any browser step | both (the brief allows a browser)
+must agent-browser                # row: Verify | Trigger: any browser step | both (the brief allows a browser)
 must stageshow                     # row: Screen, flow | Trigger: a product illustration or demo on a page | both (the part is the #demo stageshow illustration, DESIGN.md Components and owner decision 28)
 must copywriting                   # row: Any | Trigger: marketing copy | both (the section's heading row holds page copy: "One Tuesday, four doors" and its sentence)
 
@@ -52,7 +52,6 @@ forbid pick-ui-library             # row: Component | Trigger: a new UI library 
 forbid design-md                   # row: Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design (another agent's row; a builder with no DESIGN.md stops with DECISION NEEDED, D24)
 forbid impeccable                  # out of router: spec D13
 forbid grill-design                # out of router: spec D13
-forbid agent-browser               # out of router: spec D13 (the skill stub; the CLI is used directly)
 forbid make-interfaces-feel-better # out of router: spec D13
 forbid animation-vocabulary        # out of router: spec D13
 forbid hallmark                    # out of router: spec D13
@@ -62,3 +61,4 @@ forbid animate-expo                # out of router: spec D13 platform skill
 forbid write-swift                 # out of router: spec D13 platform skill
 
 allow design-craft                 # injected workflow (agent file inject-skills); a re-read is not a routed load
+allow browser-checks             # optional local rules loaded by global AGENTS.md (D33)

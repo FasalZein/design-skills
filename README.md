@@ -65,7 +65,7 @@ The agent files live outside this repository, in `~/.pi/agent/agents/`. Both inj
 design-qa owns Verify. Gates 1–11 read source; Gate 12 checks the rendered page. The skill has two blocks:
 
 - **Static checks** run on every job and need no browser: the scanner, then Gates 1–11 in order.
-- **Live checks** run when a browser is allowed: before-and-after screenshots (untouched sibling screens are diffed at threshold 0) and Gate 12 at 375×812 and 1440×900 with `agent-browser-chrome`. Gate 12 runs machine probes for errors, overflow, headings, contrast, focus, target size, dead-air bands and reduced motion. The commands and probe code are in `design-qa/reference/live-verification.md`.
+- **Live checks** run when a browser is allowed: before-and-after screenshots (untouched sibling screens are diffed at threshold 0) and Gate 12 at 375×812 and 1440×900 with `agent-browser`. Gate 12 runs machine probes for errors, overflow, headings, contrast, focus, target size, dead-air bands and reduced motion. The commands and probe code are in `design-qa/reference/live-verification.md`.
 
 The probes are in `design-qa/scripts/probes/`. The render probes (`align.js`, `clip.js`, `overlap.js`, `wrap.js`) report FAIL and JUDGE rows for clipped or spilled text, wrapped control labels, overlapping boxes and misaligned lockups. The machine probes are `contrast.js`, `headings.js`, `landing.js` and `targets.js`.
 
@@ -91,7 +91,7 @@ Rules from [Laws of UX](https://lawsofux.com), one section per decision area: na
 
 ## build-design-library
 
-A workflow for a complete product design library, in seven gated phases: contract, research and sourcing, coverage and owner decisions, foundations and a vertical slice, component families, gallery and application integration, acceptance and handoff. Each phase reads one reference file and fills templates. design-craft does not route to it; the owner starts it for a library project. In pi: `pi --skill ./build-design-library/SKILL.md`, then `/skill:build-design-library`. Its companion skills and tools (research, firecrawl, design-qa, agent-browser-chrome and others) are in its "Runtime skill routing" table.
+A workflow for a complete product design library, in seven gated phases: contract, research and sourcing, coverage and owner decisions, foundations and a vertical slice, component families, gallery and application integration, acceptance and handoff. Each phase reads one reference file and fills templates. design-craft does not route to it; the owner starts it for a library project. In pi: `pi --skill ./build-design-library/SKILL.md`, then `/skill:build-design-library`. Its companion skills and tools (research, firecrawl, design-qa, agent-browser and others) are in its "Runtime skill routing" table.
 
 ## evals/retro
 
@@ -117,7 +117,7 @@ npx skills add <path-to-checkout> -g -s design-craft -y
 
 `npx skills update` does not update a skill installed from a local path. With skills 1.7.6 (observed 2026-11-03) it reports that the skill "cannot be checked automatically ... (Local path)". Run `npx skills add` again after each change.
 
-**Routed skills.** The workflow routes to skills from other packs: jakubkrehel/skills, emilkowalski/skill, benjitaylor/skills (stageshow), Leonxlnx/taste-skill (design-taste-frontend), and optional packs. `design-craft/skills.md` lists every routed skill with its question, source and install command, split into core and optional, plus the platform skills and the skills kept out of the router. The live checks also need the agent-browser CLI on the Chrome engine.
+**Routed skills.** The workflow routes to skills from other packs: jakubkrehel/skills, emilkowalski/skill, benjitaylor/skills (stageshow), Leonxlnx/taste-skill (design-taste-frontend), vercel-labs/agent-browser, and optional packs. `design-craft/skills.md` lists every routed skill with its question, source and install command, split into core and optional, plus the platform skills and the skills kept out of the router. The live checks also need the agent-browser CLI, which uses Chrome by default. Screenshots count only from the Chrome engine. On a machine whose default engine is not Chrome (for example Lightpanda in `~/.agent-browser/config.json`), run the same commands with `AGENT_BROWSER_ENGINE=chrome`, or use a wrapper such as `agent-browser-chrome`.
 
 ## Verify
 

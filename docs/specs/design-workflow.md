@@ -31,17 +31,17 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D4 build-design-library** leaves the design router and both agents. The owner starts it for a library project.
 - **D5 laws-of-ux** stays a separate skill, loaded on its triggers, rewritten from the writing guide.
 - **D6 design-qa owns Verify.** "## Static checks" run on every job; "## Live checks" run when a browser is allowed. New render probes for overflow, wrapping, overlap and sibling alignment. Gate 8: wrap titles, money and metric labels; control labels stay on one line; truncate only in cells whose width the design fixes.
-- **D7 Stageshow is a leaf with its own gate.** Inside the stage, stageshow's rules win (window chrome, placeholder bars, literal colors, illustrative data). film.mjs checks the stage; design-qa and agent-browser-chrome check the host page. kit/ and the demo folder go on the scanner allowlist. AGENTS.md gets one exception line for film.mjs.
+- **D7 Stageshow is a leaf with its own gate.** Inside the stage, stageshow's rules win (window chrome, placeholder bars, literal colors, illustrative data). film.mjs checks the stage; design-qa and agent-browser check the host page. kit/ and the demo folder go on the scanner allowlist. AGENTS.md gets one exception line for film.mjs.
 - **D8 No owner-defaults file.** Project preferences go into that project's DESIGN.md through the owner's verdicts.
 - **D9 Route by question** (table below). Skills that answer distinct questions keep a route.
 - **D10 Time.** The 3600 s limit stays. Report draft at the end of intake, updated after each step. When time runs short, cut scope, not steps. PARTIAL carries a reason: time, gate-open, decision or scope.
 - **D11 Headless runs** skip any skill's "Initial Response" or reply-and-wait step.
 - **D12 One skill per read call**, whole, unless the route names sections.
 - **D13 Install set.**
-  - Core: FasalZein/design-skills (design-craft, design-qa, laws-of-ux), jakubkrehel/skills, emilkowalski/skill, benjitaylor/skills (stageshow), Leonxlnx/taste-skill (design-taste-frontend), and the agent-browser CLI on the Chrome engine.
+  - Core: FasalZein/design-skills (design-craft, design-qa, laws-of-ux), jakubkrehel/skills, emilkowalski/skill, benjitaylor/skills (stageshow), Leonxlnx/taste-skill (design-taste-frontend), vercel-labs/agent-browser (the official skill), and the agent-browser CLI on the Chrome engine.
   - Optional, used only when installed and their trigger fires: shadcn and coss (the project uses them), mattpocock prototype (a logic question), copywriting (marketing copy), design-md (no DESIGN.md or a weak direction; needs the dmd CLI and its vault, D24).
   - Dropped (owner, 2026-11-03): the pencil-design route. It needs a Pen MCP server that is not confirmed on this machine, and its skill update failed on 2026-11-03. It has no routing row, no skills.md row and no eval expectation.
-  - Out of the router (stay installed for manual use): impeccable, grill-design (design-craft carries its own loop), the agent-browser skill stub, make-interfaces-feel-better, animation-vocabulary (owner choice), hallmark, coss-particles.
+  - Out of the router (stay installed for manual use): impeccable, grill-design (design-craft carries its own loop), make-interfaces-feel-better, animation-vocabulary (owner choice), hallmark, coss-particles.
   - Platform skills, not routed: animate-expo and write-swift. The workflow verifies web UI only; they route when a native track with its own checks exists.
 - **D14 Design grilling (attended).** The design agent interviews the owner like grilling, with prototypes as the questions.
   - Tree levels: product, then screens and flows, then component groups, then components, then primitives (color, type, spacing, radius, motion tokens).
@@ -64,6 +64,8 @@ The design agent works a design tree with the owner in rounds of prototypes, the
   - The vault is the style-vault folder of the DMD repo, found from `readlink -f "$(command -v dmd)"`; outside that repo dmd needs `--archive <vault>`.
   - Its reference styles feed the first grilling round; when they do not fit the product (Harbor eval: 6 brand and marketing sites for a warehouse tool), its DESIGN.md stays a draft and the design-taste-frontend draw leads the first round. direction.md maps its output into the DESIGN.md template; each value stays open until the owner's verdict.
   - A design-builder with no DESIGN.md stops at intake with the DECISION NEEDED block (D16) and never runs design-md.
+
+**D33 Published browser route (owner, 2026-11-04).** Route every browser step to the official agent-browser skill from vercel-labs/agent-browser. Its stub loads `agent-browser skills get core`; install it with `npx skills add vercel-labs/agent-browser -g -s agent-browser`. Published commands use `agent-browser`. Screenshots count only from Chrome; machines configured for another engine set `AGENT_BROWSER_ENGINE=chrome` on every call or use a local wrapper. browser-checks remains an optional local rule set, not a published dependency. This supersedes D13’s exclusion of the stub.
 
 ## Routing by question (D9, D19, D20)
 
@@ -105,7 +107,7 @@ Pass rows run on every part of their level; trigger rows fire on their condition
 | Any | Trigger: phone users | mobile-native | both |
 | Any | Trigger: marketing copy | copywriting (optional) | both |
 | Verify | Pass: every part | design-qa | both |
-| Verify | Trigger: any browser step | browser-checks | both |
+| Verify | Trigger: any browser step | agent-browser | both |
 
 ## Architecture
 
@@ -141,7 +143,7 @@ ARTIFACT: <absolute path>
 1. `bash scripts/verify.sh` is green with new checks: every routed skill resolves under a D3 root on this machine or is marked optional; the floor rules are in SKILL.md; no backticked slash tokens in design-craft; the router names no skill outside the routing table, the surface files and skills.md; every routing row has a Pass or Trigger kind and an agent (design | builder | both), one row per skill; `design-craft/surfaces/` holds app-screen, public-page and illustration with the two named headings; `design-craft/reference/` and `jobs/` are gone.
 2. The design-qa contract tests and the live probe tests are green.
 3. Both agent descriptions contain no brief path; the design-builder allowlist is design-craft only; the design agent loads every skill with an empty model catalog (D23); the design agent can spawn researcher.
-4. Eval on the fixture app: 3 headless part briefs (a primitive set, a component, a screen) with a fixture DESIGN.md, x 3 models (Opus, Sonnet, GPT). In every run: every fired trigger's and applied pass's skill text appears in a tool result; no unfired, n/a or other agent's skill appears; PASSES has a result for every pass of the part's level; the static checks ran; a report exists, including runs that hit the time limit; screenshots came from agent-browser-chrome. Report cost and peak context against the sessions.tsv baseline. Plus one attended design-grilling session with the owner on the fixture.
+4. Eval on the fixture app: 3 headless part briefs (a primitive set, a component, a screen) with a fixture DESIGN.md, x 3 models (Opus, Sonnet, GPT). In every run: every fired trigger's and applied pass's skill text appears in a tool result; no unfired, n/a or other agent's skill appears; PASSES has a result for every pass of the part's level; the static checks ran; a report exists, including runs that hit the time limit; screenshots came from the Chrome engine. Report cost and peak context against the sessions.tsv baseline. Plus one attended design-grilling session with the owner on the fixture.
 5. The installed copies in `~/.agents/skills` (design-craft, design-qa, laws-of-ux) match the repo after install.
 6. design-md routes for the design agent only: its Routing table row names the agent design, every eval expected file forbids it, and a design-builder with no DESIGN.md reports DECISION NEEDED (D24).
 

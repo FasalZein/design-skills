@@ -4,13 +4,12 @@ Pass conditions, state/viewport matrices, N-A rules, and the completion criterio
 
 ## Setup
 
+The official CLI uses Chrome by default. Screenshots count only from the Chrome engine. On a machine whose default engine is not Chrome (for example Lightpanda in `~/.agent-browser/config.json`), run the same commands with `AGENT_BROWSER_ENGINE=chrome` on every call, or use a wrapper such as `agent-browser-chrome`. Keep one engine for the whole session.
+
 ```bash
-agent-browser-chrome skills get core        # load the CLI workflow reference
-AB="agent-browser-chrome --session <app>-qa" # ISOLATED session — parallel agents share the default
+agent-browser skills get core        # load the CLI workflow reference
+AB="agent-browser --session <app>-qa" # ISOLATED session — parallel agents share the default
                                              # instance and will hijack your tabs mid-verification
-# agent-browser-chrome = agent-browser with AGENT_BROWSER_ENGINE=chrome (pixels for screenshots and
-# canvas contrast). Plain agent-browser runs Lightpanda here and renders no pixels. Keep one engine
-# for every command of the session.
 # resolve the target: project dev/preview command (package.json scripts) or supplied URL
 # static single-file builds: file:///absolute/path/index.html works directly
 PROBES="$PI_SKILL_DIR/scripts/probes"         # design-qa's probe files; without PI_SKILL_DIR, the

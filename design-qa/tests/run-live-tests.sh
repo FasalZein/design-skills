@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Live tests for the probe files in scripts/probes/, run with agent-browser-chrome.
+# Live tests for the probe files in scripts/probes/, run with agent-browser on Chrome.
 # Exit 0 = all pass, 1 = a test failed, 2 = no browser.
 # Render probes: fixture name tests/render/<probe>-<tier>[-<case>].html sets the expected tier (pass | judge | fail).
 #   Row identity: the FAIL rows must be exactly the keys in data-fail attributes, and the JUDGE rows exactly
@@ -12,15 +12,19 @@ set -u -o pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 PROBES="$HERE/../scripts/probes"
 FIX="$HERE/render"
-command -v agent-browser-chrome >/dev/null || { echo "agent-browser-chrome not found"; exit 2; }
+AB=${AGENT_BROWSER_CMD:-agent-browser}
+command -v "$AB" >/dev/null || { echo "$AB not found"; exit 2; }
 command -v jq >/dev/null || { echo "jq not found"; exit 2; }
 SESSION="design-qa-probes-$$"
-ab() { agent-browser-chrome --session "$SESSION" "$@"; }
+ab() { AGENT_BROWSER_ENGINE=chrome "$AB" --session "$SESSION" "$@"; }
 trap 'ab close >/dev/null 2>&1' EXIT
 PASS=0; FAIL=0
 ko() { FAIL=$((FAIL+1)); echo "FAIL $*"; }
 
 ab set viewport 1440 900 >/dev/null || { echo "could not start browser session $SESSION"; exit 2; }
+ua=$(ab eval "navigator.userAgent") || { echo "could not read browser identity"; exit 2; }
+case "$ua" in *Chrome/*) PASS=$((PASS+1)); echo "ok   Chrome engine ($SESSION): $ua";;
+  *) echo "expected Chrome engine, got $ua"; exit 2;; esac
 for page in "$FIX"/*.html; do
   file=$(basename "$page" .html); IFS=- read -r probe tier _ <<<"$file"; want=$(printf '%s' "$tier" | tr '[:lower:]' '[:upper:]')
   js="$PROBES/$probe.js"; [ -f "$js" ] || { ko "$file: no probe file scripts/probes/$probe.js"; continue; }

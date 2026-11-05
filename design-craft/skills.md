@@ -42,11 +42,11 @@ Install all of these. design-craft itself comes from FasalZein/design-skills: `n
 | find-animation-opportunities | What here should move? | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s find-animation-opportunities` |
 | improve-animations | The owner asks to improve existing motion | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s improve-animations` |
 | emil-prototype | Motion or interaction feel is open | emilkowalski/skill (not in the lock file) | `npx skills add emilkowalski/skill -g -s prototype`, then rename the folder and its `name:` field to emil-prototype |
-| browser-checks | Any browser step (pi) | local pi skill, not in the lock file | Copy ~/.pi/agent/skills/browser-checks |
+| agent-browser | Any browser step; load the CLI workflow with `agent-browser skills get core` | vercel-labs/agent-browser | `npx skills add vercel-labs/agent-browser -g -s agent-browser` |
 
 emil-prototype is Emil Kowalski's prototype skill under a new name, because mattpocock/skills already has a skill named prototype. Its SKILL.md and PICKER.md confirm the author; the exact repository path is unverified.
 
-The browser: the agent-browser CLI on the Chrome engine. In pi, the agent-browser-chrome wrapper sets `AGENT_BROWSER_ENGINE=chrome` and the Chrome executable path; every command of a session uses it.
+The browser: the agent-browser CLI on the Chrome engine. See [live-verification.md](../design-qa/reference/live-verification.md) for engine setup.
 
 ## Optional
 
@@ -77,7 +77,6 @@ These stay installed for manual use. The router never loads them.
 |---|---|
 | impeccable | Its refine and detect passes overlap design-qa and the better-* skills |
 | grill-design | design-craft carries its own grilling loop |
-| agent-browser | A stub that points to the CLI; browser-checks carries the rules |
 | make-interfaces-feel-better | A near copy of better-ui |
 | animation-vocabulary | Owner choice: a glossary of motion terms for people |
 | hallmark | A second public-page system; it contradicts the taste skill's rules |

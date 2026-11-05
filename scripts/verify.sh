@@ -150,6 +150,9 @@ done <<EOF
 $ROUTES
 EOF
 say "routed skills checked ($N)"
+# D33: the public browser route replaces the local-only rule set; N follows the table above.
+echo "$TABLE" | grep -qF "| Verify | Trigger: any browser step | agent-browser | both |" \
+  && say "official agent-browser route present" || bad "browser step must route to the official agent-browser skill"
 # 11a. design-md routes for the design agent only (spec D24, Acceptance 6).
 [ "$(echo "$TABLE" | awk -F'|' '$4 ~ /^ design-md / {a=$5; gsub(/ /,"",a); print a}')" = design ] && say "design-md row is design-only" || bad "design-md must have one Routing table row with agent design"
 
