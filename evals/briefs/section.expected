@@ -21,7 +21,7 @@ pass better-interface              # row: Screen, flow | Pass: a review across d
 
 # Fired triggers and the Verify row.
 must design-qa                     # row: Verify | Pass: every part | both (every part)
-must browser-checks                # row: Verify | Trigger: any browser step | both (the brief allows a browser)
+must agent-browser                # row: Verify | Trigger: any browser step | both (the brief allows a browser)
 
 # Ambiguous.
 ambiguous shadcn                   # row: Component | Trigger: the project uses shadcn (components.json) | builder. Fires in this fixture (components.json); a component group runs the Screen and Component passes, but Build step 3 names no trigger rule for a component group
@@ -52,7 +52,6 @@ forbid pick-ui-library             # row: Component | Trigger: a new UI library 
 forbid design-md                   # row: Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design (another agent's row; a builder with no DESIGN.md stops with DECISION NEEDED, D24)
 forbid impeccable                  # out of router: spec D13
 forbid grill-design                # out of router: spec D13
-forbid agent-browser               # out of router: spec D13 (the skill stub; the CLI is used directly)
 forbid make-interfaces-feel-better # out of router: spec D13
 forbid animation-vocabulary        # out of router: spec D13
 forbid hallmark                    # out of router: spec D13
@@ -65,3 +64,4 @@ allow design-craft                 # injected workflow (agent file inject-skills
 # Surface recipe (not a skill row, so not scored): app-screen.md "### Charts (trigger: the part is a chart)" may fire, since the
 # board has a time axis. Ambiguous: the board is a schedule of bars per door, not a data chart; DESIGN.md closes its states,
 # degradation (the door list at <= 720px) and its title-attribute text, so the recipe adds at most a text summary and a data table.
+allow browser-checks             # optional local rules loaded by global AGENTS.md (D33)

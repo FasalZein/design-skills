@@ -94,7 +94,7 @@ RECOMMEND: <machine-value> - <reason>
 
 ## Verify
 
-Run each Verify row for the part. The static checks need no browser and run on every part. The live checks run when the brief allows a browser; take every screenshot with agent-browser-chrome. Read each screenshot against DESIGN.md and the floor: lockup alignment (icon and text, label and value), spacing rhythm, hierarchy, every visible sentence. Delete each sentence that restates what the UI shows; fix, then re-shoot.
+Run each Verify row for the part. The static checks need no browser and run on every part. The live checks run when the brief allows a browser; take every screenshot with the Chrome engine. Read each screenshot against DESIGN.md and the floor: lockup alignment (icon and text, label and value), spacing rhythm, hierarchy, every visible sentence. Delete each sentence that restates what the UI shows; fix, then re-shoot.
 
 Harness pages (pickers, state switchers, scenario pages): attended, remove them on the owner's word; headless, remove them before the report. A worst-case data fixture stays as the component's regression data.
 
@@ -158,4 +158,4 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 | Any | Trigger: phone users | mobile-native | both |  |
 | Any | Trigger: marketing copy | copywriting (optional) | both |  |
 | Verify | Pass: every part | design-qa | both | "## Static checks" on every part; "## Live checks" on every part when a browser is allowed, its intake shots at Gather facts |
-| Verify | Trigger: any browser step | browser-checks | both | Before the first browser command (pi) |
+| Verify | Trigger: any browser step | agent-browser | both | Before the first browser command; its stub loads `agent-browser skills get core` |

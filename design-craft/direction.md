@@ -13,7 +13,7 @@ Done when the file opens from disk and every option renders with real data.
 
 ## Check, open, ask
 
-1. **Screenshot first.** Shoot every option at 1440 and 375 width with agent-browser-chrome. Read only the shots you must judge yourself; fix clipping, overflow, cut-off images, odd gaps and dead controls; re-shoot. Read the prototype file by section: `rg -n` for its section comments, then that line range.
+1. **Screenshot first.** Shoot every option at 1440 and 375 width with the Chrome engine. Read only the shots you must judge yourself; fix clipping, overflow, cut-off images, odd gaps and dead controls; re-shoot. Read the prototype file by section: `rg -n` for its section comments, then that line range.
 2. **Open it** for the owner: `open <file>` and `open <the round's shots>`. The owner sees the file and the shots on screen, not a list of paths.
 3. **One ask_user per round.** One question per frontier decision, each with a recommended answer, worded so "yes" takes the recommendation. Q1 is the pick, with a "take parts from others" multi-select of the named parts of the other options. Add the 1 to 4 rules the prototype exposes (an order, a threshold, a label). Check every option's `value` and `preview` fields before the call.
 

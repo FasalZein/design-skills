@@ -213,7 +213,7 @@ Mechanical rows are scanner-automated; judgment rows apply the intent-and-repeti
 
 ## Live checks
 
-Run when a browser is allowed. Before the first browser step, read the browser-checks skill and set `$AB` to a named session as in the runbook Setup ([reference/live-verification.md](reference/live-verification.md)).
+Run when a browser is allowed. Before the first browser step, read the official agent-browser skill (vercel-labs/agent-browser), whose stub loads `agent-browser skills get core` and set `$AB` to a named session as in the runbook Setup ([reference/live-verification.md](reference/live-verification.md)).
 
 **Complete when** the before-and-after comparison is recorded and Gate 12 is complete by its own rule.
 
@@ -226,11 +226,11 @@ Untouched screens regress silently: a card background, a border, a removed tile.
 
 A difference on an untouched sibling is a Critical finding until the brief explains it. A difference on the changed screen is the change itself: review it in Gate 12. When the intake capture was not possible, record `before-and-after: N-A — <reason>`.
 
-### Gate 12: Live Verification (agent-browser-chrome)
+### Gate 12: Live Verification (agent-browser)
 
 Static gates read source; this gate checks the **rendered page**.
 
-**Prerequisites:** a dev/preview command exists (or a URL is supplied) and `agent-browser-chrome` responds. The gate needs an engine that renders pixels: `agent-browser-chrome` is the local wrapper that sets `AGENT_BROWSER_ENGINE=chrome`; plain `agent-browser` runs Lightpanda here and takes no screenshots. Elsewhere, run `agent-browser` with `AGENT_BROWSER_ENGINE=chrome` on every command of the session. Both present → the gate is mandatory. Either missing → record `Gate 12: N-A — <which prerequisite is missing and why>`. N-A is never a pass; a state that should exist but cannot be exposed is a failing state check.
+**Prerequisites:** a dev/preview command exists (or a URL is supplied) and `agent-browser` responds. Screenshots count only from the Chrome engine; see the runbook Setup for engine selection. Both present → the gate is mandatory. Either missing → record `Gate 12: N-A — <which prerequisite is missing and why>`. N-A is never a pass; a state that should exist but cannot be exposed is a failing state check.
 
 **Viewports:** 375×812 and 1440×900 always; 768×1024 when the layout has a tablet breakpoint.
 

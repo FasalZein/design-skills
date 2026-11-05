@@ -15,7 +15,7 @@ pass find-animation-opportunities  # row: Screen, flow | Pass: what here should 
 
 # Fired triggers and the Verify row.
 must design-qa                     # row: Verify | Pass: every part | both (static checks run in every run)
-must browser-checks                # row: Verify | Trigger: any browser step | both (intake shots at Gather facts: the parts change existing UI and a browser is allowed)
+must agent-browser                # row: Verify | Trigger: any browser step | both (intake shots at Gather facts: the parts change existing UI and a browser is allowed)
 
 # Ambiguous.
 ambiguous copywriting              # row: Any | Trigger: marketing copy | both. The page holds marketing copy, but DESIGN.md fixes it and builders place it
@@ -52,7 +52,6 @@ forbid pick-ui-library             # row: Component | Trigger: a new UI library 
 forbid design-md                   # row: Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design (DESIGN.md exists with one open part; the brief does not call its direction weak)
 forbid impeccable                  # out of router: spec D13
 forbid grill-design                # out of router: spec D13
-forbid agent-browser               # out of router: spec D13 (the skill stub; the CLI is used directly)
 forbid make-interfaces-feel-better # out of router: spec D13
 forbid animation-vocabulary        # out of router: spec D13
 forbid hallmark                    # out of router: spec D13
@@ -65,3 +64,4 @@ forbid write-swift                 # out of router: spec D13 platform skill
 open FAQ                            # the FAQ section of the landing page
 
 allow design-craft                 # injected workflow (agent file inject-skills); a re-read is not a routed load
+allow browser-checks             # optional local rules loaded by global AGENTS.md (D33)

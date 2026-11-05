@@ -29,7 +29,8 @@
 #               message exists, ok when the run stopped before one (owner decision 31: format apart from routing);
 #               passes, text and unexpected are then scored from the file. No file: FAIL(no report).
 #   report_file frozen(<path>) or live(<path>): the report file read, printed only when the file is used.
-#   shots       screenshots came from agent-browser-chrome, none from plain agent-browser or another tool
+#   shots       screenshots came from agent-browser-chrome or command-local AGENT_BROWSER_ENGINE=chrome
+#               agent-browser calls; none from an unqualified public CLI or another tool
 #   cost, peak_ctx, result  from the index; ambiguous = expected-file "ambiguous" skills that came back
 # The report file of a session: its frozen copy <session without .jsonl>.report.md beside it (the parent copies each
 # run's report.md there at scoring time), else the path in the final RESULT message's ARTIFACT line, else the report
@@ -103,12 +104,14 @@ score_one() {
     | [ $calls[] | select(.name=="bash" or .name=="codemode") | [.arguments | .. | strings] | join("\n")
         | split("\n")[] | splits("&&|\\|\\||;|\\|") ] as $seg
     | def n(re): ([ $seg[] | select(test(re)) ] | length);
+    # Only command-local assignments count; no environment is inferred across segments or calls.
+    def public_chrome: test("(^|[^\\w])AGENT_BROWSER_ENGINE=[\u0022\u0027]?chrome[\u0022\u0027]?\\s+agent-browser\\s.*\\b(screenshot|batch)\\b");
     # Names that hold agent-browser-chrome (a shell assignment or a JS const/let in codemode): ${AB} screenshot is chrome.
     ([ $seg[] | capture("(^|[^\\w$])(?<v>[A-Za-z_]\\w*)\\s*=\\s*[\"\u0027`]?agent-browser-chrome\\b") | .v ] | unique) as $cv
     | (if ($cv | length) > 0 then "\\$\\{?(" + ($cv | join("|")) + ")\\b\\}?\\s.*\\b(screenshot|batch)\\b" else null end) as $cvre
     | [ n("design-scan"), n("\\btsc\\b|typecheck|npm run build"),
-        ([ $seg[] | select(test("agent-browser-chrome\\b.*\\b(screenshot|batch)\\b") or ($cvre != null and test($cvre))) ] | length),
-        n("(^|[^-\\w/])agent-browser\\s.*\\bscreenshot\\b"),
+        ([ $seg[] | select(test("agent-browser-chrome\\b.*\\b(screenshot|batch)\\b") or public_chrome or ($cvre != null and test($cvre))) ] | length),
+        ([ $seg[] | select(test("(^|[^-\\w/])agent-browser\\s.*\\b(screenshot|batch)\\b") and (public_chrome | not)) ] | length),
         n("screencapture|\\.screenshot\\(|playwright\\s+screenshot") ] | @tsv' "$session")
   [ -n "$scan" ] || { echo "score: cannot parse session $session" >&2; return 2; }
 

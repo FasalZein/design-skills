@@ -37,7 +37,7 @@ has() { line "$1" | grep -qF -- "$2" && ok "$1: $2" || no "$1: want [$2] in [$(l
 for item in text=ok unexpected=ok passes=ok static=ok report=ok shots=ok 'ambiguous=[design-taste-frontend]' 'peak_ctx=150000' 'result=DONE'; do has good "$item"; done
 # Fired trigger and Verify row without text; a forbidden, an out-of-router and an n/a-pass skill with text;
 # a pass without a result; no scanner; a plain agent-browser screenshot.
-has bad 'text=FAIL(missing:shadcn,browser-checks)'
+has bad 'text=FAIL(missing:shadcn,agent-browser)'
 has bad 'unexpected=FAIL(better-colors,impeccable,review-animations)'
 has bad 'passes=FAIL(missing:break-ui)'
 has bad 'static=FAIL(scan=0'
@@ -46,6 +46,22 @@ has bad 'shots=FAIL(chrome=0,plain=1,other=0)'
 # assignment) counts its screenshot and batch calls as chrome; a literal plain agent-browser screenshot stays plain.
 has svar 'shots=ok(chrome=2)'
 has svarp 'shots=FAIL(chrome=1,plain=1,other=0)'
+# D33: explicit Chrome on the public CLI counts; a different command's environment does not.
+shot_case() {
+  local name=$1 command=$2 expected=$3 d="$WORK/shots-$1"
+  mkdir -p "$d"
+  jq -c --arg cmd "$command" 'if .type=="message" and .message.role=="assistant" then
+    .message.content |= map(if .type=="toolCall" and .id=="c12" then
+      .name="bash" | .arguments={command:$cmd} else . end) else . end'     "$FIX/score-good.jsonl" > "$d/score-good.jsonl"
+  printf '%s\tcomponent\topus\t%s\n' "$name" "$d/score-good.jsonl" > "$d/runs.tsv"
+  bash "$EVALS/score.sh" "$WORK/sessions.tsv" "$d/runs.tsv" > "$d/out"
+  grep -qF "$expected" "$d/out" && ok "$name: $expected" || no "$name: $(cat "$d/out")"
+}
+shot_case chrome-env 'AGENT_BROWSER_ENGINE=chrome agent-browser --session s screenshot /tmp/a.png' 'shots=ok(chrome=1)'
+shot_case chrome-batch 'env AGENT_BROWSER_ENGINE="chrome" agent-browser --session s batch --bail < flow.json' 'shots=ok(chrome=1)'
+shot_case chrome-mixed 'AGENT_BROWSER_ENGINE=chrome agent-browser screenshot /tmp/a.png && agent-browser screenshot /tmp/b.png' 'shots=FAIL(chrome=1,plain=1,other=0)'
+shot_case other-env 'AGENT_BROWSER_ENGINE=chrome echo ready; agent-browser screenshot /tmp/b.png' 'shots=FAIL(chrome=0,plain=1,other=0)'
+shot_case lightpanda 'AGENT_BROWSER_ENGINE=lightpanda agent-browser screenshot /tmp/a.png' 'shots=FAIL(chrome=0,plain=1,other=0)'
 # Owner decision 31: a final message without a PASSES field is not the report. When the session's report file exists
 # (the frozen copy <session>.report.md beside it, else the path in the final ARTIFACT line, else the report path the
 # brief names), report fails on format and passes, text and unexpected come from that file; the run line names it.
@@ -150,6 +166,8 @@ for f in "$EVALS"/briefs/*.expected; do
   gap=$(comm -23 <(echo "$ROUTED") <(echo "$listed") | paste -sd, -)
   dup=$(echo "$listed" | uniq -d | paste -sd, -)
   badkind=$(awk '!/^#/ && NF && $1 !~ /^(pass|must|forbid|allow|ambiguous|open)$/ {print $1}' "$f" | paste -sd, -)
+  grep -qE "^must agent-browser +#" "$f" && grep -qE "^allow browser-checks +#" "$f" \
+    && ok "$(basename "$f") requires official browser skill and allows local rules" || no "$(basename "$f"): D33 browser expectations differ"
   [ -z "$gap$dup$badkind" ] && ok "$(basename "$f") covers every routed skill once" || no "$(basename "$f"): missing [$gap] duplicate [$dup] bad kind [$badkind]"
 done
 
