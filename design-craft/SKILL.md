@@ -78,7 +78,7 @@ The owner decides; you find the facts and build the prototypes. Headless runs ta
 1. **Order the parts.** List the parts DESIGN.md (or the brief) names, by level: primitives, then components, then screens. A part is **decided** when every decision it needs is closed, else **open**. Done when the draft lists each part with its level, decided or open, and the parts it uses.
 2. **Send or take.** The design agent sends each decided part whose lower-level parts passed Verify to a design-builder, with the DESIGN.md path and the part's name; independent parts go in parallel. A design-builder builds the parts in its brief. Done when every decided part is sent or built, and every open part is in OPEN or a DECISION NEEDED block.
 3. **Build a part.** Load the fired triggers of the part's level and the Any rows. Implement within DESIGN.md, the surface file and the floor, with the project's tokens and components. Before renaming a component or prop, find every use with `rg -n -w`. Run the typecheck (the project script, or `tsc --noEmit`). Done when the typecheck passes and every fired trigger in LOADED is read or `(missing)`.
-4. **Craft passes.** Run each of your pass rows of the part's level (a component group: the Screen and the Component rows), one skill per pass, as a lens on the part. Done when every pass of the level has a result in PASSES: `applied: <what changed>` with the skill loaded, or `n/a: <observable fact>` ("no motion in the part", "no strings changed"). A pass that loads and changes nothing reads `applied: no change, <why>`.
+4. **Craft passes.** Run each of your pass rows of the part's level (a component group: the Screen and the Component rows), one skill per pass, as a lens on the part. Name each PASSES entry by its skill, not its concern. Only that skill's own file covers its pass, including a reference file its row routes to; another skill's file does not. For example, design-taste-frontend's references/app-screens.md does not cover laws-of-ux, state-machine, break-ui or a better-* pass. Done when every pass of the level has a skill-named result in PASSES: `applied: <what changed>` with that skill's own text returned in a tool result, or `n/a: <observable fact>` ("no motion in the part", "no strings changed"). A pass that loads and changes nothing reads `applied: no change, <why>`.
 5. **Verify the part** (next section). Done when the part passed Verify; only then does a higher level use it.
 6. **Screen review (design agent).** After a screen passes Verify, run the design agent's Screen passes. A motion pass becomes a round: the owner picks proposals, and builders apply them with the Primitive motion pass. Done when every design-agent Screen pass has a result in PASSES.
 
@@ -94,11 +94,11 @@ RECOMMEND: <machine-value> - <reason>
 
 ## Verify
 
-Run each Verify row for the part. The static checks need no browser and run on every part. The live checks run when the brief allows a browser; take every screenshot with the Chrome engine. Read each screenshot against DESIGN.md and the floor: lockup alignment (icon and text, label and value), spacing rhythm, hierarchy, every visible sentence. Delete each sentence that restates what the UI shows; fix, then re-shoot.
+Run each Verify row for the part. The static checks need no browser and run on every part. Record the scanner exit and one `Gate <n>: PASS | FAIL | N-A — <evidence or reason>` line per Gate 1-11 in VERIFY; list each failure with file, line and fix. The live checks run when the brief allows a browser; take every screenshot with the Chrome engine. Read each screenshot against DESIGN.md and the floor: lockup alignment (icon and text, label and value), spacing rhythm, hierarchy, every visible sentence. Delete each sentence that restates what the UI shows; fix, then re-shoot.
 
 Harness pages (pickers, state switchers, scenario pages): attended, remove them on the owner's word; headless, remove them before the report. A worst-case data fixture stays as the component's regression data.
 
-Done when the static checks' exit codes are in the draft, the live checks ran or the draft quotes the brief line that rules out a browser, and every screenshot was read after the last fix. The repair-attempt limit in your inherited rules is the ceiling.
+Done when VERIFY holds the scanner exit, the other static checks' exit codes, and one PASS, FAIL or N-A line for each Gate 1-11, with no unresolved failure; the live checks ran or the draft quotes the brief line that rules out a browser, and every screenshot was read after the last fix. The repair-attempt limit in your inherited rules is the ceiling.
 
 ## Report
 
@@ -109,8 +109,9 @@ RESULT: DONE | PARTIAL (time | gate-open | decision | scope) | BLOCKED
 WORK: <surface>, <scope level>, <attended | headless>
 DIRECTION: <DESIGN.md path> | <open parts sent to the owner>
 LOADED: <trigger> -> <skill>, one per line, or "none fired"
-PASSES: <pass> -> applied: <change> | n/a: <fact>, one per line
-VERIFY: static <scanner exit, typecheck>; live <gates, screenshot folder> | not allowed: <brief line>
+PASSES: <skill> -> applied: <change> | n/a: <fact>, one per line
+VERIFY: static <scanner exit, typecheck>; live <screenshot folder> | not allowed: <brief line>
+Gate <n>: PASS | FAIL | N-A — <evidence or reason>, one line per Gate 1-11
 FILES: <changed paths>
 OPEN: <items> | none
 ARTIFACT: <absolute path>
@@ -124,7 +125,7 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 
 | Level | Pass or trigger | Skill | Agent | Notes |
 |---|---|---|---|---|
-| Product | Pass: which overall look and house rules? | design-taste-frontend | both | Public page: "3. Draw the direction" deals the options (design); Screen pass for both: "House rules", plus the sections in its surface file. App screen: references/app-screens.md whole, for its app draw, "13. House rules for app screens" and its table, KPI and chart rules; the page sections do not apply |
+| Product | Pass: which overall look and house rules? | design-taste-frontend | both | Public page: "3. Draw the direction" deals the options (design); Screen pass for both: "House rules", plus the sections in its surface file. App screen: references/app-screens.md whole, for its app draw, "13. House rules for app screens" and its table, KPI and chart rules. Run "2.7 The check": `node <skill>/scripts/lint.mjs --app <source files or folder>` and `node <skill>/scripts/inspect.mjs --app <url or path/to/index.html>`; the page sections do not apply |
 | Product | Pass: reference products, competitors, domain data | researcher (child agent) | design | Spawn it; it returns facts, never decisions |
 | Product | Pass: how was a site the owner names built? | explain-interface | design | n/a when the owner names no site |
 | Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design-md (optional) | design | After Gather facts; a builder never runs it. Vault: the style-vault folder of the DMD repo, `V=$(dirname "$(dirname "$(readlink -f "$(command -v dmd)")")")/style-vault`; outside its repo dmd needs `--archive "$V"`. Create: `dmd create --project <repo> --archive "$V" --query "<domain, mood, density, key screens>"` writes DESIGN.md. Improve: the same flags plus `--out .design-md/improve.md`, so the existing DESIGN.md stays. Its reference styles feed the first round. When they do not fit the product, its DESIGN.md stays a draft and the design-taste-frontend draw for the surface leads the first round. direction.md turns the output into the template |

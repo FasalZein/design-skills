@@ -9,7 +9,13 @@ bash evals/retro/index.sh                      # writes ~/.pi/artifacts/retro/se
 bash evals/retro/compliance.sh 2026-10-23T13   # sessions since that start time
 ```
 
-Both take optional arguments: `index.sh [OUT.tsv]`, `compliance.sh [SINCE] [sessions.tsv]`. Set `PI_SESSIONS_DIR` to read sessions from a folder other than ~/.pi/agent/sessions. They need `jq` and `rg`. Relative paths resolve against your current directory. Both exit 1 on an unreadable input, a failed write or a `PARSE_FAIL` row; a valid empty index exits 0. Tests: `bash evals/retro/tests/run-tests.sh` (scripts/verify.sh runs them).
+Both take optional arguments: `index.sh [OUT.tsv]`, `compliance.sh [SINCE] [sessions.tsv]`. Set `PI_SESSIONS_DIR` to read sessions from a folder other than ~/.pi/agent/sessions. They need `jq` and `rg`. Relative paths resolve against your current directory. Both exit 1 on an unreadable input, a failed write or a `PARSE_FAIL` row; a valid empty index exits 0. Compliance also exits 1 when an applied PASSES entry has no matching skill in the index evidence, with one `MISMATCH` row per entry. Entries name skills, not concerns: `States -> applied` is a mismatch even when state-machine was loaded. Tests: `bash evals/retro/tests/run-tests.sh` (scripts/verify.sh runs them).
+
+## Compliance reports
+
+Compliance reads LOADED and PASSES blocks with entries on the label line or on following lines, including bullet lists. For each applied pass it uses the index's `skills_returned` evidence, including matched routed reference-file reads, not the LOADED claim. Another skill's file covers no pass except its own. Rebuild the index after a session changes.
+
+The final RESULT message with a PASSES field is the report. Otherwise compliance uses a frozen `<session without .jsonl>.report.md` beside the session, then the last direct `write` to the final ARTIFACT path, then the final message. Copy reports written through codemode beside their frozen sessions before checking them; compliance does not parse JavaScript source or guess a report path. This frozen-report fallback matches the scoring workflow; index.sh keeps its existing pass-count source. Compliance recalculates its displayed pass counts from the selected report.
 
 ## What they count
 
