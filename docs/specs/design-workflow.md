@@ -34,7 +34,7 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D7 Stageshow is a leaf with its own gate.** Inside the stage, stageshow's rules win (window chrome, placeholder bars, literal colors, illustrative data). film.mjs checks the stage; design-qa and agent-browser check the host page. kit/ and the demo folder go on the scanner allowlist. AGENTS.md gets one exception line for film.mjs.
 - **D8 No owner-defaults file.** Project preferences go into that project's DESIGN.md through the owner's verdicts.
 - **D9 Route by question** (table below). Skills that answer distinct questions keep a route.
-- **D10 Time.** The 3600 s limit stays. Report draft at the end of intake, updated after each step. When time runs short, cut scope, not steps. PARTIAL carries a reason: time, gate-open, decision or scope.
+- **D10 Time.** The 3600 s limit stays. Report draft at the end of Sort, before the first edit, updated after each step. When time runs short, cut scope, not steps. PARTIAL carries a reason: time, gate-open, decision or scope.
 - **D11 Headless runs** skip any skill's "Initial Response" or reply-and-wait step.
 - **D12 One skill per read call**, whole, unless the route names sections.
 - **D13 Install set.**
@@ -63,7 +63,7 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D23 Design agent skills (owner, 2026-11-03).** The design agent loads every installed skill, so the owner can invoke any of them by command in the pane. skill-gate shows its model no catalog (PI_VISIBLE_SKILLS=none in the agent's env block); routed skills still load by file read. design-builder keeps design-craft as its only skill.
 - **D24 design-md routes for the design agent (owner, 2026-11-03).** design-md (the owner's DMD CLI skill) leaves "Out of the router" for the optional set (D13): it needs the dmd CLI and its style vault.
   - Trigger, Product level, agent design: the project has no DESIGN.md (`dmd create`), or the brief calls its direction weak (`dmd improve`). It runs after Gather facts.
-  - The vault is the style-vault folder of the DMD repo, found from `readlink -f "$(command -v dmd)"`; outside that repo dmd needs `--archive <vault>`.
+  - Follow the design-md skill for the command workflow. direction.md keeps the vault discovery and outside-repo `--archive <vault>` setup that skill does not yet cover. Improve writes `.design-md/improve.md`, preserving the existing DESIGN.md.
   - Its reference styles feed the first grilling round; when they do not fit the product (Harbor eval: 6 brand and marketing sites for a warehouse tool), its DESIGN.md stays a draft and the design-taste-frontend draw leads the first round. direction.md maps its output into the DESIGN.md template; each value stays open until the owner's verdict.
   - A design-builder with no DESIGN.md stops at intake with the DECISION NEEDED block (D16) and never runs design-md.
 
@@ -74,6 +74,8 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 The author’s remove-animations edits code. In this workflow the design agent audits and hands removal plans to builders, who apply the cuts with the animate pass, as with improve-animations. The match route requires an exact recreation, not merely inspiration; it supplements explain-interface and build-design. The icons route requires missing glyphs, not reuse of the existing set. These narrower routes take precedence over the authors’ broader invocation descriptions.
 
 **D35 Cold-storage retro (owner, 2026-11-06).** Tighten pass evidence (D20, D22), per-gate Verify reporting (D6), and inferred structures (D14). The app-screen design-taste-frontend route runs references/app-screens.md, "2.7 The check": `node <skill>/scripts/lint.mjs --app <source files or folder>` and `node <skill>/scripts/inspect.mjs --app <url or path/to/index.html>`. Agent-file final-message rules are a separate slice; the proposed single-file builder exception was not accepted.
+
+**D36 Design-craft trims (owner, 2026-11-06).** Keep one routing table with its agent column (D19). Delegate the DMD command recipe to its skill; keep D24 policy in the route and uncovered vault setup in direction.md. Builders read Gather facts only; attended design-agent grilling steps 2-5 live with the round mechanics in direction.md, with their completion criteria unchanged. Remove negative trigger restatements, preserving independent route and agent boundaries. design-craft is the published home for the report draft lifecycle, process cleanup, and final-message field block; local agent-file duplicates are removed separately. The Craft floor, PASSES evidence rule and per-gate Verify rule stay unchanged.
 
 ## Routing by question (D9, D19, D20)
 
@@ -124,14 +126,16 @@ Pass rows run on every part of their level; trigger rows fire on their condition
 
 ## Architecture
 
-- `SKILL.md`, injected: sort the work (surface: app-screen, public-page, illustration; scope level; attended or headless); the craft floor; the design grilling steps; the build steps with craft passes; Verify; the report; the routing table with its agent column; D3, D10, D11, D12 and D16. Every step ends on a checkable done-condition.
+- `SKILL.md`, injected: sort the work (surface: app-screen, public-page, illustration; scope level; attended or headless); the craft floor; Gather facts and the pointer to attended design-agent grilling; the build steps with craft passes; Verify; the report; the routing table with its agent column; D3, D10, D11, D12 and D16. Every step ends on a checkable done-condition.
 - `surfaces/<surface>.md`: surface rules. app-screen carries the Project Context Scan, the Design Decision Gate and the unique recipes from the old reference files (app shells, lockups, settings, loading tiers, charts, the color kernel, font fallback metrics, sizing and surfaces, density and elevation, the spacing pass), each behind its own trigger. public-page names the design-taste-frontend sections. illustration carries the stageshow hand-off fields.
-- `direction.md`: round mechanics (prototype file, picker, screenshots, open, ask_user pattern with "take parts from others"), the DESIGN.md template, and the mapping of a DMD-generated DESIGN.md into it (D24).
+- `direction.md`, design-agent only: grilling steps 2-5 after Gather facts; DMD vault setup missing from the routed skill; round mechanics (prototype file, picker, screenshots, open, ask_user pattern with "take parts from others"), the DESIGN.md template, and the mapping of a DMD-generated DESIGN.md into it (D24).
 - `skills.md`: the install table, core and optional; platform skills; skills out of the router.
 - `evals/retro/`: index.sh, compliance.sh and a README on running them after a batch (D22).
 - `reference/` is deleted after its unique parts move.
 
 ### Report format
+
+The final message copies the report’s full field block (RESULT through ARTIFACT), even when the brief asks only for a RESULT line; prose may follow. Before completion, stop every process started and confirm its child processes and listening ports are gone.
 
 ```
 RESULT: DONE | PARTIAL (time | gate-open | decision | scope) | BLOCKED
