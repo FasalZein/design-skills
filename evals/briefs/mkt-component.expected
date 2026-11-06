@@ -50,6 +50,13 @@ forbid emil-prototype              # row: Component | Pass: motion or interactio
 forbid break                       # row: Component | Trigger: every scenario on one page, for one look | design (design-only row)
 forbid pick-ui-library             # row: Component | Trigger: a new UI library is needed | design (design-only row)
 forbid design-md                   # row: Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design (another agent's row; a builder with no DESIGN.md stops with DECISION NEEDED, D24)
+# D34: none of the five new triggers fires in this brief.
+forbid keyboard                   # no custom control or dialog ships in this part
+forbid remove-animations          # no owner complaint about excess motion or perceived speed
+forbid match                      # no named screen or component to recreate exactly
+forbid frames                     # no reported jank or new gesture (a staged touch is not a live gesture)
+forbid icons                      # no missing glyphs to draw; existing icons are reused
+
 forbid impeccable                  # out of router: spec D13
 forbid grill-design                # out of router: spec D13
 forbid make-interfaces-feel-better # out of router: spec D13

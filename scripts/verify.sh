@@ -149,6 +149,7 @@ while IFS= read -r cell; do
 done <<EOF
 $ROUTES
 EOF
+[ "$N" -eq 39 ] || bad "expected 39 routed skills after D34, found $N"
 say "routed skills checked ($N)"
 # D33: the public browser route replaces the local-only rule set; N follows the table above.
 echo "$TABLE" | grep -qF "| Verify | Trigger: any browser step | agent-browser | both |" \

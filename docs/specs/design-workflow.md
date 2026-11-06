@@ -38,6 +38,7 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D11 Headless runs** skip any skill's "Initial Response" or reply-and-wait step.
 - **D12 One skill per read call**, whole, unless the route names sections.
 - **D13 Install set.**
+  - D34 adds five core skills from their authors: raphaelsalaja/skills (keyboard, match, frames, icons) and emilkowalski/skills (remove-animations). The Playful-Design/router bundle and Raphael’s always-on principles stay out.
   - Core: FasalZein/design-skills (design-craft, design-qa, laws-of-ux), jakubkrehel/skills, emilkowalski/skill, benjitaylor/skills (stageshow), Leonxlnx/taste-skill (design-taste-frontend), vercel-labs/agent-browser (the official skill), and the agent-browser CLI on the Chrome engine.
   - Optional, used only when installed and their trigger fires: shadcn and coss (the project uses them), mattpocock prototype (a logic question), copywriting (marketing copy), design-md (no DESIGN.md or a weak direction; needs the dmd CLI and its vault, D24).
   - Dropped (owner, 2026-11-03): the pencil-design route. It needs a Pen MCP server that is not confirmed on this machine, and its skill update failed on 2026-11-03. It has no routing row, no skills.md row and no eval expectation.
@@ -54,7 +55,7 @@ The design agent works a design tree with the owner in rounds of prototypes, the
 - **D16 Open parts stop headless runs.** A builder never decides an open part. It stops on that part with a DECISION NEEDED block, and the parent asks the owner. There is no self-picked direction.
 - **D17 Children of the design agent:** scout, researcher, design-builder.
 - **D18 Surfaces.** The router sorts work by surface, so `design-craft/surfaces/` holds one file per surface: app-screen, public-page, illustration. A Figma file or a design image is a source, not a surface: build-design is a trigger row. The headings "Craft floor" (SKILL.md) and "Project Context Scan" (surfaces/app-screen.md) keep these names; design-qa scanner hints point to them.
-- **D19 One routing table with an agent column** (design | builder | both). Both agents see the whole table and act only on their rows. Each skill has one row; its meaning lives there. The pencil-design row is dropped (D13, owner 2026-11-03).
+- **D19 One routing table with an agent column** (design | builder | both). Both agents see the whole table and act only on their rows. Each skill has one row; its meaning lives there. D34 adds five narrow triggers, bringing the routed skill count from 34 to 39 (excluding the researcher child agent). The pencil-design row is dropped (D13, owner 2026-11-03).
 - **D20 Craft passes per level.** Each level has a fixed pass list; each pass is one skill used as a lens, run by the agent its row names. A part is done when every pass of its level has a result: applied (skill loaded; what changed) or n/a (an observable fact). A pass that does not apply loads nothing. A component group (for example, a page section) runs the Screen and the Component passes; a pass that does not fit records n/a. The report carries a PASSES line. No verify.sh coverage lint.
 - **D21 New routes:** interface-review (builder; the part changed existing UI: review its own diff for regressions before reporting); find-animation-opportunities (design; after a screen is built, a motion round: the owner picks proposals, builders apply them with animate); improve-animations (design; the owner asks to improve existing motion: an audit plus plans that builders run).
 - **D22 Outcome loop.** `evals/retro/index.sh` and `compliance.sh` index design and design-builder sessions. A skill counts as loaded when its text came back in a tool result (its frontmatter `name:` line), never by a path in call arguments. After each batch they report passes run, skills that changed results, cost, peak context and owner corrections.
@@ -66,6 +67,10 @@ The design agent works a design tree with the owner in rounds of prototypes, the
   - A design-builder with no DESIGN.md stops at intake with the DECISION NEEDED block (D16) and never runs design-md.
 
 **D33 Published browser route (owner, 2026-11-04).** Route every browser step to the official agent-browser skill from vercel-labs/agent-browser. Its stub loads `agent-browser skills get core`; install it with `npx skills add vercel-labs/agent-browser -g -s agent-browser`. Published commands use `agent-browser`. Screenshots count only from Chrome; machines configured for another engine set `AGENT_BROWSER_ENGINE=chrome` on every call or use a local wrapper. browser-checks remains an optional local rule set, not a published dependency. This supersedes D13’s exclusion of the stub.
+
+**D34 Author skills, one router (owner, 2026-11-06).** Keep design-craft as the only router. The Playful-Design/router comparison found a dispatcher over copied skills, not a replacement workflow: its bundle risks a prototype name clash, ship pushes, and always-on principles that overlap the better-* passes. Install only keyboard, match, frames and icons from raphaelsalaja/skills, and remove-animations from emilkowalski/skills. Their five trigger rows are recorded below; better-accessibility remains a pass. skill-gate hides the model catalog; the routing conditions, not installation alone, decide file reads (D3a, D23).
+
+The author’s remove-animations edits code. In this workflow the design agent audits and hands removal plans to builders, who apply the cuts with the animate pass, as with improve-animations. The match route requires an exact recreation, not merely inspiration; it supplements explain-interface and build-design. The icons route requires missing glyphs, not reuse of the existing set. These narrower routes take precedence over the authors’ broader invocation descriptions.
 
 ## Routing by question (D9, D19, D20)
 
@@ -83,7 +88,9 @@ Pass rows run on every part of their level; trigger rows fire on their condition
 | Screen, flow | Trigger: a product illustration or demo on a page | stageshow | both |
 | Screen, flow | Trigger: a state model or logic question is open | prototype (optional) | design |
 | Screen, flow | Trigger: a Figma file or a design image is the source | build-design | builder |
+| Screen, flow | Trigger: the brief names a screen or component to recreate exactly | match | builder |
 | Screen, flow | Trigger: the owner asks to improve existing motion | improve-animations | design |
+| Screen, flow | Trigger: the owner says motion is too much or the app feels slow | remove-animations | design |
 | Component | Pass: structure, density, emphasis, type or voice, while the form is open | variant | design |
 | Component | Pass: motion or interaction feel, while it is open | emil-prototype | design |
 | Component | Pass: custom controls, dialogs, focus, keyboard | better-accessibility | builder |
@@ -97,6 +104,7 @@ Pass rows run on every part of their level; trigger rows fire on their condition
 | Component | Trigger: the project uses shadcn (components.json) | shadcn (optional) | builder |
 | Component | Trigger: the project uses coss or Base UI | coss (optional) | builder |
 | Component | Trigger: a new UI library is needed | pick-ui-library | design |
+| Component | Trigger: a custom control or dialog ships | keyboard | builder |
 | Primitive | Pass: palette, semantic tokens, contrast, dark mode | better-colors | builder |
 | Primitive | Pass: type scale, font loading, wrapping | better-typography | builder |
 | Primitive | Pass: spacing, grouping, responsive, RTL | better-layout | builder |
@@ -104,10 +112,12 @@ Pass rows run on every part of their level; trigger rows fire on their condition
 | Primitive | Pass: motion tokens and new animations | animate | builder |
 | Primitive | Trigger: springs, gestures, drag, sheets | apple-design | builder |
 | Primitive | Trigger: a motion feel call | emil-design-eng | builder |
+| Primitive | Trigger: the work draws icons missing from the current set | icons | builder |
 | Any | Trigger: phone users | mobile-native | both |
 | Any | Trigger: marketing copy | copywriting (optional) | both |
 | Verify | Pass: every part | design-qa | both |
 | Verify | Trigger: any browser step | agent-browser | both |
+| Verify | Trigger: the owner reports jank, or the part adds a gesture | frames | builder |
 
 ## Architecture
 
