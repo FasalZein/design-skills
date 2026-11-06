@@ -22,7 +22,7 @@ disable-model-invocation: true
 
 2. **Scope level.** The level of the largest unit the work asks for: product, screen or flow, component group, component, or primitive (color, type, spacing, radius, motion tokens). A section of a page is a component group. A component group runs the Screen and the Component passes; a pass that does not fit records n/a.
 3. **Mode.** **Attended**: the owner answers in this session through ask_user. **Headless**: no one answers; the brief is the owner's word.
-4. **Report draft.** Write it under your artifact directory in the Report format.
+4. **Report draft.** Write it under your artifact directory in the Report format, before the first edit; update it after each step.
 
 Done when the draft holds the WORK line, the surface files are read, and LOADED lists every fired trigger as `(pending)`.
 
@@ -37,7 +37,7 @@ Done when the draft holds the WORK line, the surface files are read, and LOADED 
 
 ## Time
 
-The report draft exists from the end of Sort and is updated after each step. When time runs short, cut scope (fewer parts, states or viewports), never steps: the static checks and the Report run in every run. A PARTIAL result carries one reason: time, gate-open, decision or scope.
+When time runs short, cut scope (fewer parts, states or viewports), never steps: the static checks and the Report run in every run. A PARTIAL result carries one reason: time, gate-open, decision or scope.
 
 ## Craft floor
 
@@ -68,10 +68,7 @@ A context-sensitive treatment (warm neutrals, texture, large radii, uppercase mi
 The owner decides; you find the facts and build the prototypes. Headless runs take step 1 alone, reading the facts themselves, then go to the build; an open decision there follows "Open parts".
 
 1. **Gather facts.** Read the brief and every file it names; DESIGN.md anywhere in the repo (`rg --files -g DESIGN.md`), docs/design/ and UX or UI specs; the token layer and the component layer; the two nearest sibling screens and the gallery route, if one exists. **No DESIGN.md:** a design-builder stops here with the DECISION NEEDED block of "Open parts", Q1 asking for the direction, and changes no file; the design agent fires its Product trigger row for a missing DESIGN.md after this step. Send each fact you cannot read to a child: scout for the existing code, researcher for reference products, competitors and domain data. When the part changes an existing screen and a browser is allowed, take the intake screenshots now, before the first edit: step 1 of "Before and after" in the Verify row's "## Live checks". Done when the draft lists the sources read and each child's question, the intake shots exist in before/ or the draft reads `before-and-after: N-A — <reason>`, and no project file has changed.
-2. **Map the design tree.** The root is the scope level; below it come the lower levels of Sort step 2. A decision is closed when DESIGN.md, an approved token or an existing component settles it; note that source. Go down only through levels that hold an open decision. Your surface file adds the decisions its surface needs. Done when every decision in the draft's tree reads `open` or `closed: <source>`.
-3. **Ask a round.** The **frontier** is every open decision whose parent decisions are closed. Run the design agent's passes and triggers of the frontier's levels; for an open overall look, the Product direction pass deals the options and supplies the house rules. Build, check and ask the round with [direction.md](direction.md). A question that waits on a running child waits; ask the rest now. Done when the owner has answered every question of the round.
-4. **Record each verdict** in DESIGN.md as the owner makes it, with the template in direction.md, then recompute the frontier. Repeat from step 3 until the frontier is empty. A small section can finish in one round; a whole page usually takes the page, its sections, its open components, and a primitives sheet when it adds tokens. Done when every decision in the tree is closed.
-5. **Approve.** Ask the owner to approve DESIGN.md as written. Done when the owner approved it and DIRECTION in the draft names its path.
+**Design agent, attended:** after Gather facts, continue with steps 2-5 in [direction.md](direction.md) to map the tree, run rounds and approve DESIGN.md. Builders take step 1 only.
 
 ## Bottom-up build
 
@@ -102,7 +99,7 @@ Done when VERIFY holds the scanner exit, the other static checks' exit codes, an
 
 ## Report
 
-Fill the draft in this format. Stop every process you started.
+Fill the draft in this format. Stop every process you started; confirm its child processes and listening ports are gone. Your final message is the report’s full field block (RESULT through ARTIFACT), copied from the report file, even when the brief asks only for a RESULT line; prose may follow.
 
 ```
 RESULT: DONE | PARTIAL (time | gate-open | decision | scope) | BLOCKED
@@ -128,16 +125,16 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 | Product | Pass: which overall look and house rules? | design-taste-frontend | both | Public page: "3. Draw the direction" deals the options (design); Screen pass for both: "House rules", plus the sections in its surface file. App screen: references/app-screens.md whole, for its app draw, "13. House rules for app screens" and its table, KPI and chart rules. Run "2.7 The check": `node <skill>/scripts/lint.mjs --app <source files or folder>` and `node <skill>/scripts/inspect.mjs --app <url or path/to/index.html>`; the page sections do not apply |
 | Product | Pass: reference products, competitors, domain data | researcher (child agent) | design | Spawn it; it returns facts, never decisions |
 | Product | Pass: how was a site the owner names built? | explain-interface | design | n/a when the owner names no site |
-| Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design-md (optional) | design | After Gather facts; a builder never runs it. Vault: the style-vault folder of the DMD repo, `V=$(dirname "$(dirname "$(readlink -f "$(command -v dmd)")")")/style-vault`; outside its repo dmd needs `--archive "$V"`. Create: `dmd create --project <repo> --archive "$V" --query "<domain, mood, density, key screens>"` writes DESIGN.md. Improve: the same flags plus `--out .design-md/improve.md`, so the existing DESIGN.md stays. Its reference styles feed the first round. When they do not fit the product, its DESIGN.md stays a draft and the design-taste-frontend draw for the surface leads the first round. direction.md turns the output into the template |
+| Product | Trigger: the project has no DESIGN.md (create), or the brief calls its direction weak (improve) | design-md (optional) | design | After Gather facts; a builder never runs it. Follow the design-md skill’s command workflow, with the vault setup in [direction.md](direction.md). Improve writes `.design-md/improve.md`, so the existing DESIGN.md stays. When its reference styles do not fit the product, its DESIGN.md stays a draft and the design-taste-frontend draw for the surface leads the first round. direction.md turns the output into the template |
 | Screen, flow | Pass: navigation, forms, multi-step flows, destructive actions | laws-of-ux | both |  |
 | Screen, flow | Pass: what here should move? | find-animation-opportunities | design | After the screen passes Verify: a motion round; builders apply the picks |
 | Screen, flow | Pass: a review across domains | better-interface | builder | On the built screen |
 | Screen, flow | Trigger: a product illustration or demo on a page | stageshow | both | Through surfaces/illustration.md |
 | Screen, flow | Trigger: a state model or logic question is open | prototype (optional) | design | LOGIC branch only |
 | Screen, flow | Trigger: a Figma file or a design image is the source | build-design | builder | The file closes the decisions it shows; a value with no token is an open primitive decision. No Figma MCP: build from an exported image, else PARTIAL (scope) |
-| Screen, flow | Trigger: the brief names a screen or component to recreate exactly | match | builder | Read the real source and measured values, then compare side by side. Inspiration alone does not fire it; explain-interface and build-design keep their own rows |
+| Screen, flow | Trigger: the brief names a screen or component to recreate exactly | match | builder | Read the real source and measured values, then compare side by side; explain-interface and build-design keep their own rows |
 | Screen, flow | Trigger: the owner asks to improve existing motion | improve-animations | design | An audit plus plans; builders run the plans |
-| Screen, flow | Trigger: the owner says motion is too much or the app feels slow | remove-animations | design | No complaint about excess motion or speed: does not fire. Audit and removal plans only here, overriding its edit step; builders apply the cuts with the animate pass |
+| Screen, flow | Trigger: the owner says motion is too much or the app feels slow | remove-animations | design | Audit and removal plans only here, overriding its edit step; builders apply the cuts with the animate pass |
 | Component | Pass: structure, density, emphasis, type or voice, while the form is open | variant | design | In a round, the variants go into the round's prototype file; n/a once the form is decided |
 | Component | Pass: motion or interaction feel, while it is open | emil-prototype | design | n/a once the feel is decided |
 | Component | Pass: custom controls, dialogs, focus, keyboard | better-accessibility | builder |  |
@@ -151,7 +148,7 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 | Component | Trigger: the project uses shadcn (components.json) | shadcn (optional) | builder |  |
 | Component | Trigger: the project uses coss or Base UI | coss (optional) | builder |  |
 | Component | Trigger: a new UI library is needed | pick-ui-library | design | The pick goes to the owner |
-| Component | Trigger: a custom control or dialog ships | keyboard | builder | Walk the running page with keys: reach and operation, then focus return after a dialog closes. No custom control or dialog: does not fire; better-accessibility stays the pass |
+| Component | Trigger: a custom control or dialog ships | keyboard | builder | Walk the running page with keys: reach and operation, then focus return after a dialog closes; better-accessibility stays the pass |
 | Primitive | Pass: palette, semantic tokens, contrast, dark mode | better-colors | builder |  |
 | Primitive | Pass: type scale, font loading, wrapping | better-typography | builder |  |
 | Primitive | Pass: spacing, grouping, responsive, RTL | better-layout | builder |  |
@@ -159,9 +156,9 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 | Primitive | Pass: motion tokens and new animations | animate | builder |  |
 | Primitive | Trigger: springs, gestures, drag, sheets | apple-design | builder |  |
 | Primitive | Trigger: a motion feel call | emil-design-eng | builder |  |
-| Primitive | Trigger: the work draws icons missing from the current set | icons | builder | Measure the existing set and show the new glyphs on one sheet. Reusing existing icons does not fire it |
+| Primitive | Trigger: the work draws icons missing from the current set | icons | builder | Measure the existing set and show the new glyphs on one sheet |
 | Any | Trigger: phone users | mobile-native | both |  |
 | Any | Trigger: marketing copy | copywriting (optional) | both |  |
 | Verify | Pass: every part | design-qa | both | "## Static checks" on every part; "## Live checks" on every part when a browser is allowed, its intake shots at Gather facts |
 | Verify | Trigger: any browser step | agent-browser | both | Before the first browser command; its stub loads `agent-browser skills get core` |
-| Verify | Trigger: the owner reports jank, or the part adds a gesture | frames | builder | Trace the interaction on a throttled CPU and prove the fix with a second trace. Neither reported jank nor a new gesture: does not fire |
+| Verify | Trigger: the owner reports jank, or the part adds a gesture | frames | builder | Trace the interaction on a throttled CPU and prove the fix with a second trace |

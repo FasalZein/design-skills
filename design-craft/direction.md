@@ -1,6 +1,17 @@
 # Prototype rounds
 
-Read this at the first round of design grilling. A round puts the whole frontier to the owner as prototypes and ends on the owner's answers. Every question about a look carries a prototype; worded options alone are never a round.
+Design agent only: read this after Gather facts for attended grilling, or when the Product DMD trigger fires. A round puts the whole frontier to the owner as prototypes and ends on the owner's answers. Every question about a look carries a prototype; worded options alone are never a round.
+
+## Design grilling (steps 2-5)
+
+2. **Map the design tree.** The root is the scope level; below it come the lower levels of Sort step 2. A decision is closed when DESIGN.md, an approved token or an existing component settles it; note that source. Go down only through levels that hold an open decision. Your surface file adds the decisions its surface needs. Done when every decision in the draft's tree reads `open` or `closed: <source>`.
+3. **Ask a round.** The **frontier** is every open decision whose parent decisions are closed. Run the design agent's passes and triggers of the frontier's levels; for an open overall look, the Product direction pass deals the options and supplies the house rules. Build, check and ask the round with the round mechanics below. A question that waits on a running child waits; ask the rest now. Done when the owner has answered every question of the round.
+4. **Record each verdict** in DESIGN.md as the owner makes it, with the template below, then recompute the frontier. Repeat from step 3 until the frontier is empty. A small section can finish in one round; a whole page usually takes the page, its sections, its open components, and a primitives sheet when it adds tokens. Done when every decision in the tree is closed.
+5. **Approve.** Ask the owner to approve DESIGN.md as written. Done when the owner approved it and DIRECTION in the draft names its path.
+
+## DMD vault setup
+
+Follow the routed skill’s command workflow. The vault is the style-vault folder of the DMD repo: `V=$(dirname "$(dirname "$(readlink -f "$(command -v dmd)")")")/style-vault`. Outside that repo, pass `--archive "$V"` to DMD commands, including preflight, create and improve. Pass `--query` to improve too.
 
 ## Build the round
 
