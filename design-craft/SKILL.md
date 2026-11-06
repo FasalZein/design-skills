@@ -134,7 +134,9 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 | Screen, flow | Trigger: a product illustration or demo on a page | stageshow | both | Through surfaces/illustration.md |
 | Screen, flow | Trigger: a state model or logic question is open | prototype (optional) | design | LOGIC branch only |
 | Screen, flow | Trigger: a Figma file or a design image is the source | build-design | builder | The file closes the decisions it shows; a value with no token is an open primitive decision. No Figma MCP: build from an exported image, else PARTIAL (scope) |
+| Screen, flow | Trigger: the brief names a screen or component to recreate exactly | match | builder | Read the real source and measured values, then compare side by side. Inspiration alone does not fire it; explain-interface and build-design keep their own rows |
 | Screen, flow | Trigger: the owner asks to improve existing motion | improve-animations | design | An audit plus plans; builders run the plans |
+| Screen, flow | Trigger: the owner says motion is too much or the app feels slow | remove-animations | design | No complaint about excess motion or speed: does not fire. Audit and removal plans only here, overriding its edit step; builders apply the cuts with the animate pass |
 | Component | Pass: structure, density, emphasis, type or voice, while the form is open | variant | design | In a round, the variants go into the round's prototype file; n/a once the form is decided |
 | Component | Pass: motion or interaction feel, while it is open | emil-prototype | design | n/a once the feel is decided |
 | Component | Pass: custom controls, dialogs, focus, keyboard | better-accessibility | builder |  |
@@ -148,6 +150,7 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 | Component | Trigger: the project uses shadcn (components.json) | shadcn (optional) | builder |  |
 | Component | Trigger: the project uses coss or Base UI | coss (optional) | builder |  |
 | Component | Trigger: a new UI library is needed | pick-ui-library | design | The pick goes to the owner |
+| Component | Trigger: a custom control or dialog ships | keyboard | builder | Walk the running page with keys: reach and operation, then focus return after a dialog closes. No custom control or dialog: does not fire; better-accessibility stays the pass |
 | Primitive | Pass: palette, semantic tokens, contrast, dark mode | better-colors | builder |  |
 | Primitive | Pass: type scale, font loading, wrapping | better-typography | builder |  |
 | Primitive | Pass: spacing, grouping, responsive, RTL | better-layout | builder |  |
@@ -155,7 +158,9 @@ Each skill has one row. **Pass** rows run on every part of their level (Craft pa
 | Primitive | Pass: motion tokens and new animations | animate | builder |  |
 | Primitive | Trigger: springs, gestures, drag, sheets | apple-design | builder |  |
 | Primitive | Trigger: a motion feel call | emil-design-eng | builder |  |
+| Primitive | Trigger: the work draws icons missing from the current set | icons | builder | Measure the existing set and show the new glyphs on one sheet. Reusing existing icons does not fire it |
 | Any | Trigger: phone users | mobile-native | both |  |
 | Any | Trigger: marketing copy | copywriting (optional) | both |  |
 | Verify | Pass: every part | design-qa | both | "## Static checks" on every part; "## Live checks" on every part when a browser is allowed, its intake shots at Gather facts |
 | Verify | Trigger: any browser step | agent-browser | both | Before the first browser command; its stub loads `agent-browser skills get core` |
+| Verify | Trigger: the owner reports jank, or the part adds a gesture | frames | builder | Trace the interaction on a throttled CPU and prove the fix with a second trace. Neither reported jank nor a new gesture: does not fire |

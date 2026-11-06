@@ -42,9 +42,16 @@ Install all of these. design-craft itself comes from FasalZein/design-skills: `n
 | find-animation-opportunities | What here should move? | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s find-animation-opportunities` |
 | improve-animations | The owner asks to improve existing motion | emilkowalski/skill | `npx skills add emilkowalski/skill -g -s improve-animations` |
 | emil-prototype | Motion or interaction feel is open | emilkowalski/skill (not in the lock file) | `npx skills add emilkowalski/skill -g -s prototype`, then rename the folder and its `name:` field to emil-prototype |
+| remove-animations | The owner says motion is too much or the app feels slow | emilkowalski/skills | `npx skills add emilkowalski/skills -g -s remove-animations` |
+| match | The brief names a screen or component to recreate exactly | raphaelsalaja/skills | `npx skills add raphaelsalaja/skills -g -s match` |
+| keyboard | A custom control or dialog ships | raphaelsalaja/skills | `npx skills add raphaelsalaja/skills -g -s keyboard` |
+| icons | The work draws icons missing from the current set | raphaelsalaja/skills | `npx skills add raphaelsalaja/skills -g -s icons` |
+| frames | The owner reports jank, or the part adds a gesture | raphaelsalaja/skills | `npx skills add raphaelsalaja/skills -g -s frames` |
 | agent-browser | Any browser step; load the CLI workflow with `agent-browser skills get core` | vercel-labs/agent-browser | `npx skills add vercel-labs/agent-browser -g -s agent-browser` |
 
 emil-prototype is Emil Kowalski's prototype skill under a new name, because mattpocock/skills already has a skill named prototype. Its SKILL.md and PICKER.md confirm the author; the exact repository path is unverified.
+
+The five D34 additions (keyboard, match, frames, icons and remove-animations) were checked against their author installs on 2026-11-06.
 
 The browser: the agent-browser CLI on the Chrome engine. See [live-verification.md](../design-qa/reference/live-verification.md) for engine setup.
 
@@ -82,3 +89,5 @@ These stay installed for manual use. The router never loads them.
 | hallmark | A second public-page system; it contradicts the taste skill's rules |
 | coss-particles | An example index for coss |
 | build-design-library | A library build; the owner starts it |
+
+Kept out of the install set: the Playful-Design/router bundle (a dispatcher over copies, a prototype name clash, and ship pushes); Raphael’s always-on principles overlap the better-* passes.
