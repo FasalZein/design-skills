@@ -1,0 +1,4 @@
+{"type":"custom","customType":"pi-subagents_launch_metadata","timestamp":"2026-11-06T10:00:00Z","data":{"agent":"design","model":"m/ref","title":"multiline compliance"}}
+{"type":"message","timestamp":"2026-11-06T10:01:00Z","message":{"role":"user","content":[{"type":"text","text":"Build the part."}]}}
+{"type":"message","timestamp":"2026-11-06T10:02:00Z","message":{"role":"toolResult","toolCallId":"read-states","content":[{"type":"text","text":"---\nname: state-machine\ndescription: States.\n---\n## States\nUse one state."}]}}
+{"type":"message","timestamp":"2026-11-06T10:03:00Z","message":{"role":"assistant","content":[{"type":"text","text":"RESULT: DONE\nLOADED:\n- states -> state-machine\n- look -> demo-taste\nPASSES:\n- state-machine -> applied: explicit states\n- laws-of-ux -> applied: nav hierarchy\n- States -> applied: state feedback\n- break-ui -> n/a: no data\nVERIFY: scanner exit 0\n"}]}}

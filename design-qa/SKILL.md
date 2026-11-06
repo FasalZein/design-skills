@@ -7,13 +7,13 @@ disable-model-invocation: true
 
 # Design QA
 
-Structured quality gate for UI code. Run against any component, page, or feature before shipping. Mechanical rows pass or fail; judgment rows apply the test stated in the row. Gates 1–11: report failures only. Gate 12: list every machine probe with its measured result, pass or fail.
+Structured quality gate for UI code. Run against any component, page, or feature before shipping. Mechanical rows pass or fail; judgment rows apply the test stated in the row. Gates 1–11: report one PASS, FAIL or N-A line per gate, with evidence or an N-A reason; detail failures by file, line and fix. Gate 12: list every machine probe with its measured result, pass or fail.
 
 Verify has two blocks. **Static checks** run on every job and need no browser: the scanner, then Gates 1–11 in order. **Live checks** run when a browser is allowed: before-and-after screenshots and Gate 12. When no browser is allowed, record `live: not allowed — <brief line>` in the report.
 
 ## Static checks
 
-**Complete when** the scanner exit code is recorded and Gates 1–11 are walked in order, with every failure listed by file, line, and fix.
+**Complete when** the scanner exit code is recorded and Gates 1–11 are walked in order, with one PASS, FAIL or N-A line per gate and every failure listed by file, line, and fix.
 
 ### Scanner
 
@@ -250,6 +250,9 @@ Exact commands, probe JavaScript, and evidence schema: **READ [reference/live-ve
 
 ```markdown
 ## QA Report: [Component/Page Name]
+
+Scanner exit: <code>
+Gate <n>: PASS | FAIL | N-A — <evidence or reason>, one line per Gate 1–11
 
 ### Critical (must fix before merge)
 - **[Gate]: [Check]** — [File:Line] — [Issue and fix]

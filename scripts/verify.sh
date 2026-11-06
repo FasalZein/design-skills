@@ -158,13 +158,14 @@ echo "$TABLE" | grep -qF "| Verify | Trigger: any browser step | agent-browser |
 [ "$(echo "$TABLE" | awk -F'|' '$4 ~ /^ design-md / {a=$5; gsub(/ /,"",a); print a}')" = design ] && say "design-md row is design-only" || bad "design-md must have one Routing table row with agent design"
 
 # 12. The router names skills only in its Routing table and surface pointers (the rows that link surfaces/);
+# D35 permits skill names in the Craft passes step to explain which files cannot cover another pass.
 # direction.md names none. Common English words that are also skill names are not checked.
-PROSE=$( { awk '/^## Routing table/{exit} {print}' "$DC" | grep -v '](surfaces/'; cat "$ROOT/design-craft/direction.md"; } )
+PROSE=$( { awk '/^## Routing table/{exit} {print}' "$DC" | grep -v '](surfaces/' | grep -v '^4\. \*\*Craft passes\.\*\*'; cat "$ROOT/design-craft/direction.md"; } )
 for name in $ROUTED; do
   case "$name" in prototype|variant|break|animate) continue;; esac
-  echo "$PROSE" | grep -qE -- "(^|[^A-Za-z0-9-])$name([^A-Za-z0-9-]|\$)" && bad "design-craft names $name outside the Routing table and surface pointers"
+  echo "$PROSE" | grep -qE -- "(^|[^A-Za-z0-9-])$name([^A-Za-z0-9-]|\$)" && bad "design-craft names $name outside the Routing table, surface pointers and Craft passes evidence rule"
 done
-say "skill names stay in the Routing table and surface pointers"
+say "skill names stay in the Routing table, surface pointers and Craft passes evidence rule"
 # 12-r. Retired routes stay retired (owner decision 25): no live text names pencil-design or its .pen source.
 # The spec keeps the record of the drop (docs/specs is not checked).
 RETIRED=$(grep -rnE --exclude-dir=node_modules --exclude-dir=.eval-runs -- 'pencil-design|\.lib\.pen\b|\.pen\b' \

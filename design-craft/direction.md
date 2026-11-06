@@ -21,7 +21,7 @@ Done when the owner answered every question; a cancelled ask is asked again once
 
 ## Next round
 
-Go one level deeper per verdict: the answers close decisions, and their children join the frontier. Keep the same base file and add a new round folder. When the frontier is empty, keep only the last round's prototype on the owner's word.
+Go one level deeper per verdict: the answers close decisions, and their children join the frontier. A screen or page structure you infer from a verdict stays open until it is shown in a round or the brief names that structure. Never close it inside the approval question. Keep the same base file and add a new round folder. When the frontier is empty, keep only the last round's prototype on the owner's word.
 
 Hand the result off by path: the builder brief names the DESIGN.md path. A decision record written against the prototype's own tokens is no hand-off.
 

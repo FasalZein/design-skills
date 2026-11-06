@@ -48,7 +48,8 @@ expect "f10 asks" asks 2
 
 # F11: compliance resolves a relative TSV against the caller's directory.
 ( cd "$WORK/caller" && PI_SESSIONS_DIR="$FIX/good" bash "$RETRO/compliance.sh" 2026-11-03T05 out/sessions.tsv >"$WORK/comp.log" 2>&1 ); st=$?
-[ "$st" -eq 0 ] && grep -q '^== sessions since 2026-11-03T05: 7$' "$WORK/comp.log" && ok "F11 compliance reads a relative TSV" || { no "F11 compliance on relative TSV (exit $st)"; cat "$WORK/comp.log"; }
+# f9 claims better-writing without loading it: relative-path resolution succeeds, compliance fails.
+[ "$st" -eq 1 ] && grep -qF 'pass=[better-writing]' "$WORK/comp.log" && grep -q '^== sessions since 2026-11-03T05: 7$' "$WORK/comp.log" && ok "F11 compliance reads a relative TSV" || { no "F11 compliance on relative TSV (exit $st)"; cat "$WORK/comp.log"; }
 
 # F12: failures exit nonzero; a valid empty index exits 0.
 PI_SESSIONS_DIR="$FIX/good" bash "$RETRO/compliance.sh" 2026-11-03T05 "$WORK/missing.tsv" >/dev/null 2>&1 && no "F12 compliance with a missing TSV exits 0" || ok "F12 compliance with a missing TSV exits nonzero"
@@ -154,6 +155,8 @@ cmp_out() { # cmp_out name since; expected output on stdin
 cmp_out "compliance per-session lines and summary" 2026-11-04T06 <<'EOF'
 == sessions since 2026-11-04T06: 2
 2026-11-04T06:00 design-builder m/ref scan=1 shots=1 chrome=1 plainAB=1 tsc=1 followups=2 asks=3 passes=2 applied/1 n/a returned=[alpha,beta,gamma] claimed=[ alpha, beta]
+MISMATCH 2026-11-04T06:00 design-builder m/ref pass=[copy] applied without own skill text
+MISMATCH 2026-11-04T06:00 design-builder m/ref pass=[layout] applied without own skill text
 2026-11-04T06:30 design-builder m/ref scan=0 shots=0 chrome=0 plainAB=0 tsc=0 followups=0 asks=0 passes=0 applied/0 n/a returned=[-] claimed=[-]
 == summary by agent and model (skills = skill texts returned in tool results)
 design-builder m/ref: runs=2 cost=$0.83 peak_ctx_max=2010 skills_mean=1.5 zero_skill_runs=1 followups=2
@@ -196,6 +199,25 @@ expect "r3 partial reference read" skills_returned demo-taste
 # A failed read, text that is not the file's, a missing file, and a references/ folder outside a skills/ folder.
 expect "r2 reference not loaded" skills_returned ""
 expect "r2 reference not loaded" skill_count 0
+
+# D35: multiline fields, bullet entries, and one mismatch per unsupported applied pass.
+PI_SESSIONS_DIR="$FIX/compliance" bash "$RETRO/index.sh" "$WORK/compliance.tsv" >/dev/null 2>&1
+PI_SESSIONS_DIR="$FIX/compliance" bash "$RETRO/compliance.sh" 2026-11-06 "$WORK/compliance.tsv" >"$WORK/mismatch.log" 2>&1; st=$?
+[ "$st" -eq 1 ] && ok "D35 applied without own skill text exits 1" || no "D35 unsupported applied passes exit $st"
+[ "$(grep -c '^MISMATCH ' "$WORK/mismatch.log")" -eq 2 ] && ok "D35 one mismatch per unsupported entry" || no "D35 mismatch count"
+grep -qF 'pass=[laws-of-ux]' "$WORK/mismatch.log" && grep -qF 'pass=[States]' "$WORK/mismatch.log" && ok "D35 skill and concern names both checked" || no "D35 missing skill or concern mismatch"
+grep -qF 'claimed=[- states -> state-machine; - look -> demo-taste]' "$WORK/mismatch.log" && ok "D35 LOADED block on its own line" || no "D35 multiline LOADED lost"
+
+# A frozen report recovers a codemode-written report; a matching reference read covers only its own skill.
+for f in "$WORK"/refs/*.jsonl; do
+  printf 'RESULT: DONE\nLOADED:\n- look -> demo-taste\nPASSES:\n- demo-taste -> applied: tuned the layout\n- state-machine -> n/a: one state\nVERIFY: scanner exit 0\n' > "${f%.jsonl}.report.md"
+done
+PI_SESSIONS_DIR="$WORK/refs" bash "$RETRO/compliance.sh" 2026-11-03 "$WORK/refs.tsv" >"$WORK/refs-comp.log" 2>&1; st=$?
+[ "$st" -eq 1 ] && [ "$(grep -c '^MISMATCH ' "$WORK/refs-comp.log")" -eq 1 ] && ok "D35 reference text covers its own pass; failed reference read does not" || no "D35 reference evidence mismatch"
+# Keep only the two sessions whose reference text came back, to prove the success exit too.
+awk -F'\t' 'NR==1 || $14==1' "$WORK/refs.tsv" > "$WORK/refs-ok.tsv"
+PI_SESSIONS_DIR="$WORK/refs" bash "$RETRO/compliance.sh" 2026-11-03 "$WORK/refs-ok.tsv" >"$WORK/refs-ok.log" 2>&1 && ok "D35 evidenced applied and n/a passes exit 0" || no "D35 evidenced passes rejected"
+grep -q 'passes=1 applied/1 n/a' "$WORK/refs-ok.log" && ok "D35 frozen report supplies PASSES" || no "D35 frozen report not read"
 
 echo "----"
 [ "$FAILS" -eq 0 ] && { echo "retro tests: PASS"; exit 0; } || { echo "retro tests: $FAILS failure(s)"; exit 1; }
